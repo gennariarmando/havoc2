@@ -26,11 +26,11 @@ project "box2d"
 	objdir ("vendor/box2d/obj")
 
     files {
-		"vendor/box2d/**.*",
+		"vendor/box2d/src/**.*",
     }
 
     includedirs {
-        "vendor/box2d/*"
+        "vendor/**"
     }
     
     filter "system:windows"
