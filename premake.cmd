@@ -1,0 +1,1 @@
+premake5 vs2022 --with-glad --with-box2d
