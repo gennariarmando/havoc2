@@ -2,9 +2,6 @@
 #include "Camera.h"
 #include "ABaseGL.h"
 
-glm::uint32 CGeometry::m_nVbo;
-glm::int32 CGeometry::m_nFilter;
-
 CGeometry::CGeometry() {
     Clear();
 }
@@ -18,24 +15,15 @@ void CGeometry::Setup() {
     if (m_bHasRenderData)
         return;
 
-    if (m_vVertices.size() <= 0)
-        return;
-
     glGenVertexArrays(1, &m_nVao);
-    glGenBuffers(1, &m_nVbo);
+    glGenBuffers(NUM_OBJECTS, m_nVbo);
 
     glBindVertexArray(m_nVao);
-    glBindBuffer(GL_ARRAY_BUFFER, m_nVbo);
-    glBufferData(GL_ARRAY_BUFFER, m_vVertices.size() * sizeof(CVertex), &m_vVertices.at(0), GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, m_nVbo[VBO_POS]);
+    glBufferData(GL_ARRAY_BUFFER, m_vPos.size() * sizeof(glm::vec3), &m_vPos.at(0), GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(CVertex), (void*)offsetof(CVertex, m_vPos));
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(CVertex), (void*)offsetof(CVertex, m_vNormals));
-    glEnableVertexAttribArray(1);
-
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(CVertex), (void*)offsetof(CVertex, m_vTexCoords));
-    glEnableVertexAttribArray(2);
+    glBindBuffer(GL_ARRAY_BUFFER, m_nVbo[VBO_UV]);
+    glBufferData(GL_ARRAY_BUFFER, m_vTexCoords.size() * sizeof(glm::vec2), &m_vTexCoords.at(0), GL_DYNAMIC_DRAW);
 
     m_bHasRenderData = true;
 }
@@ -44,12 +32,12 @@ void CGeometry::Clear() {
     m_nPrimitive = GL_TRIANGLES;
 
     if (m_nVbo)
-        glDeleteBuffers(1, &m_nVbo);
+        glDeleteBuffers(NUM_OBJECTS, m_nVbo);
+
+    m_vPos = {};
+    m_vTexCoords = {};
 
     m_nVao = 0;
-    m_nVbo = 0;
-
-    m_vVertices = {};
 
     m_mTransform = glm::mat4(1.0f);
     m_mTransform = glm::translate(m_mTransform, glm::vec3(0.0f, 0.0f, 0.0f));
@@ -63,18 +51,16 @@ void CGeometry::Clear() {
 }
 
 void CGeometry::Update() {
-    if (m_nVbo) {
-        glBindBuffer(GL_ARRAY_BUFFER, m_nVbo);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, m_vVertices.size() * sizeof(CVertex), &m_vVertices.at(0));
-    }
+   if (m_nVbo[VBO_UV]) {
+       glBindBuffer(GL_ARRAY_BUFFER, m_nVbo[VBO_UV]);
+       glBufferSubData(GL_ARRAY_BUFFER, 0, m_vTexCoords.size() * sizeof(glm::vec2), &m_vTexCoords.at(0));
+       glBindBuffer(GL_ARRAY_BUFFER, 0);
+   }
 }
 
-void CGeometry::RenderPrimitives() {
+void CGeometry::Render() {
     Setup();
     Update();
-
-    if (!m_bHasRenderData)
-        return;
 
     if (!m_Shader)
         m_Shader = ABaseGL::GetDefaultShader().get();
@@ -98,8 +84,16 @@ void CGeometry::RenderPrimitives() {
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_nFilter);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_nFilter);
 
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, m_nVbo[VBO_POS]);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+    glEnableVertexAttribArray(1);
+    glBindBuffer(GL_ARRAY_BUFFER, m_nVbo[VBO_UV]);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+
     glBindVertexArray(m_nVao);
-    glDrawArrays(m_nPrimitive, 0, static_cast<glm::uint32>(m_vVertices.size()));
+    glDrawArrays(m_nPrimitive, 0, static_cast<glm::uint32>(m_vPos.size()));
     glBindVertexArray(0);
 }
 
@@ -113,6 +107,11 @@ void CGeometry::SetPrimitive(glm::uint8 p) {
 void CGeometry::SetLocation(float x, float y, float z) {
     m_mTransform = glm::mat4(1.0f);
     m_mTransform = glm::translate(m_mTransform, glm::vec3(x, y, z));
+}
+
+void CGeometry::SetLocation(glm::vec3 pos) {
+    m_mTransform = glm::mat4(1.0f);
+    m_mTransform = glm::translate(m_mTransform, pos);
 }
 
 void CGeometry::Translate(float x, float y, float z) {
@@ -135,9 +134,10 @@ void CGeometry::SetVertex(float x, float y, float z) {
     if (m_bHasRenderData)
         return;
 
-    CVertex v;
-    v.m_vPos = glm::vec3(x, y, z);
-    m_vVertices.push_back(v);
+    if (m_vTexCoords.size() != m_vPos.size())
+        m_vTexCoords.push_back({ x, y });
+
+    m_vPos.push_back({ x , y, z });
 }
 
 void CGeometry::SetVertex(glm::vec3 const& pos) {
@@ -148,15 +148,18 @@ void CGeometry::SetTexCoords(float x, float y) {
     if (m_bHasRenderData)
         return;
 
-    CVertex v;
-    glm::int32 index = static_cast<glm::int32>(m_vVertices.size()) - 1;
-    v.m_vPos = m_vVertices.at(index).m_vPos;
-    v.m_vTexCoords = glm::vec2(x, y);
-    m_vVertices.at(index) = v;
+    m_vTexCoords.push_back({ x, y });
 }
 
-void CGeometry::SetTexCoords(glm::vec2 const& pos) {
-    SetTexCoords(pos.x, pos.y);
+void CGeometry::EditTexCoords(glm::int32 index, float x, float y) {
+    if (index != -1)
+        m_vTexCoords.at(index) = { x, y };
+    else
+        m_vTexCoords = std::vector<glm::vec2>(m_vTexCoords.size(), { x, y });
+}
+
+void CGeometry::EditTexCoords(glm::int32 index, glm::vec2 const& pos) {
+    EditTexCoords(index, pos.x, pos.y);
 }
 
 void CGeometry::SetTexture(glm::uint32 tex) {

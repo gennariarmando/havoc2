@@ -1,6 +1,7 @@
 #include "Camera.h"
 #include "ABaseGL.h"
 #include "Screen.h"
+#include "Map.h"
 
 IMPLEMENT_PRIMARY_GAME_MODULE(CCamera, "CCamera");
 
@@ -18,8 +19,8 @@ void CCamera::Init() {
     m_vAngle.y = -90.0f;
     m_fFOV = 45.0f;
     m_fFrontDist = 0.0f;
-    m_fNearClip = 1.0f;
-    m_fFarClip = 1000.0f;
+    m_fNearClip = 0.5f;
+    m_fFarClip = 100.0f;
 }
 
 void CCamera::Update() {
@@ -78,6 +79,25 @@ void CCamera::UpdateCameraVectors() {
     m_vFront = glm::normalize(f);
     m_vRight = glm::normalize(glm::cross(u, m_vFront));
     m_vUp = glm::normalize(glm::cross(m_vFront, m_vRight));
+
+    // Limit camera to map
+    if (m_vPosition.x < MAP_NUM_BLOCKS_X * 0.5f)
+        m_vPosition.x = MAP_NUM_BLOCKS_X * 0.5f;
+
+    if (m_vPosition.x > MAP_SCALE_X - (MAP_NUM_BLOCKS_X * 0.5f))
+        m_vPosition.x = MAP_SCALE_X - (MAP_NUM_BLOCKS_X * 0.5f);
+
+    if (m_vPosition.y < MAP_NUM_BLOCKS_Y * 0.5f)
+        m_vPosition.y = MAP_NUM_BLOCKS_Y * 0.5f;
+
+    if (m_vPosition.y > MAP_SCALE_Y - (MAP_NUM_BLOCKS_X * 0.5f))
+        m_vPosition.y = MAP_SCALE_Y - (MAP_NUM_BLOCKS_X * 0.5f);
+
+    if (m_vPosition.z < MAP_NUM_BLOCKS_Z * 0.5f)
+        m_vPosition.z = MAP_NUM_BLOCKS_Z * 0.5f;
+
+    if (m_vPosition.z > MAP_SCALE_Z)
+        m_vPosition.z = MAP_SCALE_Z;
 }
 
 void CCamera::ProcessDebug() {
@@ -134,7 +154,7 @@ void CCamera::Frustum(glm::mat4 m) {
     m_vPlanes[FPLANE_NEAR] = m[3] + m[2];
     m_vPlanes[FPLANE_FAR] = m[3] - m[2];
 
-    glm::vec3 crosses[Combinations] = {
+    glm::vec3 crosses[FPLANE_COMBINATIONS] = {
         glm::cross(glm::vec3(m_vPlanes[FPLANE_LEFT]), glm::vec3(m_vPlanes[FPLANE_RIGHT])),
         glm::cross(glm::vec3(m_vPlanes[FPLANE_LEFT]), glm::vec3(m_vPlanes[FPLANE_BOTTOM])),
         glm::cross(glm::vec3(m_vPlanes[FPLANE_LEFT]), glm::vec3(m_vPlanes[FPLANE_TOP])),
@@ -163,7 +183,7 @@ void CCamera::Frustum(glm::mat4 m) {
 }
 
 bool CCamera::IsBoxVisible(const glm::vec3& minp, const glm::vec3& maxp) const {
-    for (int i = 0; i < Count; i++) {
+    for (int i = 0; i < FPLANE_COUNT; i++) {
         if ((glm::dot(m_vPlanes[i], glm::vec4(minp.x, minp.y, minp.z, 1.0f)) < 0.0) &&
             (glm::dot(m_vPlanes[i], glm::vec4(maxp.x, minp.y, minp.z, 1.0f)) < 0.0) &&
             (glm::dot(m_vPlanes[i], glm::vec4(minp.x, maxp.y, minp.z, 1.0f)) < 0.0) &&

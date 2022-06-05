@@ -44,7 +44,7 @@ void CMap::Read(std::string const& fileName, std::string const& styFileName) {
 		}
 	}
 
-	m_vGeometry.reserve(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y);
+	m_vGeometryChunks.reserve(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y);
 	for (glm::int32 i = 0; i < MAP_SCALE_Y / MAP_NUM_BLOCKS_Y; i++) {
 		for (glm::int32 j = 0; j < MAP_SCALE_X / MAP_NUM_BLOCKS_X; j++) {
 			for (glm::int32 z = 0; z < MAP_NUM_BLOCKS_Z; z++) {
@@ -52,43 +52,43 @@ void CMap::Read(std::string const& fileName, std::string const& styFileName) {
 					for (glm::int32 x = 0; x < MAP_NUM_BLOCKS_X; x++) {
 						CBlockInfoDetailed block;
 						block.info = m_vCityBlocks[z][(y + i * MAP_NUM_BLOCKS_Y)][x + j * MAP_NUM_BLOCKS_X];
-
+	
 						for (glm::uint32 faceTypes = 0; faceTypes < NUM_FACETYPES; faceTypes++) {
 							glm::uint16 face = block.info.face[faceTypes];
 							CBlockDetails& detail = block.details[faceTypes];
-
+	
 							glm::uint16 tile = 0;
 							for (glm::uint32 k = 0; k < 10; k++) {
 								tile += (face & static_cast<glm::int32>(glm::pow(2, k)));
 							}
 							detail.tile = tile;
-
+	
 							if (faceTypes == FACETYPE_LID) {
 								glm::uint32 lit1 = 0;
 								glm::uint32 lit2 = 0;
 								lit1 = CheckBit(face, 10);
 								lit2 = CheckBit(face, 11);
-
+	
 								if (!lit1 && !lit2)
 									detail.lighting = 0;
-
+	
 								if (lit1 && !lit2)
 									detail.lighting = 1;
-
+	
 								if (lit1 && lit2)
 									detail.lighting = 2;
-
+	
 								if (lit1 && lit2)
 									detail.lighting = 3;
-
+	
 								detail.flat = false;
 							}
 							else {
 								detail.lighting = 0;
-
+	
 								detail.wall = CheckBit(face, 10);
 								detail.bulletWall = CheckBit(face, 11);
-
+	
 								glm::uint16 invertedFace = face;
 								switch (faceTypes) {
 								case FACETYPE_LEFT:
@@ -104,14 +104,14 @@ void CMap::Read(std::string const& fileName, std::string const& styFileName) {
 									invertedFace = block.info.face[FACETYPE_TOP];
 									break;
 								}
-
+	
 								detail.flat = CheckBit(invertedFace, 12);
 							}
 							detail.flip = CheckBit(face, 13);
-
+	
 							glm::uint32 rot1 = CheckBit(face, 14);
 							glm::uint32 rot2 = CheckBit(face, 15);
-
+	
 							if (rot1 && !rot2)
 								detail.rotation = 1;
 							else if (!rot1 && rot2)
@@ -120,19 +120,19 @@ void CMap::Read(std::string const& fileName, std::string const& styFileName) {
 								detail.rotation = 3;
 							else
 								detail.rotation = 0;
-
+	
 							glm::uint32 groundType = 0;
 							groundType += (block.info.slopeType & 1);
 							groundType += (block.info.slopeType & 2);
 							block.groundType = groundType;
-
+	
 							glm::uint32 slopeType = 0;
-
+	
 							for (glm::uint32 k = 2; k < 8; k++) {
 								if (CheckBit(block.info.slopeType, k))
 									slopeType += glm::pow(2, k - 2);
 							}
-
+	
 							switch (slopeType) {
 							case SLOPETYPE_SLOPEABOVE:
 								slopeType = SLOPETYPE_NONE;
@@ -145,16 +145,16 @@ void CMap::Read(std::string const& fileName, std::string const& styFileName) {
 									slopeType = (slopeType - SLOPETYPE_DIAGONALSLOPEFACINGUPLEFT) + SLOPETYPE_DIAGONALSLOPEFACINGUPLEFTNOZERO;
 								break;
 							}
-
+	
 							block.slopeType = slopeType;
 						}
-
+	
 						AddBlock(block, glm::vec3(static_cast<float>(x * 1.0f), static_cast<float>(y * 1.0f), static_cast<float>(z * 1.0f - 1.0f)));
 					}
 				}
 			}
-			m_vGeometry.push_back(m_BlockBuffer);
-			m_BlockBuffer.Clear();
+			m_vGeometryChunks.push_back(m_ChunkBuffer);
+			m_ChunkBuffer.Clear();
 		}
 	}
 }
@@ -226,13 +226,41 @@ void CMap::BuildMap(std::vector<std::vector<glm::uint32>> base, std::vector<glm:
 }
 
 void CMap::Render() {
-	for (glm::uint32 i = 0; i < MAP_NUM_BLOCKS_Y; i++) {
-		for (glm::uint32 j = 0; j < MAP_NUM_BLOCKS_X; j++) {
-			if (m_vGeometry.size() > i * MAP_NUM_BLOCKS_X + j) {
-				m_vGeometry.at(i * MAP_NUM_BLOCKS_X + j).SetLocation(static_cast<float>(j * MAP_NUM_BLOCKS_X), static_cast<float>(i * MAP_NUM_BLOCKS_Y), 0.0f);
-				m_vGeometry.at(i * MAP_NUM_BLOCKS_X + j).SetRotation(0.0f, 0.0f, 1.0f, 0.0f);
-				m_vGeometry.at(i * MAP_NUM_BLOCKS_X + j).SetScale(1.0f, 1.0f, 1.0f);
-				m_vGeometry.at(i * MAP_NUM_BLOCKS_X + j).RenderPrimitives();
+	const glm::int32 visibleChunks = 2;
+	glm::int32 startx = (static_cast<glm::int32>(Camera.GetPosition().x + (MAP_NUM_BLOCKS_X * 0.5f)) / MAP_NUM_BLOCKS_X) - (visibleChunks);
+	glm::int32 endx = (static_cast<glm::int32>(Camera.GetPosition().x + (MAP_NUM_BLOCKS_X * 0.5f)) / MAP_NUM_BLOCKS_X) + (visibleChunks);
+	glm::int32 starty = (static_cast<glm::int32>(Camera.GetPosition().y + (MAP_NUM_BLOCKS_Y * 0.5f)) / MAP_NUM_BLOCKS_Y) - (visibleChunks);
+	glm::int32 endy = (static_cast<glm::int32>(Camera.GetPosition().y + (MAP_NUM_BLOCKS_Y * 0.5f)) / MAP_NUM_BLOCKS_Y) + (visibleChunks);
+
+	startx = clamp(startx, 0, MAP_NUM_BLOCKS_X);
+	endx = clamp(endx, 0, MAP_NUM_BLOCKS_X);
+	starty = clamp(starty, 0, MAP_NUM_BLOCKS_Y);
+	endy = clamp(endy, 0, MAP_NUM_BLOCKS_Y);
+
+	CGeometry* chunk = NULL;
+	glm::vec3 pos;
+	for (glm::int32 i = starty; i < endy; i++) {
+		for (glm::int32 j = startx; j < endx; j++) {
+			chunk = &m_vGeometryChunks.at(i * MAP_NUM_BLOCKS_X + j);
+
+			for (glm::int32 z = 0; z < MAP_NUM_BLOCKS_Z; z++) {
+				for (glm::int32 y = 0; y < MAP_NUM_BLOCKS_Y; y++) {
+					for (glm::int32 x = 0; x < MAP_NUM_BLOCKS_X; x++) {
+						for (glm::int32 faceType = 0; faceType < NUM_FACETYPES; faceType++) {
+							chunk->EditTexCoords(0, 0.0f, 0.0f);
+						}
+					}
+				}
+			}
+
+			if (chunk) {
+				pos = { static_cast<float>(j * MAP_NUM_BLOCKS_X), static_cast<float>(i * MAP_NUM_BLOCKS_Y), 0.0f };
+				chunk->SetLocation(pos);
+				chunk->SetRotation(0.0f, 0.0f, 1.0f, 0.0f);
+				chunk->SetScale(1.0f, 1.0f, 1.0f);
+				chunk->Render();
+				chunk = NULL;
+				pos = {};
 			}
 		}
 	}
@@ -258,6 +286,12 @@ void CMap::AddBlock(CBlockInfoDetailed block, glm::vec3 offset) {
 	}
 }
 
+void CMap::EditBlock(CBlockInfoDetailed block) {
+	for (glm::int32 faceType = 0; faceType < NUM_FACETYPES; faceType++) {
+
+	}
+}
+
 bool CMap::CheckBit(glm::int32 const& value, glm::int32 const& bitOffset) {
 	if (bitOffset < 0 || bitOffset >= sizeof(glm::int32) * 8)
 		throw "Argument out of range";
@@ -274,7 +308,7 @@ glm::vec2 CMap::RotateUV(glm::vec2 uv, float rotation, glm::vec2 center) {
 }
 
 void CMap::AddFace(glm::uint32 slopeType, glm::uint8 faceType, glm::uint32 tile, glm::uint32 rot, bool flip, bool flat, glm::vec3 offset) {
-	m_BlockBuffer.SetTexture(m_Style.GetTextureAtlas()->GetID());
+	m_ChunkBuffer.SetTexture(m_Style.GetTextureAtlas()->GetID());
 
 	if (flat && slopeType == SLOPETYPE_NONE) {
 		glm::vec3 f[4] = {
@@ -639,7 +673,12 @@ void CMap::AddFace(glm::uint32 slopeType, glm::uint8 faceType, glm::uint32 tile,
 		else
 			indices = defIndices;
 
-		m_BlockBuffer.SetVertex(pos[indices[i]] + offset);
-		m_BlockBuffer.SetTexCoords(texCoords[indices[i]].x, texCoords[indices[i]].y);
+		m_ChunkBuffer.SetVertex(pos[indices[i]] + offset);
+		m_ChunkBuffer.SetTexCoords(texCoords[indices[i]].x, texCoords[indices[i]].y);
 	}
+}
+
+void CMap::EditFace(glm::int32 base, glm::uint8 frameRate, bool repeat, glm::uint8 length, std::vector<glm::int32> tiles) {
+
+
 }

@@ -59,7 +59,7 @@ void CSprite2D::Draw(glm::vec4 const& rect, glm::vec2 const& center, float angle
     im3D.SetVertex(1.0f, 0.0f);
     im3D.SetTexCoords(1.0f, 0.0f);
 
-    im3D.RenderPrimitives();
+    im3D.Render();
 }
 
 void CSprite2D::DrawRect(glm::vec4 const& rect, glm::vec4 const& col) {
@@ -77,5 +77,5 @@ void CSprite2D::DrawRect(glm::vec4 const& rect, glm::vec4 const& col) {
     im3D.SetVertex(0.0f, 1.0f);
     im3D.SetVertex(1.0f, 1.0f);
     im3D.SetVertex(1.0f, 0.0f);
-    im3D.RenderPrimitives();
+    im3D.Render();
 }

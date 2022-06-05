@@ -18,8 +18,8 @@ enum eFrustumPlanes {
     FPLANE_TOP,
     FPLANE_NEAR,
     FPLANE_FAR,
-    Count,
-    Combinations = Count * (Count - 1) / 2
+    FPLANE_COUNT,
+    FPLANE_COMBINATIONS = FPLANE_COUNT * (FPLANE_COUNT - 1) / 2
 };
 
 template<eFrustumPlanes i, eFrustumPlanes j>
@@ -44,8 +44,8 @@ private:
     bool m_bScene3D;
     float m_fFarClip;
     float m_fNearClip;
-    glm::vec4 m_vPlanes[Count];
-    glm::vec3 m_vPoints[8];
+    glm::vec4 m_vPlanes[FPLANE_COUNT];
+    glm::vec3 m_vPoints[FPLANE_COUNT + 2];
 
 public:
     CCamera();
@@ -83,6 +83,7 @@ public:
     bool& GetScene3D() { return m_bScene3D; }
     float& GetFarClip () { return m_fFarClip; }
     float& GetNearClip() { return m_fNearClip; }
+    glm::vec3 GetPoint(glm::int8 plane) { return m_vPlanes[plane]; }
 
 public:
     glm::mat4 const GetProjection(glm::mat4 const& m) { return m_mProjection * m; }

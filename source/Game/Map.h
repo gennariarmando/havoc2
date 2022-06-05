@@ -182,6 +182,7 @@ public:
 	bool flip;
 	glm::uint32 rotation;
 	glm::uint32 lighting;
+	CMapTileAnimation anim;
 };
 
 class CBlockInfoDetailed {
@@ -201,20 +202,19 @@ public:
 };
 
 class CMap : CGBH {
-public:
+private:
 	std::vector<std::vector<std::vector<CBlockInfo>>> m_vCityBlocks;
+	std::vector<CGeometry> m_vGeometryChunks;
+	CGeometry m_ChunkBuffer;
 	CStyle m_Style;
-	std::vector<CGeometry> m_vGeometry;
-	CGeometry m_BlockBuffer;
 
 public:
 	CMap() {}
 	CMap(std::string const& fileName, std::string const& styFileName);
 	~CMap();
 
-	void Read(std::string const& fileName, std::string const& styFileName);
-
 private:
+	void Read(std::string const& fileName, std::string const& styFileName);
 	void Read32BitMap();
 	void ReadZones();
 	void ReadObjects();
@@ -226,7 +226,9 @@ private:
 	bool CheckBit(glm::int32 const& value, glm::int32 const& bitOffset);
 	glm::vec2 RotateUV(glm::vec2 uv, float rotation, glm::vec2 center);
 	void AddBlock(CBlockInfoDetailed block, glm::vec3 offset);
+	void EditBlock(CBlockInfoDetailed block);
 	void AddFace(glm::uint32 slopeType, glm::uint8 faceType, glm::uint32 tile, glm::uint32 rot, bool flip, bool flat, glm::vec3 offset);
+	void EditFace(glm::int32 base, glm::uint8 frameRate, bool repeat, glm::uint8 length, std::vector<glm::int32> tiles);
 
 public:
 	void Render();
