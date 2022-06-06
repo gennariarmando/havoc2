@@ -2,6 +2,7 @@
 #include "GBH.h"
 #include "Geometry.h"
 #include "Style.h"
+#include "Flipbook.h"
 
 enum eFaceType {
 	FACETYPE_LEFT,
@@ -120,11 +121,11 @@ enum {
 	MAP_SIZE = (MAP_SCALE_X * MAP_SCALE_Y),
 };
 
-class CMapLights {
+class CMapLight {
 public:
-	glm::uint8 argb;
-	glm::int16 x, y, z;
-	glm::int16 radius;
+	glm::vec4 color;
+	glm::vec3 pos;
+	float radius;
 	glm::uint8 intensity;
 	glm::uint8 shape;
 	glm::uint8 timeOn;
@@ -136,9 +137,7 @@ public:
 	glm::uint16 base;
 	glm::uint8 frameRate;
 	glm::uint8 repeat;
-	glm::uint8 animLength;
-	glm::uint8 unused;
-	glm::uint8 tiles[255];
+	std::vector<glm::uint16> tiles;
 };
 
 class CMapPsxTable {
@@ -158,12 +157,11 @@ public:
 class CMapZone {
 public:
 	eZoneType zoneType;
-	glm::uint8 x;
-	glm::uint8 y;
-	glm::uint8 w;
-	glm::uint8 h;
-	glm::uint8 nameLength;
-	char name[255];
+	float x;
+	float y;
+	float w;
+	float h;
+	std::string name;
 };
 
 class CBlockInfo {
@@ -173,7 +171,7 @@ public:
 	glm::uint8 slopeType;
 };
 
-class CBlockDetails {
+class CFaceDetails {
 public:
 	glm::uint32 tile;
 	glm::uint32 wall;
@@ -182,13 +180,14 @@ public:
 	bool flip;
 	glm::uint32 rotation;
 	glm::uint32 lighting;
-	CMapTileAnimation anim;
+	std::shared_ptr<CFlipbook> flipBook;
+	glm::uint32 index;
 };
 
 class CBlockInfoDetailed {
 public:
 	CBlockInfo info;
-	CBlockDetails details[NUM_FACETYPES];
+	CFaceDetails details[NUM_FACETYPES];
 	glm::uint8 groundType;
 	glm::uint8 slopeType;
 };
@@ -203,10 +202,14 @@ public:
 
 class CMap : CGBH {
 private:
-	std::vector<std::vector<std::vector<CBlockInfo>>> m_vCityBlocks;
+	std::vector<std::vector<std::vector<CBlockInfoDetailed>>> m_vCityBlocksDetailed;
+
 	std::vector<CGeometry> m_vGeometryChunks;
 	CGeometry m_ChunkBuffer;
 	CStyle m_Style;
+	std::vector<CMapTileAnimation> m_vAnimations;
+	std::vector<CMapLight> m_vLights;
+	std::vector<CMapZone> m_vZones;
 
 public:
 	CMap() {}
@@ -225,12 +228,14 @@ private:
 
 	bool CheckBit(glm::int32 const& value, glm::int32 const& bitOffset);
 	glm::vec2 RotateUV(glm::vec2 uv, float rotation, glm::vec2 center);
-	void AddBlock(CBlockInfoDetailed block, glm::vec3 offset);
-	void EditBlock(CBlockInfoDetailed block);
-	void AddFace(glm::uint32 slopeType, glm::uint8 faceType, glm::uint32 tile, glm::uint32 rot, bool flip, bool flat, glm::vec3 offset);
-	void EditFace(glm::int32 base, glm::uint8 frameRate, bool repeat, glm::uint8 length, std::vector<glm::int32> tiles);
+	void AddBlock(CBlockInfoDetailed& block, glm::vec3 offset, glm::uint32& index);
+	void AddFace(glm::uint32 slopeType, glm::uint8 faceType, glm::uint32 tile, glm::uint32 rot, bool flip, bool flat, glm::vec3 offset, glm::uint32& index);
+	void EditFace(CGeometry* chunk, CFaceDetails* details);
 
 public:
 	void Render();
+
+public:
+	CStyle& GetStyle() { return m_Style; }
 
 };

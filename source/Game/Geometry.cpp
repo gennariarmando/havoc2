@@ -29,6 +29,9 @@ void CGeometry::Setup() {
 }
 
 void CGeometry::Clear() {
+    if (!ABaseGL::GetWindow())
+        return;
+
     m_nPrimitive = GL_TRIANGLES;
 
     if (m_nVbo)
@@ -54,7 +57,6 @@ void CGeometry::Update() {
    if (m_nVbo[VBO_UV]) {
        glBindBuffer(GL_ARRAY_BUFFER, m_nVbo[VBO_UV]);
        glBufferSubData(GL_ARRAY_BUFFER, 0, m_vTexCoords.size() * sizeof(glm::vec2), &m_vTexCoords.at(0));
-       glBindBuffer(GL_ARRAY_BUFFER, 0);
    }
 }
 
@@ -152,10 +154,7 @@ void CGeometry::SetTexCoords(float x, float y) {
 }
 
 void CGeometry::EditTexCoords(glm::int32 index, float x, float y) {
-    if (index != -1)
-        m_vTexCoords.at(index) = { x, y };
-    else
-        m_vTexCoords = std::vector<glm::vec2>(m_vTexCoords.size(), { x, y });
+    m_vTexCoords.at(index) = { x, y };
 }
 
 void CGeometry::EditTexCoords(glm::int32 index, glm::vec2 const& pos) {

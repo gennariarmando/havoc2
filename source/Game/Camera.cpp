@@ -81,23 +81,23 @@ void CCamera::UpdateCameraVectors() {
     m_vUp = glm::normalize(glm::cross(m_vFront, m_vRight));
 
     // Limit camera to map
-    if (m_vPosition.x < MAP_NUM_BLOCKS_X * 0.5f)
-        m_vPosition.x = MAP_NUM_BLOCKS_X * 0.5f;
-
-    if (m_vPosition.x > MAP_SCALE_X - (MAP_NUM_BLOCKS_X * 0.5f))
-        m_vPosition.x = MAP_SCALE_X - (MAP_NUM_BLOCKS_X * 0.5f);
-
-    if (m_vPosition.y < MAP_NUM_BLOCKS_Y * 0.5f)
-        m_vPosition.y = MAP_NUM_BLOCKS_Y * 0.5f;
-
-    if (m_vPosition.y > MAP_SCALE_Y - (MAP_NUM_BLOCKS_X * 0.5f))
-        m_vPosition.y = MAP_SCALE_Y - (MAP_NUM_BLOCKS_X * 0.5f);
-
-    if (m_vPosition.z < MAP_NUM_BLOCKS_Z * 0.5f)
-        m_vPosition.z = MAP_NUM_BLOCKS_Z * 0.5f;
-
-    if (m_vPosition.z > MAP_SCALE_Z)
-        m_vPosition.z = MAP_SCALE_Z;
+    //if (m_vPosition.x < MAP_NUM_BLOCKS_X * 0.5f)
+    //    m_vPosition.x = MAP_NUM_BLOCKS_X * 0.5f;
+    //
+    //if (m_vPosition.x > MAP_SCALE_X - (MAP_NUM_BLOCKS_X * 0.5f))
+    //    m_vPosition.x = MAP_SCALE_X - (MAP_NUM_BLOCKS_X * 0.5f);
+    //
+    //if (m_vPosition.y < MAP_NUM_BLOCKS_Y * 0.5f)
+    //    m_vPosition.y = MAP_NUM_BLOCKS_Y * 0.5f;
+    //
+    //if (m_vPosition.y > MAP_SCALE_Y - (MAP_NUM_BLOCKS_X * 0.5f))
+    //    m_vPosition.y = MAP_SCALE_Y - (MAP_NUM_BLOCKS_X * 0.5f);
+    //
+    //if (m_vPosition.z < MAP_NUM_BLOCKS_Z * 0.5f)
+    //    m_vPosition.z = MAP_NUM_BLOCKS_Z * 0.5f;
+    //
+    //if (m_vPosition.z > MAP_SCALE_Z)
+    //    m_vPosition.z = MAP_SCALE_Z;
 }
 
 void CCamera::ProcessDebug() {

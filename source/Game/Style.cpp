@@ -9,14 +9,12 @@ CStyle::~CStyle() {
 }
 
 void CStyle::Read(std::string const& fileName) {
-	// Open file
 	if (!Init(fileName, STY_FILE_VERSION)) {
 		return;
 	}
 
 	m_pGraphics = std::make_shared<CStyGraphics>();
 
-	// Loop through chunks and extract data
 	while (LoopThroughChunks()) {
 		switch (GetChunkType()) {
 		case PALX:

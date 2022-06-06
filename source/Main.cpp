@@ -9,11 +9,10 @@
 
 int main(int argc, char *argv[]) {
 #if defined DEBUG && defined _WIN32
-    FILE* i;
     AllocConsole();
-    i = freopen("CONIN$", "r", stdin);
-    i = freopen("CONOUT$", "w", stdout);
-    i = freopen("CONOUT$", "w", stderr);
+    freopen("CONIN$", "r", stdin);
+    freopen("CONOUT$", "w", stdout);
+    freopen("CONOUT$", "w", stderr);
     std::setvbuf(stdout, NULL, _IONBF, 0);
 #endif
 
