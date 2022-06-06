@@ -63,7 +63,7 @@ void CSprite2D::Draw(glm::vec4 const& rect, glm::vec2 const& center, float angle
 }
 
 void CSprite2D::DrawRect(glm::vec4 const& rect, glm::vec4 const& col) {
-    static CGeometry im3D;
+    CGeometry im3D;
     im3D.SetTexture(0);
     //
     im3D.SetLocation(rect.x, rect.y, 0.0f);

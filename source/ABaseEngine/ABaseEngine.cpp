@@ -9,6 +9,7 @@ void ABaseEngine::Run() {
     ABaseGL::Init();
 
     while (!ABaseGL::WindowShouldClose()) {
+        ABaseGL::Update();
         ABaseGL::BeginDrawing();
 
         for (auto& iter : BaseObjectsList)

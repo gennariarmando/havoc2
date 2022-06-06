@@ -46,6 +46,7 @@ public:
     ~ABaseGL();
 
     static void Init();
+    static void Update();
     static void Shutdown();
     static void CreateDefaultTextures();
     static void RemoveSprite2DTextures();

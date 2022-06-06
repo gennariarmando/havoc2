@@ -87,6 +87,28 @@ void ABaseGL::Init() {
     m_Objects.defaultShader = std::make_unique<CShader>(vertexShader, fragmentShader, true);
 }
 
+void ABaseGL::Update() {
+    bool altPressed = false;
+    bool enterPressed = false;
+    static bool thisFrame = true;
+
+    if (glfwGetKey(GetWindow(), GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
+        altPressed = true;
+
+    if (altPressed && glfwGetKey(GetWindow(), GLFW_KEY_ENTER) == GLFW_PRESS)
+        enterPressed = true;
+    else
+        thisFrame = true;
+
+    if (thisFrame) {
+        if (altPressed && enterPressed) {
+            CenterWindowPosition();
+            SetFullscreen(!m_Objects.fullScreen);
+            thisFrame = false;
+        }
+    }
+}
+
 void ABaseGL::Shutdown() {
     RemoveSprite2DTextures();
 
@@ -178,22 +200,6 @@ void ABaseGL::ErrorCallback(glm::int32 error, const char* description) {
 }
 
 void ABaseGL::KeyCallback(GLFWwindow* window, glm::int32 key, glm::int32 scancode, glm::int32 action, glm::int32 mods) {
-    static bool altPressed = false;
-    static bool enterPressed = false;
-
-    if (key == GLFW_KEY_LEFT_ALT && action == GLFW_PRESS)
-        altPressed = true;
-
-    if (key == GLFW_KEY_ENTER && action == GLFW_PRESS)
-        enterPressed = true;
-
-    if (altPressed && enterPressed) {
-        CenterWindowPosition();
-        SetFullscreen(!m_Objects.fullScreen);
-        altPressed = false;
-        enterPressed = false;
-    }
-
     m_Objects.oldInputKeys[key] = m_Objects.newInputKeys[key];
     m_Objects.newInputKeys[key] = action;
 }
