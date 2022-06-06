@@ -8,9 +8,9 @@ private:
 
 public:
 	std::vector<glm::uint16> frames;
-	double currentTime;
+	float currentTime;
 	bool loop;
-	double timeToPassForNextFrame;
+	float timeToPassForNextFrame;
 	
 public:
 	CFlipbook();

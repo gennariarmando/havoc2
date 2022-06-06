@@ -16,19 +16,19 @@
 
 // OpenGL Mathematics
 #define GLM_FORCE_LEFT_HANDED
-#include <glm/glm.hpp>
-#include <glm/fwd.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
-#include <glm/gtx/rotate_vector.hpp>
+#include "glm\glm.hpp"
+#include "glm\fwd.hpp"
+#include "glm\gtc\matrix_transform.hpp"
+#include "glm\gtc\type_ptr.hpp"
+#include "glm\gtx\matrix_decompose.hpp"
+#include "glm\gtx\rotate_vector.hpp"
 
 // GLAD - GL Loader: https://github.com/Dav1dde/glad
-#include <glad/glad.h>
+#include "include\glad\glad.h"
 
 // GLFW - Multiplatform library for OpenGL: https://github.com/glfw/glfw
 #define GLFW_INCLUDE_NONE
-#include <glfw3.h>
+#include "include\GLFW\glfw3.h"
 
 #define PI 3.14159265358979323846
 #define PI_2 PI / 2
@@ -49,4 +49,3 @@ static float DegToRad(float x) {
 static float RadToDeg(float x) {
     return (x * 180.0f / PI);
 }
-

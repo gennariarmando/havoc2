@@ -192,22 +192,27 @@ public:
 	glm::uint8 slopeType;
 };
 
-class CColumnInfo {
+class CCachedAnims {
 public:
-	glm::uint8 height;
-	glm::uint8 offset;
-	glm::uint16 pad;
-	glm::uint32 blockd[8];
+	glm::int16 tile;
+	std::shared_ptr<CFlipbook> flipBook;
+
+public:
+	CCachedAnims() {
+		tile = -1;
+		flipBook = NULL;
+	}
 };
 
 class CMap : CGBH {
-private:
-	std::vector<std::vector<std::vector<CBlockInfoDetailed>>> m_vCityBlocksDetailed;
+public:
+	bool m_bInitialised;
+	CGeometry m_ChunkBuffer;
+	std::unique_ptr<CStyle> m_pStyle;
 
 	std::vector<CGeometry> m_vGeometryChunks;
-	CGeometry m_ChunkBuffer;
-	CStyle m_Style;
-	std::vector<CMapTileAnimation> m_vAnimations;
+	std::vector<std::vector<CFaceDetails>> m_vAnimatedFaces;
+
 	std::vector<CMapLight> m_vLights;
 	std::vector<CMapZone> m_vZones;
 
@@ -218,13 +223,14 @@ public:
 
 private:
 	void Read(std::string const& fileName, std::string const& styFileName);
-	void Read32BitMap();
+	void Clear();
+	void Read32BitMap(std::unique_ptr<std::vector<std::vector<std::vector<CBlockInfoDetailed>>>>& detailedBlock);
 	void ReadZones();
 	void ReadObjects();
-	void ReadAnimations();
+	void ReadAnimations(std::unique_ptr<std::vector<CMapTileAnimation>>& animations);
 	void ReadLights();
 
-	void BuildMap(std::vector<std::vector<glm::uint32>> base, std::vector<glm::uint32> columns, std::vector<CBlockInfo> blocks);
+	void BuildDetailedMap(std::unique_ptr<std::vector<std::vector<std::vector<CBlockInfoDetailed>>>>& block, std::unique_ptr<std::vector<CMapTileAnimation>>& animations);
 
 	bool CheckBit(glm::int32 const& value, glm::int32 const& bitOffset);
 	glm::vec2 RotateUV(glm::vec2 uv, float rotation, glm::vec2 center);
@@ -236,6 +242,6 @@ public:
 	void Render();
 
 public:
-	CStyle& GetStyle() { return m_Style; }
+	CStyle* GetStyle() { return m_pStyle.get(); }
 
 };

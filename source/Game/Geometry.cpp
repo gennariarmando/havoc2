@@ -15,17 +15,19 @@ void CGeometry::Setup() {
     if (m_bHasRenderData)
         return;
 
-    glGenVertexArrays(1, &m_nVao);
-    glGenBuffers(NUM_OBJECTS, m_nVbo);
+    if (m_vPos.size() > 0 && m_vTexCoords.size() > 0) {
+        glGenVertexArrays(1, &m_nVao);
+        glGenBuffers(NUM_OBJECTS, m_nVbo);
 
-    glBindVertexArray(m_nVao);
-    glBindBuffer(GL_ARRAY_BUFFER, m_nVbo[VBO_POS]);
-    glBufferData(GL_ARRAY_BUFFER, m_vPos.size() * sizeof(glm::vec3), &m_vPos.at(0), GL_STATIC_DRAW);
+        glBindVertexArray(m_nVao);
+        glBindBuffer(GL_ARRAY_BUFFER, m_nVbo[VBO_POS]);
+        glBufferData(GL_ARRAY_BUFFER, m_vPos.size() * sizeof(glm::vec3), &m_vPos.at(0), GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ARRAY_BUFFER, m_nVbo[VBO_UV]);
-    glBufferData(GL_ARRAY_BUFFER, m_vTexCoords.size() * sizeof(glm::vec2), &m_vTexCoords.at(0), GL_DYNAMIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, m_nVbo[VBO_UV]);
+        glBufferData(GL_ARRAY_BUFFER, m_vTexCoords.size() * sizeof(glm::vec2), &m_vTexCoords.at(0), GL_DYNAMIC_DRAW);
 
-    m_bHasRenderData = true;
+        m_bHasRenderData = true;
+    }
 }
 
 void CGeometry::Clear() {
@@ -54,7 +56,7 @@ void CGeometry::Clear() {
 }
 
 void CGeometry::Update() {
-   if (m_nVbo[VBO_UV]) {
+   if (m_nVbo[VBO_UV] && m_vTexCoords.size() > 0) {
        glBindBuffer(GL_ARRAY_BUFFER, m_nVbo[VBO_UV]);
        glBufferSubData(GL_ARRAY_BUFFER, 0, m_vTexCoords.size() * sizeof(glm::vec2), &m_vTexCoords.at(0));
    }
@@ -154,7 +156,8 @@ void CGeometry::SetTexCoords(float x, float y) {
 }
 
 void CGeometry::EditTexCoords(glm::int32 index, float x, float y) {
-    m_vTexCoords.at(index) = { x, y };
+    if (m_vTexCoords.size() > index)
+        m_vTexCoords.at(index) = { x, y };
 }
 
 void CGeometry::EditTexCoords(glm::int32 index, glm::vec2 const& pos) {

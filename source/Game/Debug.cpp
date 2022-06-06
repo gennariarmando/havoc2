@@ -1,7 +1,6 @@
 #include "Debug.h"
 #include "ABaseGL.h"
 #include "Camera.h"
-#include "box2d.h"
 
 IMPLEMENT_PRIMARY_GAME_MODULE(CDebug, "CDebug");
 

@@ -283,19 +283,24 @@ CPhysicalPalette CStyle::GetSpritePalette(glm::int32 sprite, glm::int32 type, gl
 }
 
 void CStyle::BuildTextures() {
-	for (glm::uint32 i = 0; i < 992; i++) {
-		glm::uint32 vpalette = m_pGraphics->paletteIndex.physPalette[i];
-	
-		std::vector<glm::uint32> pixels;
-		glm::uint8 w, h;
-		WriteTiles(i, w, h, pixels);
+	if (!m_pGraphics)
+		return;
 
-		std::shared_ptr<CTexture2D> texture = std::make_shared<CTexture2D>();
-		texture->Build(pixels.data(), w, h, 4, GL_NEAREST);
-		m_pTextures.push_back(texture);
+	if (m_pGraphics->tileData.size() > 0) {
+		for (glm::uint32 i = 0; i < 992; i++) {
+			glm::uint32 vpalette = m_pGraphics->paletteIndex.physPalette[i];
+
+			std::vector<glm::uint32> pixels;
+			glm::uint8 w, h;
+			WriteTiles(i, w, h, pixels);
+
+			std::shared_ptr<CTexture2D> texture = std::make_shared<CTexture2D>();
+			texture->Build(pixels.data(), w, h, 4, GL_NEAREST);
+			m_pTextures.push_back(texture);
+		}
+
+		BuildTextureAtlas();
 	}
-
-	BuildTextureAtlas();
 }
 
 void CStyle::BuildTextureAtlas() {
@@ -321,6 +326,9 @@ void CStyle::BuildTextureAtlas() {
 }
 
 void CStyle::BuildSprites() {
+	if (!m_pGraphics)
+		return;
+
 	glm::uint32 count = m_pGraphics->spriteBase.car + m_pGraphics->spriteBase.ped + m_pGraphics->spriteBase.codeObj +
 		m_pGraphics->spriteBase.mapObj + m_pGraphics->spriteBase.user + m_pGraphics->spriteBase.font;
 

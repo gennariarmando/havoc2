@@ -18,7 +18,6 @@ void CFileMgr::Open(std::string fileName) {
     m_File.open(fileName, std::ios::in | std::ios::binary);
 
     if (!m_File.is_open()) {
-        std::cout << fileName << " can't be opened." << std::endl;
         return;
     }
 

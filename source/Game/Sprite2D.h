@@ -87,8 +87,11 @@ public:
 
 class CSprite2D {
 private:
-    std::unique_ptr<CTexture2D> texture;
-    CGeometry im3D;
+    std::unique_ptr<CTexture2D> m_pTexture;
+    CGeometry m_Geometry;
+
+public:
+    static CGeometry ms_Geometry;
 
 public:
     CSprite2D();
@@ -105,5 +108,6 @@ public:
     static void DrawRect(glm::vec4 const& rect, glm::vec4 const& col);
 
 public:
-    std::unique_ptr<CTexture2D>& GetTexture() { return texture; }
+    std::unique_ptr<CTexture2D>& GetTexture() { return m_pTexture; }
+    void SetTexture(glm::uint32 id) { GetTexture()->GetID() = id; }
 };

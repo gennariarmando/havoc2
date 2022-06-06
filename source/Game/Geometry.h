@@ -3,6 +3,7 @@
 #include "Common.h"
 #include "Shader.h"
 #include "ABaseObject.h"
+#include "Collision.h"
 
 enum eBufferObjects {
     VBO_POS,
@@ -25,6 +26,7 @@ public:
     bool m_bHasRenderData;
 
     CShader* m_Shader;
+    std::shared_ptr<CCollision> collision;
 
 private:
     void Setup();

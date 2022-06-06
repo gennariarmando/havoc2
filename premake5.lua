@@ -3,47 +3,12 @@ newoption {
 	description = "Build glad library"
 }
 
-newoption {
-	trigger     = "with-box2d",
-	description = "Build box2d library"
-}
-
 workspace "havoc2"
 	configurations { "Release", "Debug" }
 	location "project_files"
    	startproject "havoc2"
     platforms { "Win64" }
 	architecture "x64"
-   			
-if(_OPTIONS["with-box2d"]) then
-project "box2d"
-	location "project_files/box2d"
-    kind "StaticLib"
-    language "C++"
-    staticruntime "on"
-    
-	targetdir "vendor/box2d/lib/"
-	objdir ("vendor/box2d/obj")
-
-    files {
-		"vendor/box2d/src/**.*",
-    }
-
-    includedirs {
-        "vendor/**"
-    }
-    
-    filter "system:windows"
-        systemversion "latest"
-
-    filter "configurations:Debug"
-        runtime "Debug"
-        symbols "on"
-
-    filter "configurations:Release"
-        runtime "Release"
-        optimize "on"
-end
 
 if(_OPTIONS["with-glad"]) then
 project "glad"
@@ -60,7 +25,7 @@ project "glad"
     }
 
     includedirs {
-        "vendor/glad/*"
+        "vendor/glad"
     }
     
     filter "system:windows"
@@ -84,7 +49,7 @@ project "havoc2"
 	
 	includedirs { 
 		"source/**",
-		"vendor/**",
+		"vendor/*",
 	}
 	
 	libdirs { 
@@ -94,7 +59,6 @@ project "havoc2"
 	links {
 		"glfw3",
 		"glad",
-        "box2d",
 	}
 	
 	kind "WindowedApp"

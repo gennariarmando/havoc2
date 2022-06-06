@@ -2,13 +2,6 @@
 #include "GBH.h"
 #include "Sprite2D.h"		
 
-enum {
-	TEXTUREID_WATER_START = 608,
-	TEXTUREID_WATER_END = 619,
-	TEXTUREID_JESUSSAVE_START = 742,
-	TEXTUREID_JESUSSAVE_END = 743,
-};
-
 class CFontBase {
 public:
 	glm::uint16 fontCount;
@@ -132,6 +125,7 @@ public:
 };
 
 class CStyle : CGBH {
+public:
 	std::shared_ptr<CStyGraphics> m_pGraphics;
 
 public:

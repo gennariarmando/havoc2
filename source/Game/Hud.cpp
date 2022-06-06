@@ -2,6 +2,9 @@
 #include "Sprite2D.h"
 #include "ABaseGL.h"
 #include "Style.h"
+#include "Font.h"
+#include "Camera.h"
+#include "Screen.h"
 
 IMPLEMENT_PRIMARY_GAME_MODULE(CHud, "CHud");
 
@@ -28,7 +31,12 @@ void CHud::Render() {
 }
 
 void CHud::Draw2D() {
+    std::string cam = "Camera position: " + std::to_string(Camera.GetPosition().x) + ", " + std::to_string(Camera.GetPosition().y) + ", " + std::to_string(Camera.GetPosition().z);
 
+    Font.SetFontStyle(FONT_BIG_MESSAGES);
+    Font.SetFontAlignment(FONT_ALIGN_LEFT);
+    Font.SetScale({ (0.5f), (0.5f) });
+    Font.PrintString({ (0.0f), (0.0f) }, cam);
 }
 
 void CHud::Draw2DDebug() {

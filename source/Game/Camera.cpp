@@ -19,7 +19,7 @@ void CCamera::Init() {
     m_vAngle.y = -90.0f;
     m_fFOV = 45.0f;
     m_fFrontDist = 0.0f;
-    m_fNearClip = 0.5f;
+    m_fNearClip = 0.1f;
     m_fFarClip = 100.0f;
 }
 

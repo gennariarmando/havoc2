@@ -1,29 +1,43 @@
 #include "Map.h"
 #include "Camera.h"
 #include "ABaseGL.h"
+#include "Config.h"
 
 CMap::CMap(std::string const& fileName, std::string const& styFileName) {
+	m_bInitialised = false;
+	m_ChunkBuffer = {};
+	m_pStyle = NULL;
+	m_vGeometryChunks = {};
+	m_vAnimatedFaces = {};
+	m_vLights = {};
+	m_vZones = {};
 	Read(fileName, styFileName);
 }
 
 CMap::~CMap() {
-
+	Clear();
 }
 
 void CMap::Read(std::string const& fileName, std::string const& styFileName) {
-	m_Style.Read(styFileName);
+	if (m_bInitialised)
+		return;
 
 	if (!Init(fileName, GMP_FILE_VERSION)) {
 		return;
 	}
 
+	m_pStyle = std::make_unique<CStyle>(styFileName);
+
 	m_vGeometryChunks.reserve(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y);
-	m_vCityBlocksDetailed.resize(MAP_SCALE_Z, std::vector<std::vector<CBlockInfoDetailed>>(MAP_SCALE_Y, std::vector<CBlockInfoDetailed>(MAP_SCALE_X)));
+	m_vAnimatedFaces.resize(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y, std::vector<CFaceDetails>(0));
+	
+	std::unique_ptr<std::vector<std::vector<std::vector<CBlockInfoDetailed>>>> detailedBlocks = std::make_unique<std::vector<std::vector<std::vector<CBlockInfoDetailed>>>>(MAP_SCALE_Z, std::vector<std::vector<CBlockInfoDetailed>>(MAP_SCALE_Y, std::vector<CBlockInfoDetailed>(MAP_SCALE_X)));
+	std::unique_ptr<std::vector<CMapTileAnimation>> animations = std::make_unique<std::vector<CMapTileAnimation>>();
 
 	while (LoopThroughChunks()) {
 		switch (GetChunkType()) {
 		case DMAP:
-			Read32BitMap();
+			Read32BitMap(detailedBlocks);
 			break;
 		case ZONE:
 			ReadZones();
@@ -32,7 +46,7 @@ void CMap::Read(std::string const& fileName, std::string const& styFileName) {
 			ReadObjects();
 			break;
 		case ANIM:
-			ReadAnimations();
+			ReadAnimations(animations);
 			break;
 		case LGHT:
 			ReadLights();
@@ -44,17 +58,144 @@ void CMap::Read(std::string const& fileName, std::string const& styFileName) {
 		}
 	}
 
+	BuildDetailedMap(detailedBlocks, animations);
+	m_bInitialised = true;
+}
+
+void CMap::Clear() {
+
+}
+
+void CMap::Read32BitMap(std::unique_ptr<std::vector<std::vector<std::vector<CBlockInfoDetailed>>>>& detailedBlock) {
+	std::vector<std::vector<glm::uint32>> baseOffset(MAP_SCALE_X, std::vector<glm::uint32>(MAP_SCALE_Y));
+	for (glm::uint32 i = 0; i < MAP_SCALE_X; i++) {
+		for (glm::uint32 j = 0; j < MAP_SCALE_Y; j++) {
+			baseOffset[i][j] = GetFile().ReadUInt32();
+		}
+	}
+
+	glm::uint32 columnCount = GetFile().ReadUInt32();
+	std::vector<glm::uint32> columns(columnCount);
+
+	for (glm::uint32 i = 0; i < columnCount; i++)
+		columns[i] = GetFile().ReadUInt32();
+
+	glm::uint32 blockCount = GetFile().ReadUInt32();
+	std::vector<CBlockInfo> blocks(blockCount);
+
+	for (glm::uint32 i = 0; i < blockCount; i++) {
+		blocks[i].face[FACETYPE_LEFT] = GetFile().ReadUInt16();
+		blocks[i].face[FACETYPE_RIGHT] = GetFile().ReadUInt16();
+		blocks[i].face[FACETYPE_TOP] = GetFile().ReadUInt16();
+		blocks[i].face[FACETYPE_BOTTOM] = GetFile().ReadUInt16();
+		blocks[i].face[FACETYPE_LID] = GetFile().ReadUInt16();
+		blocks[i].arrows = GetFile().ReadUInt8();
+		blocks[i].slopeType = GetFile().ReadUInt8();
+	}
+
+	for (glm::uint32 i = 0; i < 256; i++) {
+		for (glm::uint32 j = 0; j < 256; j++) {
+			glm::int32 columnIndex = baseOffset[j][i];
+			glm::int32 height = columns[columnIndex] & 0xFF;
+			glm::int32 offset = (columns[columnIndex] & 0xFF00) >> 8;
+
+			for (glm::int32 k = 0; k < height; k++) {
+				if (offset <= k) {
+					detailedBlock->data()[k][j][i].info = blocks[columns[columnIndex + k - offset + 1]];
+				}
+			}
+		}
+	}
+}
+
+void CMap::ReadZones() {
+	glm::uint32 pos = 0;
+	while (pos < GetChunkSize()) {
+		CMapZone zone = {};
+		zone.zoneType = static_cast<eZoneType>(GetFile().ReadInt8());
+		zone.x = static_cast<float>(GetFile().ReadInt8());
+		zone.y = static_cast<float>(GetFile().ReadInt8());
+		zone.w = static_cast<float>(GetFile().ReadInt8());
+		zone.h = static_cast<float>(GetFile().ReadInt8());
+		glm::int8 nameLength = GetFile().ReadUInt8();
+
+		for (int i = 0; i < nameLength; i++)
+			zone.name += GetFile().ReadUInt8();
+
+		m_vZones.push_back(zone);
+		pos += 6 + nameLength;
+	}
+}
+
+void CMap::ReadObjects() {
+	glm::int64 startOffset = GetFile().GetPosition();
+	while (GetFile().GetPosition() < startOffset + GetChunkSize()) {
+		CMapObject object = {};
+
+		object.x = GetFile().ReadInt16();
+		object.y = GetFile().ReadInt16();
+		object.rot = GetFile().ReadInt8();
+		object.objectType = GetFile().ReadUInt8();
+	}
+}
+
+void CMap::ReadAnimations(std::unique_ptr<std::vector<CMapTileAnimation>>& animations) {
+	glm::int64 startOffset = GetFile().GetPosition();
+	while (GetFile().GetPosition() < startOffset + GetChunkSize()) {
+		CMapTileAnimation anim = {};
+		anim.base = GetFile().ReadUInt16();
+		anim.frameRate = GetFile().ReadUInt8();
+		anim.repeat = GetFile().ReadUInt8();
+
+		glm::uint8 animLength = GetFile().ReadUInt8();
+		GetFile().ReadUInt8();
+
+		for (glm::int32 i = 0; i < animLength; i++)
+			anim.tiles.push_back(GetFile().ReadUInt16());
+
+		animations->push_back(anim);
+	}
+}
+
+void CMap::ReadLights() {
+	glm::int64 startOffset = GetFile().GetPosition();
+	while (GetFile().GetPosition() < startOffset + GetChunkSize()) {
+		CMapLight light = {};
+
+		light.color.a = GetFile().ReadUInt8() / 255.0f;
+		light.color.r = GetFile().ReadUInt8() / 255.0f;
+		light.color.g = GetFile().ReadUInt8() / 255.0f;
+		light.color.b = GetFile().ReadUInt8() / 255.0f;
+
+		light.pos.x = static_cast<float>(GetFile().ReadUInt16());
+		light.pos.y = static_cast<float>(GetFile().ReadUInt16());
+		light.pos.z = static_cast<float>(GetFile().ReadUInt16());
+
+		light.radius = static_cast<float>(GetFile().ReadUInt16());
+
+		light.intensity = static_cast<float>(GetFile().ReadUInt8());
+		light.shape = static_cast<float>(GetFile().ReadUInt8());
+		light.timeOn = static_cast<float>(GetFile().ReadUInt8());
+		light.timeOff = static_cast<float>(GetFile().ReadUInt8());
+
+		m_vLights.push_back(light);
+	}
+}
+
+void CMap::BuildDetailedMap(std::unique_ptr<std::vector<std::vector<std::vector<CBlockInfoDetailed>>>>& b, std::unique_ptr<std::vector<CMapTileAnimation>>& animations) {
 	glm::uint32 index = 0;
+	std::vector<CCachedAnims> cachedAnims;
+
 	for (glm::int32 i = 0; i < MAP_SCALE_Y / MAP_NUM_BLOCKS_Y; i++) {
 		for (glm::int32 j = 0; j < MAP_SCALE_X / MAP_NUM_BLOCKS_X; j++) {
 			for (glm::int32 z = 0; z < MAP_NUM_BLOCKS_Z; z++) {
 				for (glm::int32 y = 0; y < MAP_NUM_BLOCKS_Y; y++) {
 					for (glm::int32 x = 0; x < MAP_NUM_BLOCKS_X; x++) {
-						CBlockInfoDetailed& block = m_vCityBlocksDetailed[z][(y + i * MAP_NUM_BLOCKS_Y)][x + j * MAP_NUM_BLOCKS_X];
+						CBlockInfoDetailed& block = b->data()[z][(y + i * MAP_NUM_BLOCKS_Y)][x + j * MAP_NUM_BLOCKS_X];
 
-						for (glm::uint32 faceTypes = 0; faceTypes < NUM_FACETYPES; faceTypes++) {
-							glm::uint16 face = block.info.face[faceTypes];
-							CFaceDetails& detail = block.details[faceTypes];
+						for (glm::uint32 faceType = 0; faceType < NUM_FACETYPES; faceType++) {
+							glm::uint16 face = block.info.face[faceType];
+							CFaceDetails& detail = block.details[faceType];
 
 							glm::uint16 tile = 0;
 							for (glm::uint32 k = 0; k < 10; k++) {
@@ -62,7 +203,7 @@ void CMap::Read(std::string const& fileName, std::string const& styFileName) {
 							}
 							detail.tile = tile;
 
-							if (faceTypes == FACETYPE_LID) {
+							if (faceType == FACETYPE_LID) {
 								glm::uint32 lit1 = 0;
 								glm::uint32 lit2 = 0;
 								lit1 = CheckBit(face, 10);
@@ -89,7 +230,7 @@ void CMap::Read(std::string const& fileName, std::string const& styFileName) {
 								detail.bulletWall = CheckBit(face, 11);
 
 								glm::uint16 invertedFace = face;
-								switch (faceTypes) {
+								switch (faceType) {
 								case FACETYPE_LEFT:
 									invertedFace = block.info.face[FACETYPE_RIGHT];
 									break;
@@ -147,17 +288,33 @@ void CMap::Read(std::string const& fileName, std::string const& styFileName) {
 
 							block.slopeType = slopeType;
 
-							for (glm::int32 i = 0; i < m_vAnimations.size(); i++) {
-								CMapTileAnimation& anim = m_vAnimations.at(i);
+							bool found = false;
+							for (glm::int32 animCount = 0; animCount < animations->size(); animCount++) {
+								CMapTileAnimation& anim = animations->at(animCount);
 
 								if (anim.base && anim.base < 992 && anim.base == tile) {
+									for (glm::uint32 i = 0; i < cachedAnims.size(); i++) {
+										if (cachedAnims.at(i).tile != -1 && cachedAnims.at(i).tile == tile && cachedAnims.at(i).flipBook) {
+											found = true;
+											detail.flipBook = cachedAnims.at(i).flipBook;
+											break;
+										}
+									}
+									if (found)
+										break;
+
 									if (!detail.flipBook) {
 										detail.flipBook = std::make_shared<CFlipbook>();
-										
+
 										detail.flipBook->frames = anim.tiles;
-										detail.flipBook->loop = true;
-										detail.flipBook->timeToPassForNextFrame = anim.frameRate / 33.f;
+										detail.flipBook->loop = !anim.repeat;
+										detail.flipBook->timeToPassForNextFrame = anim.frameRate / ANIMATIONS_FRAME_RATE;
 										detail.flipBook->frames.push_back(tile);
+
+										CCachedAnims t;
+										t.tile = tile;
+										t.flipBook = detail.flipBook;
+										cachedAnims.push_back(t);
 									}
 									break;
 								}
@@ -165,6 +322,10 @@ void CMap::Read(std::string const& fileName, std::string const& styFileName) {
 						}
 
 						AddBlock(block, glm::vec3(static_cast<float>(x * 1.0f), static_cast<float>(y * 1.0f), static_cast<float>(z * 1.0f - 1.0f)), index);
+						for (glm::int32 faceType = 0; faceType < NUM_FACETYPES; faceType++) {
+							if (block.details[faceType].flipBook)
+								m_vAnimatedFaces[i * MAP_NUM_BLOCKS_X + j].push_back(block.details[faceType]);
+						}
 					}
 				}
 			}
@@ -175,129 +336,10 @@ void CMap::Read(std::string const& fileName, std::string const& styFileName) {
 	}
 }
 
-void CMap::Read32BitMap() {
-	std::vector<std::vector<glm::uint32>> baseOffset(MAP_SCALE_X, std::vector<glm::uint32>(MAP_SCALE_Y));
-	for (glm::uint32 i = 0; i < MAP_SCALE_X; i++) {
-		for (glm::uint32 j = 0; j < MAP_SCALE_Y; j++) {
-			baseOffset[i][j] = GetFile().ReadUInt32();
-		}
-	}
-
-	glm::uint32 columnCount = GetFile().ReadUInt32();
-	std::vector<glm::uint32> columns(columnCount);
-
-	for (glm::uint32 i = 0; i < columnCount; i++)
-		columns[i] = GetFile().ReadUInt32();
-
-	glm::uint32 blockCount = GetFile().ReadUInt32();
-	std::vector<CBlockInfo> blocks(blockCount);
-
-	for (glm::uint32 i = 0; i < blockCount; i++) {
-		blocks[i].face[FACETYPE_LEFT] = GetFile().ReadUInt16();
-		blocks[i].face[FACETYPE_RIGHT] = GetFile().ReadUInt16();
-		blocks[i].face[FACETYPE_TOP] = GetFile().ReadUInt16();
-		blocks[i].face[FACETYPE_BOTTOM] = GetFile().ReadUInt16();
-		blocks[i].face[FACETYPE_LID] = GetFile().ReadUInt16();
-		blocks[i].arrows = GetFile().ReadUInt8();
-		blocks[i].slopeType = GetFile().ReadUInt8();
-	}
-
-	BuildMap(baseOffset, columns, blocks);
-}
-
-void CMap::ReadZones() {
-	glm::uint32 pos = 0;
-	while (pos < GetChunkSize()) {
-		CMapZone zone = {};
-		zone.zoneType = static_cast<eZoneType>(GetFile().ReadInt8());
-		zone.x = static_cast<float>(GetFile().ReadInt8());
-		zone.y = static_cast<float>(GetFile().ReadInt8());
-		zone.w = static_cast<float>(GetFile().ReadInt8());
-		zone.h = static_cast<float>(GetFile().ReadInt8());
-		glm::int8 nameLength = GetFile().ReadUInt8();
-
-		for (int i = 0; i < nameLength; i++)
-			zone.name += GetFile().ReadUInt8();
-
-		m_vZones.push_back(zone);
-		pos += 6 + nameLength;
-	}
-}
-
-void CMap::ReadObjects() {
-	glm::int64 startOffset = GetFile().GetPosition();
-	while (GetFile().GetPosition() < startOffset + GetChunkSize()) {
-		CMapObject object = {};
-
-		object.x = GetFile().ReadInt16();
-		object.y = GetFile().ReadInt16();
-		object.rot = GetFile().ReadInt8();
-		object.objectType = GetFile().ReadUInt8();
-	}
-}
-
-void CMap::ReadAnimations() {
-	glm::int64 startOffset = GetFile().GetPosition();
-	while (GetFile().GetPosition() < startOffset + GetChunkSize()) {
-		CMapTileAnimation anim = {};
-		anim.base = GetFile().ReadUInt16();
-		anim.frameRate = GetFile().ReadUInt8();
-		anim.repeat = GetFile().ReadUInt8();
-
-		glm::uint8 animLength = GetFile().ReadUInt8();
-		GetFile().ReadUInt8();
-
-		for (glm::int32 i = 0; i < animLength; i++)
-			anim.tiles.push_back(GetFile().ReadUInt16());
-
-		m_vAnimations.push_back(anim);
-	}
-}
-
-void CMap::ReadLights() {
-	glm::int64 startOffset = GetFile().GetPosition();
-	while (GetFile().GetPosition() < startOffset + GetChunkSize()) {
-		CMapLight light = {};
-
-		light.color.a = GetFile().ReadUInt8() / 255.0f;
-		light.color.r = GetFile().ReadUInt8() / 255.0f;
-		light.color.g = GetFile().ReadUInt8() / 255.0f;
-		light.color.b = GetFile().ReadUInt8() / 255.0f;
-
-		light.pos.x = static_cast<float>(GetFile().ReadUInt16());
-		light.pos.y = static_cast<float>(GetFile().ReadUInt16());
-		light.pos.z = static_cast<float>(GetFile().ReadUInt16());
-
-		light.radius = static_cast<float>(GetFile().ReadUInt16());
-
-		light.intensity = static_cast<float>(GetFile().ReadUInt8());
-		light.shape = static_cast<float>(GetFile().ReadUInt8());
-		light.timeOn = static_cast<float>(GetFile().ReadUInt8());
-		light.timeOff = static_cast<float>(GetFile().ReadUInt8());
-
-		m_vLights.push_back(light);
-	}
-}
-
-void CMap::BuildMap(std::vector<std::vector<glm::uint32>> base, std::vector<glm::uint32> columns, std::vector<CBlockInfo> blocks) {
-	for (glm::uint32 i = 0; i < 256; i++) {
-		for (glm::uint32 j = 0; j < 256; j++) {
-			glm::int32 columnIndex = base[j][i];
-			glm::int32 height = columns[columnIndex] & 0xFF;
-			glm::int32 offset = (columns[columnIndex] & 0xFF00) >> 8;
-
-			for (glm::int32 k = 0; k < height; k++) {
-				if (offset <= k) {
-					m_vCityBlocksDetailed[k][j][i].info = blocks[columns[columnIndex + k - offset + 1]];
-				}
-			}
-		}
-	}
-
-	std::cout << "Build complete" << std::endl;
-}
-
 void CMap::Render() {
+	if (!m_bInitialised)
+		return;
+
 	const glm::int32 visibleChunks = 2;
 	glm::int32 startx = (static_cast<glm::int32>(Camera.GetPosition().x + (MAP_NUM_BLOCKS_X * 0.5f)) / MAP_NUM_BLOCKS_X) - (visibleChunks);
 	glm::int32 endx = (static_cast<glm::int32>(Camera.GetPosition().x + (MAP_NUM_BLOCKS_X * 0.5f)) / MAP_NUM_BLOCKS_X) + (visibleChunks);
@@ -312,17 +354,9 @@ void CMap::Render() {
 	for (glm::int32 i = starty; i < endy; i++) {
 		for (glm::int32 j = startx; j < endx; j++) {
 			CGeometry* chunk = &m_vGeometryChunks.at(i * MAP_NUM_BLOCKS_X + j);
-			for (glm::int32 z = 0; z < MAP_NUM_BLOCKS_Z; z++) {
-				for (glm::int32 y = 0; y < MAP_NUM_BLOCKS_Y; y++) {
-					for (glm::int32 x = 0; x < MAP_NUM_BLOCKS_X; x++) {
-						CFaceDetails* details = m_vCityBlocksDetailed[z][(y + i * MAP_NUM_BLOCKS_Y)][x + j * MAP_NUM_BLOCKS_X].details;
-						EditFace(chunk, &details[FACETYPE_LEFT]);
-						EditFace(chunk, &details[FACETYPE_TOP]);
-						EditFace(chunk, &details[FACETYPE_RIGHT]);
-						EditFace(chunk, &details[FACETYPE_BOTTOM]);
-						EditFace(chunk, &details[FACETYPE_LID]);
-					}
-				}
+			std::vector<CFaceDetails>& animatedFaces = m_vAnimatedFaces.at(i * MAP_NUM_BLOCKS_X + j);
+			for (auto& it : animatedFaces) {
+				EditFace(chunk, &it);
 			}
 
 			glm::vec3 pos = { static_cast<float>(j * MAP_NUM_BLOCKS_X), static_cast<float>(i * MAP_NUM_BLOCKS_Y), 0.0f };
@@ -372,7 +406,7 @@ glm::vec2 CMap::RotateUV(glm::vec2 uv, float rotation, glm::vec2 center) {
 }
 
 void CMap::AddFace(glm::uint32 slopeType, glm::uint8 faceType, glm::uint32 tile, glm::uint32 rot, bool flip, bool flat, glm::vec3 offset, glm::uint32& index) {
-	m_ChunkBuffer.SetTexture(m_Style.GetTextureAtlas()->GetID());
+	m_ChunkBuffer.SetTexture(GetStyle()->GetTextureAtlas()->GetID());
 
 	if (flat && slopeType == SLOPETYPE_NONE) {
 		glm::vec3 f[4] = {
@@ -744,7 +778,7 @@ void CMap::AddFace(glm::uint32 slopeType, glm::uint8 faceType, glm::uint32 tile,
 }
 
 void CMap::EditFace(CGeometry* chunk, CFaceDetails* details) {
-	if (!details || !details->flipBook)
+	if (!chunk || !details)
 		return;
 
 	float cxy = (1.0f / 32.0f);

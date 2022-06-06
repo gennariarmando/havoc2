@@ -7,17 +7,17 @@ void CFlipbook::Construct() {
 	currentFrame = 0;
 
 	frames = {};
-	currentTime = 0.0;
+	currentTime = 0.0f;
 	loop = true;
-	timeToPassForNextFrame = 1.0;
+	timeToPassForNextFrame = 1.0f;
 }
 
 void CFlipbook::Update() {
 	if (!ABaseGL::GetObjects().window)
 		return;
 
-	if (currentTime < ABaseGL::GetObjects().currentTime) {
-		currentTime = ABaseGL::GetObjects().currentTime + timeToPassForNextFrame;
+	if (currentTime < static_cast<float>(ABaseGL::GetObjects().currentTime)) {
+		currentTime = static_cast<float>(ABaseGL::GetObjects().currentTime) + timeToPassForNextFrame;
 		currentFrame++;
 	}
 
