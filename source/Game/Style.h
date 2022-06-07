@@ -2,6 +2,17 @@
 #include "GBH.h"
 #include "Sprite2D.h"		
 
+enum eBaseIndices {
+	BASEINDEX_CARS,
+	BASEINDEX_PEDS,
+	BASEINDEX_CODEOBJ,
+	BASEINDEX_MAPOBJ,
+	BASEINDEX_USER,
+	BASEINDEX_FONT,
+	BASEINDEX_LAST,
+	NUM_BASE_INDICES,
+};
+
 class CFontBase {
 public:
 	glm::uint16 fontCount;
@@ -164,6 +175,38 @@ public:
 	std::vector<std::shared_ptr<CTexture2D>>& GetSprite() { return m_pSprites; }
 	std::vector<std::shared_ptr<CTexture2D>>& GetTexture() { return m_pTextures; }
 	std::shared_ptr<CTexture2D>& GetTextureAtlas() { return m_pTextureAtlas; }
+
+	glm::uint32 const& GetBaseIndex(eBaseIndices b) {
+		glm::uint32 base = 0;
+		switch (b) {
+		case BASEINDEX_CARS:
+			base = 0;
+			break;
+		case BASEINDEX_PEDS:
+			base += m_pGraphics->spriteBase.car;
+			break;
+		case BASEINDEX_CODEOBJ:
+			base += m_pGraphics->spriteBase.car + m_pGraphics->spriteBase.ped;
+			break;
+		case BASEINDEX_MAPOBJ:
+			base += m_pGraphics->spriteBase.car + m_pGraphics->spriteBase.ped + m_pGraphics->spriteBase.codeObj;
+			break;
+		case BASEINDEX_USER:
+			base += m_pGraphics->spriteBase.car + m_pGraphics->spriteBase.ped + m_pGraphics->spriteBase.codeObj + m_pGraphics->spriteBase.mapObj;
+			break;
+		case BASEINDEX_FONT:
+			base += m_pGraphics->spriteBase.car + m_pGraphics->spriteBase.ped + m_pGraphics->spriteBase.codeObj + m_pGraphics->spriteBase.mapObj + m_pGraphics->spriteBase.user;
+			break;
+		case BASEINDEX_LAST:
+			base += m_pGraphics->spriteBase.car + m_pGraphics->spriteBase.ped + m_pGraphics->spriteBase.codeObj + m_pGraphics->spriteBase.mapObj + m_pGraphics->spriteBase.user + m_pGraphics->spriteBase.font;
+			break;
+		}
+		return base;
+	}
+
+	glm::uint32 const& GetFontBaseIndex(glm::uint8 fontStyle) {
+		return GetBaseIndex(BASEINDEX_FONT) + m_pGraphics->fontBase.base[fontStyle];
+	}
 
 	void BuildTextures();
 	void BuildTextureAtlas();

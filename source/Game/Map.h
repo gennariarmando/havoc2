@@ -208,7 +208,7 @@ class CMap : CGBH {
 public:
 	bool m_bInitialised;
 	CGeometry m_ChunkBuffer;
-	std::unique_ptr<CStyle> m_pStyle;
+	std::shared_ptr<CStyle> m_pStyle;
 
 	std::vector<CGeometry> m_vGeometryChunks;
 	std::vector<std::vector<CFaceDetails>> m_vAnimatedFaces;
@@ -242,6 +242,6 @@ public:
 	void Render();
 
 public:
-	CStyle* GetStyle() { return m_pStyle.get(); }
+	std::shared_ptr<CStyle> GetStyle() { return m_pStyle; }
 
 };

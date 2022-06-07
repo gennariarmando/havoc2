@@ -26,7 +26,7 @@ void CMap::Read(std::string const& fileName, std::string const& styFileName) {
 		return;
 	}
 
-	m_pStyle = std::make_unique<CStyle>(styFileName);
+	m_pStyle = std::make_shared<CStyle>(styFileName);
 
 	m_vGeometryChunks.reserve(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y);
 	m_vAnimatedFaces.resize(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y, std::vector<CFaceDetails>(0));

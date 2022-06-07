@@ -329,8 +329,7 @@ void CStyle::BuildSprites() {
 	if (!m_pGraphics)
 		return;
 
-	glm::uint32 count = m_pGraphics->spriteBase.car + m_pGraphics->spriteBase.ped + m_pGraphics->spriteBase.codeObj +
-		m_pGraphics->spriteBase.mapObj + m_pGraphics->spriteBase.user + m_pGraphics->spriteBase.font;
+	glm::uint32 count = GetBaseIndex(BASEINDEX_LAST);
 
 	for (glm::uint32 i = 0; i < count; i++) {
 		std::vector<glm::uint32> pixels;

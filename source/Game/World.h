@@ -51,9 +51,13 @@ public:
     void Draw2DDebug();
     void Destruct();
     void Shutdown();
+   
+public:
+    bool const& IsLevelLoaded() { return map && map->m_bInitialised; }
+    std::shared_ptr<CStyle> const& GetStyle() { return map->GetStyle(); }
 
 public:
     void LoadLevel(glm::uint8 area);
 };
 
-extern CWorld Debug;
+extern CWorld World;

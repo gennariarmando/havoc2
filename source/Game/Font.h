@@ -3,10 +3,18 @@
 #include "Sprite2D.h"
 #include "Style.h"
 
+#define FSTYLE_FONT_START 8
+
 enum eFontStyle {
 	FONT_BIG_MESSAGES,
-	FONT_SMALL_MESSAGES,
-	NUM_FONTS,
+	FONT_SUBTITLES,
+	FONT_VEHICLE_NAMES,
+	FONT_ZONE_NAMES = 5,
+	FONT_HEADING,
+	// fstyle
+	FONT_BANK = FSTYLE_FONT_START + 1,
+	FONT_REGISTER_DEMIBOLD = FONT_BANK + 3,
+	FONT_MENU = FONT_REGISTER_DEMIBOLD + 1,
 };
 
 enum eFontAlignment {
@@ -17,19 +25,24 @@ enum eFontAlignment {
 
 class CFont {
 private:
-	std::shared_ptr<CStyle> m_pStyle;
 	std::unique_ptr<CSprite2D> m_pSprite;
 	eFontStyle m_eFontStyle;
 	eFontAlignment m_eFontAlignment;
-	glm::vec2 m_vScale;
+	float m_fScale;
+	float m_fWrapX;
+	glm::vec4 m_vColor;
 
 public:
-	void Init(std::shared_ptr<CStyle>& style);
+	void Init();
+	std::shared_ptr<CStyle> GetStyleForThisFont(eFontStyle);
+	eFontStyle GetFontStyleFrontendShift();
 	void SetFontStyle(eFontStyle fontStyle);
-	float GetCharacterSize(char c);
+	glm::vec2 GetCharacterSize(char c);
 	float GetStringWidth(const char* s, bool spaces);
-	void SetScale(glm::vec2 scale);
+	void SetScale(float scale);
+	void SetWrapX(float x);
 	void SetFontAlignment(eFontAlignment align);
+	void SetColor(glm::vec4 col);
 	void PrintString(glm::vec2 pos, std::string str);
 };
 

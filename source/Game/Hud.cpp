@@ -32,11 +32,12 @@ void CHud::Render() {
 
 void CHud::Draw2D() {
     std::string cam = "Camera position: " + std::to_string(Camera.GetPosition().x) + ", " + std::to_string(Camera.GetPosition().y) + ", " + std::to_string(Camera.GetPosition().z);
-
-    Font.SetFontStyle(FONT_BIG_MESSAGES);
-    Font.SetFontAlignment(FONT_ALIGN_LEFT);
-    Font.SetScale({ (0.5f), (0.5f) });
-    Font.PrintString({ (0.0f), (0.0f) }, cam);
+    Font.SetFontAlignment(FONT_ALIGN_RIGHT);
+    Font.SetWrapX(SCREEN_WIDTH);
+    Font.SetScale(2.0f);
+    Font.SetColor(glm::vec4(1.0f));
+    Font.SetFontStyle(FONT_SUBTITLES);
+    Font.PrintString({ (SCREEN_WIDTH), (0.0f) }, cam);
 }
 
 void CHud::Draw2DDebug() {

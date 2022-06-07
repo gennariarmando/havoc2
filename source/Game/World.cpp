@@ -13,7 +13,6 @@ void CWorld::Construct() {
 
 void CWorld::Init() {
     LoadLevel(LEVEL_DOWNTOWN_SP);
-
 }
 
 void CWorld::Update() {
