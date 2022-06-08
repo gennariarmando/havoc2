@@ -217,13 +217,13 @@ public:
 	std::vector<CMapZone> m_vZones;
 
 public:
-	CMap() {}
+	CMap();
 	CMap(std::string const& fileName, std::string const& styFileName);
 	~CMap();
 
 private:
-	void Read(std::string const& fileName, std::string const& styFileName);
 	void Clear();
+	void Read(std::string const& fileName, std::string const& styFileName);
 	void Read32BitMap(std::unique_ptr<std::vector<std::vector<std::vector<CBlockInfoDetailed>>>>& detailedBlock);
 	void ReadZones();
 	void ReadObjects();

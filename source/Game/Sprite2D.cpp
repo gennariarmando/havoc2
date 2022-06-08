@@ -1,8 +1,6 @@
 #include "Sprite2D.h"
 #include "ABaseGL.h"
-#include "Camera.h"
-
-const char* textureFileFormat = ".tga";
+#include "Targa.h"
 
 CGeometry CSprite2D::ms_Geometry = {};
 
@@ -10,8 +8,37 @@ CSprite2D::CSprite2D() {
     m_pTexture = std::make_unique<CTexture2D>();
 }
 
+CSprite2D::CSprite2D(glm::uint32 id) {
+    m_pTexture = std::make_unique<CTexture2D>();
+    SetTexture(id);
+}
+
+CSprite2D::CSprite2D(std::string path, std::string name) {
+    m_pTexture = std::make_unique<CTexture2D>();
+    SetTexture(path, name);
+}
+
 CSprite2D::~CSprite2D() {
     m_pTexture.release();
+}
+
+bool CSprite2D::SetTexture(glm::uint32 id) {
+    m_pTexture->GetID() = id;
+    return true;
+}
+
+bool CSprite2D::SetTexture(std::string path, std::string name) {
+    std::string file = path + "/" + name + ".tga";
+    CTarga tga;
+    if (tga.LoadTexture(file.c_str())) {
+        m_pTexture->Build(tga.imageData.get(), tga.imageWidth, tga.imageHeight, tga.bitCount / 8, GL_NEAREST);
+        tga.Free();
+    }
+    else {
+        return false;
+    }
+
+    return true;
 }
 
 void CSprite2D::Draw(float x, float y, float w, float h, glm::vec4 const& col) {

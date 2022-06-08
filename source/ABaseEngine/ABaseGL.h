@@ -89,5 +89,10 @@ public:
     static glm::uint32* const GetOldInputKeys() { return GetObjects().oldInputKeys; }
     static glm::uint32* const GetNewInputKeys() { return GetObjects().newInputKeys; }
     static std::unique_ptr<class CShader> const& GetDefaultShader() { return GetObjects().defaultShader; }
+    static bool const& GLInitialised() { 
+        if (GetWindow())
+            return true;
 
+        return false;
+    }
 };

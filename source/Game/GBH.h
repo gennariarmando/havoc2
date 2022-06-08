@@ -48,6 +48,7 @@ class CChunkHeader {
 public:
 	char m_cChunkType[4];
 	glm::uint32 m_nChunkSize;
+	int m_nType;
 };
 
 class CGBH {
@@ -66,5 +67,7 @@ public:
 	glm::uint16 GetVersion();
 	std::string GetChunkTypeString();
 	glm::uint32 GetChunkSize();
-	glm::uint32 GetChunkType();
+	glm::int32 GetChunkType();
+	std::string GetChunkHeader();
+	void SkipChunk();
 };

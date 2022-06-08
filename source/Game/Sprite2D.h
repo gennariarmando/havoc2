@@ -8,7 +8,6 @@ private:
     glm::int32 m_nWidth;
     glm::int32 m_nHeight;
     glm::int32 m_nChannels;
-    bool m_bFlat;
 
 public:
     CTexture2D() {
@@ -16,7 +15,6 @@ public:
         m_nWidth = 0;
         m_nHeight = 0;
         m_nChannels = 0;
-        m_bFlat = false;
     }
 
     ~CTexture2D() {
@@ -50,7 +48,7 @@ public:
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
         
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_nWidth, m_nHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, p);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA , m_nWidth, m_nHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, p);
         glGenerateMipmap(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
@@ -82,7 +80,6 @@ public:
     glm::int32& GetWidth() { return m_nWidth; }
     glm::int32& GetHeight() { return m_nHeight; }
     glm::int32& GetChannels() { return m_nChannels; }
-    bool& IsFlat() { return m_bFlat; }
 };
 
 class CSprite2D {
@@ -95,9 +92,13 @@ public:
 
 public:
     CSprite2D();
+    CSprite2D(glm::uint32 id);
+    CSprite2D(std::string path, std::string name);
     ~CSprite2D();
 
 public:
+    bool SetTexture(glm::uint32 id);
+    bool SetTexture(std::string path, std::string name);
     void Draw(float x, float y, float w, float h, glm::vec4 const& col);
     void Draw(float x, float y, float w, float h, glm::vec2 const& center, float angle, glm::vec4 const& col);
 
@@ -109,5 +110,5 @@ public:
 
 public:
     std::unique_ptr<CTexture2D>& GetTexture() { return m_pTexture; }
-    void SetTexture(glm::uint32 id) { GetTexture()->GetID() = id; }
+
 };

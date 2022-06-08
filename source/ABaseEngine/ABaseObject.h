@@ -24,8 +24,8 @@ public:
     virtual void Render() { }
     virtual void Draw2D() { }
     virtual void Draw2DDebug() { }
-    virtual void Destruct() { }
     virtual void Shutdown() { }
+    virtual void Destruct() { }
 };
 
 extern std::list<ABaseObject*> BaseObjectsList;

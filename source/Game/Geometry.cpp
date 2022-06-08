@@ -3,12 +3,30 @@
 #include "ABaseGL.h"
 
 CGeometry::CGeometry() {
-    Clear();
+    m_nPrimitive = GL_TRIANGLES;
+
+    m_nVao = 0;
+    m_nVbo[VBO_POS] = 0;
+    m_nVbo[VBO_UV] = 0;
+
+    m_vPos = {};
+    m_vTexCoords = {};
+
+    m_nFilter = GL_NEAREST;
+
+    m_mTransform = glm::mat4(1.0f);
+    m_mTransform = glm::translate(m_mTransform, glm::vec3(0.0f, 0.0f, 0.0f));
+    m_mTransform = glm::scale(m_mTransform, glm::vec3(1.0f, 1.0f, 1.0f));
+    m_mTransform = glm::rotate(m_mTransform, 0.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+    m_vColor = glm::vec4(1.0f);
+    m_nTexture = 0;
+    m_bHasRenderData = false;
+    m_Shader = NULL;
+    collision = {};
 }
 
 CGeometry::~CGeometry() {
-    if (m_nVao)
-        glDeleteVertexArrays(1, &m_nVao);
+
 }
 
 void CGeometry::Setup() {
@@ -31,28 +49,7 @@ void CGeometry::Setup() {
 }
 
 void CGeometry::Clear() {
-    if (!ABaseGL::GetWindow())
-        return;
-
-    m_nPrimitive = GL_TRIANGLES;
-
-    if (m_nVbo)
-        glDeleteBuffers(NUM_OBJECTS, m_nVbo);
-
-    m_vPos = {};
-    m_vTexCoords = {};
-
-    m_nVao = 0;
-
-    m_mTransform = glm::mat4(1.0f);
-    m_mTransform = glm::translate(m_mTransform, glm::vec3(0.0f, 0.0f, 0.0f));
-    m_mTransform = glm::scale(m_mTransform, glm::vec3(1.0f, 1.0f, 1.0f));
-    m_mTransform = glm::rotate(m_mTransform, 0.0f, glm::vec3(0.0f, 0.0f, 1.0f));
-    m_vColor = glm::vec4(1.0f);
-    m_nTexture = 0;
-    m_nFilter = GL_NEAREST;
-    m_bHasRenderData = false;
-    m_Shader = NULL;
+    ;;
 }
 
 void CGeometry::Update() {
@@ -114,8 +111,7 @@ void CGeometry::SetLocation(float x, float y, float z) {
 }
 
 void CGeometry::SetLocation(glm::vec3 pos) {
-    m_mTransform = glm::mat4(1.0f);
-    m_mTransform = glm::translate(m_mTransform, pos);
+    SetLocation(pos.x, pos.y, pos.z);
 }
 
 void CGeometry::Translate(float x, float y, float z) {
@@ -153,6 +149,10 @@ void CGeometry::SetTexCoords(float x, float y) {
         return;
 
     m_vTexCoords.push_back({ x, y });
+}
+
+void CGeometry::SetTexCoords(glm::vec2 const& pos) {
+    SetTexCoords(pos.x, pos.y);
 }
 
 void CGeometry::EditTexCoords(glm::int32 index, float x, float y) {

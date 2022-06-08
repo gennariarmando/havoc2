@@ -3,14 +3,12 @@
 #include "ABaseGL.h"
 #include "Config.h"
 
+CMap::CMap() {
+	Clear();
+}
+
 CMap::CMap(std::string const& fileName, std::string const& styFileName) {
-	m_bInitialised = false;
-	m_ChunkBuffer = {};
-	m_pStyle = NULL;
-	m_vGeometryChunks = {};
-	m_vAnimatedFaces = {};
-	m_vLights = {};
-	m_vZones = {};
+	Clear();
 	Read(fileName, styFileName);
 }
 
@@ -18,15 +16,25 @@ CMap::~CMap() {
 	Clear();
 }
 
+void CMap::Clear() {
+	m_bInitialised = false;
+	m_ChunkBuffer = {};
+	m_pStyle = NULL;
+	m_vGeometryChunks = {};
+	m_vAnimatedFaces = {};
+	m_vLights = {};
+	m_vZones = {};
+}
+
 void CMap::Read(std::string const& fileName, std::string const& styFileName) {
 	if (m_bInitialised)
 		return;
 
+	m_pStyle = std::make_shared<CStyle>(styFileName);
+
 	if (!Init(fileName, GMP_FILE_VERSION)) {
 		return;
 	}
-
-	m_pStyle = std::make_shared<CStyle>(styFileName);
 
 	m_vGeometryChunks.reserve(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y);
 	m_vAnimatedFaces.resize(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y, std::vector<CFaceDetails>(0));
@@ -52,18 +60,13 @@ void CMap::Read(std::string const& fileName, std::string const& styFileName) {
 			ReadLights();
 			break;
 		default:
-			GetFile().Seek(GetChunkSize());
-			std::cout << "Skip" << std::endl;
+			SkipChunk();
 			break;
 		}
 	}
 
 	BuildDetailedMap(detailedBlocks, animations);
 	m_bInitialised = true;
-}
-
-void CMap::Clear() {
-
 }
 
 void CMap::Read32BitMap(std::unique_ptr<std::vector<std::vector<std::vector<CBlockInfoDetailed>>>>& detailedBlock) {
@@ -330,7 +333,7 @@ void CMap::BuildDetailedMap(std::unique_ptr<std::vector<std::vector<std::vector<
 				}
 			}
 			m_vGeometryChunks.push_back(m_ChunkBuffer);
-			m_ChunkBuffer.Clear();
+			m_ChunkBuffer = { };
 			index = 0;
 		}
 	}

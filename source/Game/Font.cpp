@@ -15,7 +15,7 @@ void CFont::Init() {
 }
 
 std::shared_ptr<CStyle> CFont::GetStyleForThisFont(eFontStyle fontStyle) {
-	if (World.IsLevelLoaded() && fontStyle < FSTYLE_FONT_START)
+	if (fontStyle < FSTYLE_FONT_START)
 		return World.GetStyle();
 
 	return Frontend.GetStyle();
@@ -33,8 +33,12 @@ void CFont::SetFontStyle(eFontStyle fontStyle) {
 }
 
 glm::vec2 CFont::GetCharacterSize(char c) {
-	glm::uint32 index = GetStyleForThisFont(m_eFontStyle)->GetFontBaseIndex(GetFontStyleFrontendShift()) + c - '!';
-	glm::vec2 v = { GetStyleForThisFont(m_eFontStyle)->GetSprite().at(index)->GetWidth(), GetStyleForThisFont(m_eFontStyle)->GetSprite().at(index)->GetHeight()};
+	auto style = GetStyleForThisFont(m_eFontStyle);
+	if (!style)
+		return { 0.0f, 0.0f };
+
+	glm::uint32 index = style->GetFontBaseIndex(GetFontStyleFrontendShift()) + c - '!';
+	glm::vec2 v = { style->GetSprite().at(index)->GetWidth(), style->GetSprite().at(index)->GetHeight()};
 
 	float targetAR = 16.0f / 16.0f;
 	float imageAR = v.y / v.x;
@@ -49,9 +53,7 @@ glm::vec2 CFont::GetCharacterSize(char c) {
 }
 
 float CFont::GetStringWidth(const char* s, bool spaces) {
-	float w;
-
-	w = 0.0f;
+	float w = 0.0f;
 	for (; (*s != ' ' || spaces) && *s != '\0'; s++) {
 		w += GetCharacterSize(*s).x;
 	}
@@ -75,6 +77,10 @@ void CFont::SetColor(glm::vec4 col) {
 }
 
 void CFont::PrintString(glm::vec2 pos, std::string str) {
+	auto style = GetStyleForThisFont(m_eFontStyle);
+	if (!style)
+		return;
+
 	switch (m_eFontAlignment) {
 	case FONT_ALIGN_RIGHT:
 		pos.x -= GetStringWidth(str.c_str(), true);
@@ -107,8 +113,8 @@ void CFont::PrintString(glm::vec2 pos, std::string str) {
 		}
 
 		if (c != ' ') {
-			glm::uint32 index = GetStyleForThisFont(m_eFontStyle)->GetFontBaseIndex(GetFontStyleFrontendShift()) + c - '!';
-			m_pSprite->SetTexture(GetStyleForThisFont(m_eFontStyle)->GetSprite().at(index)->GetID());
+			glm::uint32 index = style->GetFontBaseIndex(GetFontStyleFrontendShift()) + c - '!';
+			m_pSprite->SetTexture(style->GetSprite().at(index)->GetID());
 			m_pSprite->Draw(pos.x, pos.y, GetCharacterSize(c).x, GetCharacterSize(c).y, m_vColor);
 		}
 

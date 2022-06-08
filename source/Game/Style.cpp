@@ -63,8 +63,7 @@ void CStyle::Read(std::string const& fileName) {
 			ReadSPEC();
 			break;
 		default:
-			GetFile().Seek(GetChunkSize());
-			std::cout << "Skip" << std::endl;
+			SkipChunk();
 			break;
 		}
 	}
@@ -83,11 +82,19 @@ void CStyle::ReadPALX() {
 }
 
 void CStyle::ReadPPAL() {
-	glm::uint8 page[64 * 256][4];
-	glm::int32 pageCount = GetChunkSize() / sizeof(page);
+	const glm::uint32 size = 64 * 256;
+	std::unique_ptr<std::unique_ptr<glm::uint8[]>[]> page = std::make_unique<std::unique_ptr<glm::uint8[]>[]>(size);
+
+	glm::int32 pageCount = GetChunkSize() / (size * 4);
 	std::vector<CPhysicalPalette> palettes;
 	for (glm::int32 p = 0; p < pageCount; p++) {
-		GetFile().ReadCustom(&page, sizeof(page));
+		for (glm::int32 i = 0; i < size; i++) {
+			page[i] = std::make_unique<glm::uint8[]>(4);
+			page[i][0] = GetFile().ReadUInt8();
+			page[i][1] = GetFile().ReadUInt8();
+			page[i][2] = GetFile().ReadUInt8();
+			page[i][3] = GetFile().ReadUInt8();
+		}
 
 		CPhysicalPalette palette;
 		for (glm::int32 i = 0; i < 64; i++) {
@@ -99,6 +106,7 @@ void CStyle::ReadPPAL() {
 			palettes.push_back(palette);
 		}
 	}
+
 	m_pGraphics->physicalPalette = palettes;
 }
 
@@ -111,19 +119,19 @@ void CStyle::ReadPALB() {
 
 void CStyle::ReadTILE() {
 	std::vector<CTileData> tiles;
-	CTileData tile1, tile2, tile3, tile4;
+	std::unique_ptr<CTileData[]> tile = std::make_unique<CTileData[]>(4);
 	glm::int32 halfPageCount = GetChunkSize() / (sizeof(CTileData) * 4);
 	for (glm::int32 i = 0; i < halfPageCount; i++) {
 		for (glm::int32 row = 0; row < 64; row++) {
-			GetFile().ReadCustom(&tile1.pixels[row], sizeof(tile1.pixels[row]));
-			GetFile().ReadCustom(&tile2.pixels[row], sizeof(tile2.pixels[row]));
-			GetFile().ReadCustom(&tile3.pixels[row], sizeof(tile3.pixels[row]));
-			GetFile().ReadCustom(&tile4.pixels[row], sizeof(tile4.pixels[row]));
+			GetFile().ReadCustom(&tile[0].pixels[row], sizeof(tile[0].pixels[row]));
+			GetFile().ReadCustom(&tile[1].pixels[row], sizeof(tile[1].pixels[row]));
+			GetFile().ReadCustom(&tile[2].pixels[row], sizeof(tile[2].pixels[row]));
+			GetFile().ReadCustom(&tile[3].pixels[row], sizeof(tile[3].pixels[row]));
 		}
-		tiles.push_back(tile1);
-		tiles.push_back(tile2);
-		tiles.push_back(tile3);
-		tiles.push_back(tile4);
+		tiles.push_back(tile[0]);
+		tiles.push_back(tile[1]);
+		tiles.push_back(tile[2]);
+		tiles.push_back(tile[3]);
 	}
 
 	m_pGraphics->tileData = tiles;
@@ -165,11 +173,11 @@ void CStyle::ReadSPRB() {
 }
 
 void CStyle::ReadDELS() {
-	GetFile().Seek(GetChunkSize());
+	SkipChunk();
 }
 
 void CStyle::ReadDELX() {
-	GetFile().Seek(GetChunkSize());
+	SkipChunk();
 }
 
 void CStyle::ReadFONB() {
@@ -230,21 +238,20 @@ void CStyle::ReadCARI() {
 }
 
 void CStyle::ReadOBJI() {
-	GetFile().Seek(GetChunkSize());
+	SkipChunk();
 }
 
 void CStyle::ReadPSXT() {
-	GetFile().Seek(GetChunkSize());
+	SkipChunk();
 }
 
 void CStyle::ReadRECY() {
-	GetFile().Seek(GetChunkSize());
+	SkipChunk();
 }
 
 void CStyle::ReadSPEC() {
-	GetFile().Seek(GetChunkSize());
+	SkipChunk();
 }
-
 
 std::vector<glm::uint8> CStyle::GetSingleSpriteData(glm::int32 sprite) {
 	std::vector<glm::uint8> spriteData;

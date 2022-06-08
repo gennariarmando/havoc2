@@ -8,7 +8,7 @@ IMPLEMENT_PRIMARY_GAME_MODULE(CWorld, "CWorld");
 CWorld World;
 
 void CWorld::Construct() {
-    map = NULL;
+    map = std::make_unique<CMap>();
 }
 
 void CWorld::Init() {
@@ -47,8 +47,7 @@ void CWorld::Shutdown() {
 }
 
 void CWorld::LoadLevel(glm::uint8 area) {
-    if (map)
-        return;
+    map.release();
 
     switch (area) {
     case LEVEL_DOWNTOWN_SP:

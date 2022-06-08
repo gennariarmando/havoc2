@@ -1,15 +1,20 @@
 #pragma once
 #include "Common.h"
+#include "Config.h"
 
-#define DEFAULT_SCREEN_WIDTH 1280
-#define DEFAULT_SCREEN_HEIGHT 720
-#define DEFAULT_ASPECT_RATIO (16.0f / 9.0f)
+#define DEFAULT_SCREEN_WIDTH 640
+#define DEFAULT_SCREEN_HEIGHT 480
+#define DEFAULT_ASPECT_RATIO (4.0f / 3.0f)
 
 #define SCREEN_WIDTH static_cast<float>(Screen.GetScreenWidth())
 #define SCREEN_HEIGHT static_cast<float>(Screen.GetScreenHeight())
 #define SCREEN_ASPECT_RATIO (Screen.GetAspectRatio())
 
+#ifdef FRONTEND_KEEP_PROPORTIONS
+#define HUD_X(x) (Screen.ScaleXKeepCentered(x))
+#else
 #define HUD_X(x) (Screen.ScaleX(x))
+#endif
 #define HUD_Y(y) (Screen.ScaleY(y))
 
 #define HUD_W(w) (Screen.ScaleW(w))
@@ -33,6 +38,7 @@ public:
         m_fSafeZone = 0.0f;
     }
     float ScaleX(float x);
+    float ScaleXKeepCentered(float x);
     float ScaleY(float y);
     float ScaleW(float w);
     float ScaleH(float h);

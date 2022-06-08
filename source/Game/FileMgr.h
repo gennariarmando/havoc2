@@ -12,7 +12,7 @@ public:
     CFileMgr(std::string fileName);
     ~CFileMgr();
 
-    void Open(std::string fileName);
+    bool Open(std::string fileName);
 
     glm::uint32 ReadUInt32();
     glm::int32 ReadInt32();

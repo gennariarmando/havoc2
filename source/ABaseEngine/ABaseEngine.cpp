@@ -21,7 +21,7 @@ void ABaseEngine::Run() {
         ABaseGL::BeginScene3D();
 
         for (auto& iter : BaseObjectsList)
-            iter&& iter->m_bInitialized ? iter->Render(), NULL : NULL;
+            iter && iter->m_bInitialized ? iter->Render(), NULL : NULL;
 
         ABaseGL::EndScene3D();
 

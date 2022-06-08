@@ -14,11 +14,11 @@ CFileMgr::~CFileMgr() {
 
 }
 
-void CFileMgr::Open(std::string fileName) {
+bool CFileMgr::Open(std::string fileName) {
     m_File.open(fileName, std::ios::in | std::ios::binary);
 
     if (!m_File.is_open()) {
-        return;
+        return false;
     }
 
     m_File.seekg(0, std::ios::end);
@@ -26,8 +26,9 @@ void CFileMgr::Open(std::string fileName) {
     m_File.seekg(0, std::ios::beg);
 
     m_Position = m_File.tellg();
-}
 
+    return true;
+}
 
 glm::uint32 CFileMgr::ReadUInt32() {
     glm::uint32 result;
