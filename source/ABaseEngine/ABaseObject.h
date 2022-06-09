@@ -1,8 +1,8 @@
 #pragma once
-#include "Common.h"
+#include "ABaseHeader.h"
 
 #ifndef IMPLEMENT_PRIMARY_GAME_MODULE
-#define IMPLEMENT_PRIMARY_GAME_MODULE(cl, str) cl::cl() { Super::ABaseObject(), this->m_sClassName = str, this->m_nId = BaseObjectsList.size(), BaseObjectsList.push_back(this), this->Construct(); } cl::~cl() { this->Destruct(); }
+#define IMPLEMENT_PRIMARY_GAME_MODULE(cl, str) cl::cl() { Super::ABaseObject(), this->m_sClassName = str, this->m_nId = (BaseObjectsList.size()), BaseObjectsList.push_back(this), this->Construct(); } cl::~cl() { this->Destruct(); }
 #endif
 
 class ABaseObject {

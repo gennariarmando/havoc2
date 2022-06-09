@@ -16,8 +16,6 @@ int main(int argc, char *argv[]) {
     std::setvbuf(stdout, NULL, _IONBF, 0);
 #endif
 
-    std::unique_ptr<ABaseEngine> e = std::make_unique<ABaseEngine>();
-    e->Run();
-    
+    BaseEngine.Run();
     return false;
 }

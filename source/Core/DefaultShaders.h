@@ -1,0 +1,42 @@
+#pragma once
+
+static const char* vertexShader = {
+    "#version 330 core\n"
+    "layout(location = 0) in vec3 aPos;\n"
+    "layout(location = 1) in vec2 aTexCoords;\n"
+    "out VS_OUT{\n"
+    "    vec3 FragPos;\n"
+    "    vec2 TexCoords;\n"
+    "} vs_out;\n"
+    "uniform mat4 view;\n"
+    "uniform mat4 projection;\n"
+    "uniform mat4 model;\n"
+    "uniform float nearClip;\n"
+    "uniform float farClip;\n"
+    "void main() {\n"
+    "    vs_out.FragPos = vec3(model * vec4(aPos, 1.0f));\n"
+    "    vs_out.TexCoords = aTexCoords;\n"
+    "    vec4 glPos = projection * view * vec4(vs_out.FragPos, 1.0f);\n"
+    "    glPos.z = 2.0f * (log(glPos.w / nearClip) / log(farClip / nearClip)) - 1.0f;"
+    "    glPos.z *= glPos.w;\n"
+    "    gl_Position = glPos;\n"
+    "}\0"
+};
+
+static const char* fragmentShader = {
+    "#version 330 core\n"
+    "out vec4 FragColor;\n"
+    "in VS_OUT{\n"
+    "    vec3 FragPos;\n"
+    "    vec2 TexCoords;\n"
+    "} fs_in;\n"
+    "uniform sampler2D sprite;\n"
+    "uniform vec4 color;\n"
+    "void main() {\n"
+    "    vec4 texColor = texture(sprite, fs_in.TexCoords);\n"
+    "    if (texColor.a < 0.5f)\n"
+    "        discard;\n"
+    "    FragColor = texColor;\n"
+    "    FragColor *= color;\n"
+    "}\0"
+};

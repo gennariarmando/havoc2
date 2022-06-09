@@ -1,8 +1,9 @@
 #pragma once
-#include <memory>
+#include "ABaseHeader.h"
 
 class ABaseEngine {
 public:
     void Run();
 };
 
+extern ABaseEngine BaseEngine;
