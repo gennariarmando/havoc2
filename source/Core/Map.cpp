@@ -770,32 +770,10 @@ void CMap::AddFace(glm::uint32 slopeType, glm::uint8 faceType, glm::uint32 tile,
 	float w = (x + cxy);
 	float h = (y + cxy);
 
-	switch (slopeType) {
-	case SLOPETYPE_PARTIALBLOCKTOP:
-		texCoords.push_back(glm::vec2(x, y));
-		texCoords.push_back(glm::vec2(w, y));
-		texCoords.push_back(glm::vec2(w, h - (cxy / 2)));
-		texCoords.push_back(glm::vec2(x, h - (cxy / 2)));
-		break;
-	case SLOPETYPE_PARTIALBLOCKTOPLEFT:
-		texCoords.push_back(glm::vec2(x, y));
-		texCoords.push_back(glm::vec2(w - (cxy / 2), y));
-		texCoords.push_back(glm::vec2(w - (cxy / 2), h - (cxy / 2)));
-		texCoords.push_back(glm::vec2(x, h - (cxy / 2)));
-		break;
-	case SLOPETYPE_PARTIALBLOCKTOPRIGHT:
-		texCoords.push_back(glm::vec2(x, y));
-		texCoords.push_back(glm::vec2(w - (cxy / 2), y));
-		texCoords.push_back(glm::vec2(w - (cxy / 2), h - (cxy / 2)));
-		texCoords.push_back(glm::vec2(x, h - (cxy / 2)));
-		break;
-	default:
-		texCoords.push_back(glm::vec2(x, y));
-		texCoords.push_back(glm::vec2(w, y));
-		texCoords.push_back(glm::vec2(w, h));
-		texCoords.push_back(glm::vec2(x, h));
-		break;
-	}
+	texCoords.push_back(glm::vec2(x, y));
+	texCoords.push_back(glm::vec2(w, y));
+	texCoords.push_back(glm::vec2(w, h));
+	texCoords.push_back(glm::vec2(x, h));
 
 	if (flip) {
 		std::vector<glm::vec2> texCoordsCopy = texCoords;
