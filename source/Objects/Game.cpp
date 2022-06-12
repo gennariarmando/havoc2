@@ -35,6 +35,7 @@ CGame::CGame() {
     m_pStyle = NULL;
     m_fGravity = 9.81f;
     m_bInGame = false;
+    m_nGameState = GSTATE_MENU;
 }
 
 void CGame::BeginPlay() {
@@ -42,11 +43,25 @@ void CGame::BeginPlay() {
 }
 
 void CGame::Update() {
-    if (Frontend.m_bMenuActive)
-        return;
-
-    if ((m_pMap && !m_pMap->IsLoading()) && (m_pStyle && !m_pStyle->IsLoading()))
+    switch (m_nGameState) {
+    case GSTATE_INTRO:
+        Frontend.OpenMenu(MENUPAGE_MAIN);
+        m_nGameState++;
+        break;
+    case GSTATE_MENU:
+        if (!Frontend.m_bMenuActive)
+            m_nGameState++;
+        break;
+    case GSTATE_LOAD:
+        if ((m_pMap && !m_pMap->IsLoading()) && (m_pStyle && !m_pStyle->IsLoading()))
+            m_nGameState++;
+        break;
+    case GSTATE_PLAY:
         m_bInGame = true;
+        break;
+    case GSTATE_CLOSE:
+        break;
+    }
 }
 
 void CGame::LateUpdate() {

@@ -73,7 +73,11 @@ void CMap::Read(std::string const& fileName) {
 	}
 
 	m_bFileParsed = true;
+#ifdef SUPPORT_MT
 	BaseEngine.ThreadCallBack(false, [&]() { BuildEverything(); });
+#else
+	BuildEverything();
+#endif
 }
 
 void CMap::Read32BitMap() {

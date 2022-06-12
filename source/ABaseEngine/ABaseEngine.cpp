@@ -24,14 +24,14 @@ void ABaseEngine::SetState(eThreadState state) {
 }
 #endif
 
-void ABaseEngine::ThreadCallBack(bool second, std::function<void()> function) {
+void ABaseEngine::ThreadCallBack(bool second, std::function<void()> fun) {
 #ifdef SUPPORT_MT
     if (second) {
         m_pSecondThread->funcs.push_back(function);
     }
     else
 #endif
-        NewObject<ABaseNextFrame>(function, 1);
+        NewObject<ABaseNextFrame>(fun, 1);
 }
 
 void ABaseEngine::Run(int argc, char* argv[]) {

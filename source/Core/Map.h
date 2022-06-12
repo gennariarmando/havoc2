@@ -223,5 +223,5 @@ public:
 	void BuildEverything();
 
 public:
-	bool IsLoading() { return !m_bFileParsed || !m_bBuildComplete; }
+	bool IsLoading() { return !m_bFileParsed && !m_bBuildComplete; }
 };

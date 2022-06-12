@@ -9,7 +9,7 @@ private:
 
 public:
 	ABaseNextFrame();
-	ABaseNextFrame(std::function<void()> fun, glm::uint32 frameSkip);
+	ABaseNextFrame(std::function<void()>& fun, glm::uint32 frameSkip);
 
 	void Update() override;
 	void EndPlay() override;

@@ -32,7 +32,7 @@ public:
 #ifdef SUPPORT_MT
     void Run2();
 #endif
-    void ThreadCallBack(bool second, std::function<void()>);
+    void ThreadCallBack(bool second, std::function<void()> fun);
 };
 
 extern ABaseEngine BaseEngine;

@@ -40,8 +40,17 @@ struct tLevelList {
     std::string sty;
 };
 
+enum eGameState {
+    GSTATE_INTRO,
+    GSTATE_MENU,
+    GSTATE_LOAD,
+    GSTATE_PLAY,
+    GSTATE_CLOSE,
+};
+
 class CGame : public ABaseObject {
 public:
+    glm::uint8 m_nGameState;
     std::shared_ptr<CMap> m_pMap;
     std::shared_ptr<CStyle> m_pStyle;
 

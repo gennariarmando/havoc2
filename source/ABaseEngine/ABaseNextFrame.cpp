@@ -6,7 +6,7 @@ ABaseNextFrame::ABaseNextFrame() {
 	m_nFramesSkipped = 0;
 }
 
-ABaseNextFrame::ABaseNextFrame(std::function<void()> fun, glm::uint32 frameSkip) : Super::ABaseObject() {
+ABaseNextFrame::ABaseNextFrame(std::function<void()>& fun, glm::uint32 frameSkip) : Super::ABaseObject() {
 	m_pFun = fun;
 	m_nFramesToSkip = frameSkip;
 	m_nFramesSkipped = 0;
