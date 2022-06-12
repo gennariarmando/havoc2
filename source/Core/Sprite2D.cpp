@@ -8,18 +8,13 @@ CSprite2D::CSprite2D() {
     m_pTexture = std::make_unique<CTexture2D>();
 }
 
-CSprite2D::CSprite2D(glm::uint32 id) {
-    m_pTexture = std::make_unique<CTexture2D>();
-    SetTexture(id);
-}
-
-CSprite2D::CSprite2D(std::string path, std::string name) {
-    m_pTexture = std::make_unique<CTexture2D>();
-    SetTexture(path, name);
-}
-
 CSprite2D::~CSprite2D() {
     m_pTexture.release();
+}
+
+void CSprite2D::Delete() {
+    if (m_pTexture)
+        m_pTexture->Delete();
 }
 
 bool CSprite2D::SetTexture(glm::uint32 id) {

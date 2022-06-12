@@ -1,6 +1,6 @@
 #pragma once
 
-class CConsole {
+class CText {
 public:
 
 };

@@ -15,16 +15,11 @@ private:
     std::shared_ptr<CSprite> m_pSprite;
 
 public:
-	CEntity();
-	~CEntity();
+    CEntity();
 
-    virtual void Construct();
-    virtual void Init();
-    virtual void Update();
-    virtual void LateUpdate();
-    virtual void Render();
-    //virtual void Draw2D();
-    //virtual void Draw2DDebug();
-    virtual void Destruct();
-    virtual void Shutdown();
+    void BeginPlay() override;
+    void Update() override;
+    void LateUpdate() override;
+    void Render() override;
+    void EndPlay()  override;
 };

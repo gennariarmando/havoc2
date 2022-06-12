@@ -6,15 +6,15 @@
 #define FSTYLE_FONT_START 8
 
 enum eFontStyle {
-	FONT_BIG_MESSAGES,
-	FONT_SUBTITLES,
-	FONT_VEHICLE_NAMES,
-	FONT_ZONE_NAMES = 5,
-	FONT_HEADING,
+	FONT_STYLE_BIGMESSAGE,
+	FONT_STYLE_SUBTITLES,
+	FONT_STYLE_VEHICLE,
+	FONT_STYLE_ZONE = 5,
+	FONT_STYLE_HEADING,
 	// fstyle
-	FONT_BANK = FSTYLE_FONT_START + 1,
-	FONT_REGISTER_DEMIBOLD = FONT_BANK + 3,
-	FONT_MENU = FONT_REGISTER_DEMIBOLD + 1,
+	FONT_STYLE_BANK = FSTYLE_FONT_START + 1,
+	FONT_STYLE_DEMIBOLD = FONT_STYLE_BANK + 3,
+	FONT_STYLE_MENU = FONT_STYLE_DEMIBOLD + 1,
 };
 
 enum eFontAlignment {
@@ -38,7 +38,7 @@ private:
 	glm::vec2 GetCharacterSize(char c);
 
 public:
-	float GetStringWidth(std::string str, bool spaces);
+	float GetStringWidth(std::string str);
 
 public:
 	CFont();

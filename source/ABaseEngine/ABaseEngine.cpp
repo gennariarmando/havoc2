@@ -4,41 +4,81 @@
 
 ABaseEngine BaseEngine;
 
+void ABaseEngine::SetState(eBaseEngineState state) {
+    m_eState = state;
+}
+
+void ABaseEngine::AddFun(void (*function)()) {
+    m_pFunPointers.push_back(function);
+}
+
+void ABaseEngine::FlushFun() {
+    SetState(STATE_LOAD);
+
+    glm::uint32 i = 0;
+    for (auto it : m_pFunPointers) {
+        it();
+        m_pFunPointers.erase(m_pFunPointers.begin() + i);
+        i++;
+    }
+
+    SetState(STATE_IDLE);
+}
+
 void ABaseEngine::Run() {
-    std::unique_ptr<ABaseDevice> BaseDevice = std::make_unique<ABaseDevice>();
+    if (m_bRunning)
+        return;
+
+    m_bRunning = true;
+    SetState(STATE_IDLE);
+
+    BaseDevice = std::make_unique<ABaseDevice>();
     BaseDevice->Init();
+
+    auto a = []() {
+        while (!BaseDevice->WindowShouldClose()) {
+            BaseEngine.FlushFun();
+        }
+    };
+
+    std::unique_ptr<std::thread> t = std::make_unique<std::thread>(a);
 
     while (!BaseDevice->WindowShouldClose()) {
         BaseDevice->BeginDrawing();
-        BaseDevice->Update();
+        if (BaseDevice->Update()) {
+            for (glm::uint32 i = 0; i < baseObjects.size(); i++)
+                if (baseObjects.at(i)->IsValid()) baseObjects.at(i)->CallEvent(BASECALLEVENT_BEGINPLAY);
 
-        for (auto& iter : BaseObjectsList)
-            iter && !iter->m_bInitialized ? iter->Init(), iter->m_bInitialized = true : NULL;
-        
-        for (auto& iter : BaseObjectsList)
-            iter && iter->m_bInitialized ? iter->Update(), NULL : NULL;
+            for (glm::uint32 i = 0; i < baseObjects.size(); i++)
+                if (baseObjects.at(i)->IsValid()) baseObjects.at(i)->CallEvent(BASECALLEVENT_UPDATE);
 
-        BaseDevice->BeginScene3D();
+            BaseDevice->BeginScene3D();
 
-        for (auto& iter : BaseObjectsList)
-            iter && iter->m_bInitialized ? iter->Render(), NULL : NULL;
+            for (glm::uint32 i = 0; i < baseObjects.size(); i++)
+                if (baseObjects.at(i)->IsValid()) baseObjects.at(i)->CallEvent(BASECALLEVENT_RENDER);
 
-        BaseDevice->EndScene3D();
+            BaseDevice->EndScene3D();
 
-        for (auto& iter : BaseObjectsList)
-            iter && iter->m_bInitialized ? iter->Draw2D(), NULL : NULL;
-        
-        for (auto& iter : BaseObjectsList)
-            iter && iter->m_bInitialized ? iter->Draw2DDebug(), NULL : NULL;
-        
-        for (auto& iter : BaseObjectsList)
-            iter && iter->m_bInitialized ? iter->LateUpdate(), NULL : NULL;
+            for (glm::uint32 i = 0; i < baseObjects.size(); i++)
+                if (baseObjects.at(i)->IsValid()) baseObjects.at(i)->CallEvent(BASECALLEVENT_DRAW2D);
 
-        BaseDevice->EndDrawing();
+            for (glm::uint32 i = 0; i < baseObjects.size(); i++)
+                if (baseObjects.at(i)->IsValid()) baseObjects.at(i)->CallEvent(BASECALLEVENT_DRAW2DDEBUG);
+
+            for (glm::uint32 i = 0; i < baseObjects.size(); i++)
+                if (baseObjects.at(i)->IsValid()) baseObjects.at(i)->CallEvent(BASECALLEVENT_LATEUPDATE);
+
+                ABaseObject::Flush();
+
+            for (glm::uint32 i = 0; i < baseObjects.size(); i++)
+                    if (baseObjects.at(i)->IsValid()) baseObjects.at(i)->CallEvent(BASECALLEVENT_ENDPLAY);
+
+            BaseDevice->EndDrawing();
+        }
     }
+    t->join();
 
-    //for (auto& iter : BaseObjectsList)
-    //    iter && iter->m_bInitialized ? iter->Shutdown(), iter->m_bInitialized = false : NULL;
+
 
     BaseDevice->Shutdown();
 }

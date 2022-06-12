@@ -13,11 +13,9 @@ private:
 	
 public:
 	CFlipbook();
-	~CFlipbook();
 
-private:
-	void Construct();
-	void Update();
+	void BeginPlay() override;
+	void Update() override;
 
 public:
 	void Set(std::vector<glm::uint16> frames, glm::uint8 repeat, float rate);

@@ -3,50 +3,55 @@
 #include "Camera.h"
 #include "ABaseDevice.h"
 #include "Config.h"
+#include "Frontend.h"
 
 CMap::CMap() {
 	Clear();
 }
 
-CMap::CMap(std::string const& fileName, std::string const& styFileName) {
+CMap::CMap(std::string const& fileName) {
 	Clear();
-	Read(fileName, styFileName);
+	Read(fileName);
 }
 
 CMap::~CMap() {
-	Clear();
+
 }
 
 void CMap::Clear() {
-	m_bInitialised = false;
+	m_bFileParsed = false;
+	m_bBuildComplete = false;
+	m_vChunks = NULL;
+	m_vAnimations = NULL;
+	m_vZones = NULL;
+	m_vObjects = NULL;
+	m_vLights = NULL;
+	m_vGeometryChunks = {};
+	m_vAnimatedFaces = {{}};
 	m_ChunkBuffer = {};
-	m_pStyle = NULL;
-	m_vGeometryOpaque = {};
-	m_vAnimatedFaces = {};
-	m_vLights = {};
-	m_vZones = {};
 }
 
-void CMap::Read(std::string const& fileName, std::string const& styFileName) {
-	if (m_bInitialised)
+void CMap::Read(std::string const& fileName) {
+	if (m_bFileParsed)
 		return;
-
-	m_pStyle = std::make_shared<CStyle>(styFileName);
 
 	if (!Init(fileName, GMP_FILE_VERSION)) {
 		return;
 	}
 
-	m_vGeometryOpaque.reserve(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y);
-	m_vAnimatedFaces.resize(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y, std::vector<CFaceDetails>(0));
+	m_vGeometryChunks.reserve(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y);
+	m_vAnimatedFaces.resize(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y, std::vector<tFaceInfo>(0));
 
-	std::unique_ptr<std::vector<std::vector<std::vector<CBlockInfoDetailed>>>> detailedBlocks = std::make_unique<std::vector<std::vector<std::vector<CBlockInfoDetailed>>>>(MAP_SCALE_Z, std::vector<std::vector<CBlockInfoDetailed>>(MAP_SCALE_Y, std::vector<CBlockInfoDetailed>(MAP_SCALE_X)));
-	std::unique_ptr<std::vector<CMapTileAnimation>> animations = std::make_unique<std::vector<CMapTileAnimation>>();
+	m_vChunks = std::make_unique<std::vector<std::vector<std::vector<tBlockInfoDetailed>>>>(MAP_SCALE_Z, std::vector<std::vector<tBlockInfoDetailed>>(MAP_SCALE_Y, std::vector<tBlockInfoDetailed>(MAP_SCALE_X)));
+	m_vAnimations = std::make_unique<std::vector<tTileAnimation>>();
+	m_vZones = std::make_unique<std::vector<tMapZone>>();
+	m_vObjects = std::make_unique<std::vector<tMapObject>>();
+	m_vLights = std::make_unique<std::vector<tMapLight>>();
 
 	while (LoopThroughChunks()) {
 		switch (GetChunkType()) {
 		case DMAP:
-			Read32BitMap(detailedBlocks);
+			Read32BitMap();
 			break;
 		case ZONE:
 			ReadZones();
@@ -55,7 +60,7 @@ void CMap::Read(std::string const& fileName, std::string const& styFileName) {
 			ReadObjects();
 			break;
 		case ANIM:
-			ReadAnimations(animations);
+			ReadAnimations();
 			break;
 		case LGHT:
 			ReadLights();
@@ -66,11 +71,10 @@ void CMap::Read(std::string const& fileName, std::string const& styFileName) {
 		}
 	}
 
-	BuildDetailedMap(detailedBlocks, animations);
-	m_bInitialised = true;
+	m_bFileParsed = true;
 }
 
-void CMap::Read32BitMap(std::unique_ptr<std::vector<std::vector<std::vector<CBlockInfoDetailed>>>>& detailedBlock) {
+void CMap::Read32BitMap() {
 	std::vector<std::vector<glm::uint32>> baseOffset(MAP_SCALE_X, std::vector<glm::uint32>(MAP_SCALE_Y));
 	for (glm::uint32 i = 0; i < MAP_SCALE_X; i++) {
 		for (glm::uint32 j = 0; j < MAP_SCALE_Y; j++) {
@@ -85,7 +89,7 @@ void CMap::Read32BitMap(std::unique_ptr<std::vector<std::vector<std::vector<CBlo
 		columns[i] = GetFile().ReadUInt32();
 
 	glm::uint32 blockCount = GetFile().ReadUInt32();
-	std::vector<CBlockInfo> blocks(blockCount);
+	std::vector<tBlockInfo> blocks(blockCount);
 
 	for (glm::uint32 i = 0; i < blockCount; i++) {
 		blocks[i].face[FACETYPE_LEFT] = GetFile().ReadUInt16();
@@ -104,8 +108,8 @@ void CMap::Read32BitMap(std::unique_ptr<std::vector<std::vector<std::vector<CBlo
 			glm::int32 offset = (columns[columnIndex] & 0xFF00) >> 8;
 
 			for (glm::int32 k = 0; k < height; k++) {
-				if (offset <= k) {
-					detailedBlock->data()[k][j][i].info = blocks[columns[columnIndex + k - offset + 1]];
+				if (offset <= k) {			
+					m_vChunks->data()[k][j][i] = ParseBlockInfo(blocks[columns[columnIndex + k - offset + 1]]);
 				}
 			}
 		}
@@ -115,7 +119,7 @@ void CMap::Read32BitMap(std::unique_ptr<std::vector<std::vector<std::vector<CBlo
 void CMap::ReadZones() {
 	glm::uint32 pos = 0;
 	while (pos < GetChunkSize()) {
-		CMapZone zone = {};
+		tMapZone zone = {};
 		zone.zoneType = static_cast<eZoneType>(GetFile().ReadInt8());
 		zone.x = static_cast<float>(GetFile().ReadInt8());
 		zone.y = static_cast<float>(GetFile().ReadInt8());
@@ -126,7 +130,7 @@ void CMap::ReadZones() {
 		for (int i = 0; i < nameLength; i++)
 			zone.name += GetFile().ReadUInt8();
 
-		m_vZones.push_back(zone);
+		m_vZones->push_back(zone);
 		pos += 6 + nameLength;
 	}
 }
@@ -134,7 +138,7 @@ void CMap::ReadZones() {
 void CMap::ReadObjects() {
 	glm::int64 startOffset = GetFile().GetPosition();
 	while (GetFile().GetPosition() < startOffset + GetChunkSize()) {
-		CMapObject object = {};
+		tMapObject object = {};
 
 		object.x = GetFile().ReadInt16();
 		object.y = GetFile().ReadInt16();
@@ -143,10 +147,10 @@ void CMap::ReadObjects() {
 	}
 }
 
-void CMap::ReadAnimations(std::unique_ptr<std::vector<CMapTileAnimation>>& animations) {
+void CMap::ReadAnimations() {
 	glm::int64 startOffset = GetFile().GetPosition();
 	while (GetFile().GetPosition() < startOffset + GetChunkSize()) {
-		CMapTileAnimation anim = {};
+		tTileAnimation anim = {};
 		anim.base = GetFile().ReadUInt16();
 		anim.frameRate = GetFile().ReadUInt8();
 		anim.repeat = GetFile().ReadUInt8();
@@ -157,14 +161,14 @@ void CMap::ReadAnimations(std::unique_ptr<std::vector<CMapTileAnimation>>& anima
 		for (glm::int32 i = 0; i < animLength; i++)
 			anim.tiles.push_back(GetFile().ReadUInt16());
 
-		animations->push_back(anim);
+		m_vAnimations->push_back(anim);
 	}
 }
 
 void CMap::ReadLights() {
 	glm::int64 startOffset = GetFile().GetPosition();
 	while (GetFile().GetPosition() < startOffset + GetChunkSize()) {
-		CMapLight light = {};
+		tMapLight light = {};
 
 		light.color.a = GetFile().ReadUInt8() / 255.0f;
 		light.color.r = GetFile().ReadUInt8() / 255.0f;
@@ -182,121 +186,145 @@ void CMap::ReadLights() {
 		light.timeOn = static_cast<float>(GetFile().ReadUInt8());
 		light.timeOff = static_cast<float>(GetFile().ReadUInt8());
 
-		m_vLights.push_back(light);
+		m_vLights->push_back(light);
 	}
 }
 
-void CMap::BuildDetailedMap(std::unique_ptr<std::vector<std::vector<std::vector<CBlockInfoDetailed>>>>& b, std::unique_ptr<std::vector<CMapTileAnimation>>& animations) {
+tBlockInfoDetailed CMap::ParseBlockInfo(tBlockInfo& block) {
+	tBlockInfoDetailed info = {};
+
+	for (glm::uint32 faceType = 0; faceType < NUM_FACETYPES; faceType++) {
+		for (glm::uint32 k = 0; k < 10; k++) {
+			info.details[faceType].tile += (block.face[faceType] & static_cast<glm::int32>(glm::pow(2, k)));
+		}
+
+		if (faceType == FACETYPE_LID) {
+			glm::uint32 lit1 = 0;
+			glm::uint32 lit2 = 0;
+			lit1 = GetBit(block.face[faceType], 10);
+			lit2 = GetBit(block.face[faceType], 11);
+
+			if (!lit1 && !lit2)
+				info.details[faceType].lighting = 0;
+
+			if (lit1 && !lit2)
+				info.details[faceType].lighting = 1;
+
+			if (lit1 && lit2)
+				info.details[faceType].lighting = 2;
+
+			if (lit1 && lit2)
+				info.details[faceType].lighting = 3;
+		}
+		else {
+			info.details[faceType].lighting = 0;
+
+			info.details[faceType].wall = GetBit(block.face[faceType], 10);
+			info.details[faceType].bulletWall = GetBit(block.face[faceType], 11);
+		}
+
+		info.details[faceType].flat = GetBit(block.face[faceType], 12);
+
+		switch (faceType) {
+		case FACETYPE_LEFT:
+			info.details[FACETYPE_LEFT].oppositeFlat = GetBit(block.face[FACETYPE_RIGHT], 12);
+			break;
+		case FACETYPE_TOP:
+			info.details[FACETYPE_LEFT].oppositeFlat = GetBit(block.face[FACETYPE_BOTTOM], 12);
+			break;
+		case FACETYPE_RIGHT:
+			info.details[FACETYPE_LEFT].oppositeFlat = GetBit(block.face[FACETYPE_LEFT], 12);
+			break;
+		case FACETYPE_BOTTOM:
+			info.details[FACETYPE_LEFT].oppositeFlat = GetBit(block.face[FACETYPE_TOP], 12);
+			break;
+		default:
+			info.details[FACETYPE_LEFT].oppositeFlat = false;
+			break;
+		}
+		info.details[faceType].flip = GetBit(block.face[faceType], 13);
+
+		glm::uint32 rot1 = GetBit(block.face[faceType], 14);
+		glm::uint32 rot2 = GetBit(block.face[faceType], 15);
+
+		if (rot1 && !rot2)
+			info.details[faceType].rotation = 1;
+		else if (!rot1 && rot2)
+			info.details[faceType].rotation = 2;
+		else if (rot1 && rot2)
+			info.details[faceType].rotation = 3;
+		else
+			info.details[faceType].rotation = 0;
+
+		glm::uint32 groundType = 0;
+		groundType += (block.slopeType & 1);
+		groundType += (block.slopeType & 2);
+		info.groundType = groundType;
+
+		glm::uint32 slopeType = 0;
+		for (glm::uint32 k = 2; k < 8; k++) {
+			if (GetBit(block.slopeType, k))
+				slopeType += glm::pow(2, k - 2);
+		}
+		info.slopeType = slopeType;
+	}
+
+	return info;
+}
+
+void CMap::BuildEverything() {
+	if (m_bBuildComplete || !m_bFileParsed)
+		return;
+
+	BuildChunks();
+
+	m_bBuildComplete = true;
+}
+
+void CMap::BuildChunks() {
 	glm::uint32 index = 0;
-	std::vector<CCachedAnims> cachedAnims;
+	std::vector<tCachedAnims> cachedAnims;
 
 	for (glm::int32 i = 0; i < MAP_SCALE_Y / MAP_NUM_BLOCKS_Y; i++) {
 		for (glm::int32 j = 0; j < MAP_SCALE_X / MAP_NUM_BLOCKS_X; j++) {
 			for (glm::int32 z = 0; z < MAP_NUM_BLOCKS_Z; z++) {
 				for (glm::int32 y = 0; y < MAP_NUM_BLOCKS_Y; y++) {
 					for (glm::int32 x = 0; x < MAP_NUM_BLOCKS_X; x++) {
-						CBlockInfoDetailed& block = b->data()[z][(y + i * MAP_NUM_BLOCKS_Y)][x + j * MAP_NUM_BLOCKS_X];
+						tBlockInfoDetailed& block = m_vChunks->data()[z][(y + i * MAP_NUM_BLOCKS_Y)][x + j * MAP_NUM_BLOCKS_X];
 
 						for (glm::uint32 faceType = 0; faceType < NUM_FACETYPES; faceType++) {
-							glm::uint16 face = block.info.face[faceType];
-							CFaceDetails& detail = block.details[faceType];
-
-							glm::uint16 tile = 0;
-							for (glm::uint32 k = 0; k < 10; k++) {
-								tile += (face & static_cast<glm::int32>(glm::pow(2, k)));
-							}
-							detail.tile = tile;
-
-							if (faceType == FACETYPE_LID) {
-								glm::uint32 lit1 = 0;
-								glm::uint32 lit2 = 0;
-								lit1 = CheckBit(face, 10);
-								lit2 = CheckBit(face, 11);
-
-								if (!lit1 && !lit2)
-									detail.lighting = 0;
-
-								if (lit1 && !lit2)
-									detail.lighting = 1;
-
-								if (lit1 && lit2)
-									detail.lighting = 2;
-
-								if (lit1 && lit2)
-									detail.lighting = 3;
-							}
-							else {
-								detail.lighting = 0;
-
-								detail.wall = CheckBit(face, 10);
-								detail.bulletWall = CheckBit(face, 11);
-							}
-
-							detail.flat = CheckBit(face, 12);
-
-							if (tile < 992)
-								detail.tileHasTransparency = GetStyle()->GetTexture().at(tile)->HasTransparency();
-
-							detail.flip = CheckBit(face, 13);
-
-							glm::uint32 rot1 = CheckBit(face, 14);
-							glm::uint32 rot2 = CheckBit(face, 15);
-
-							if (rot1 && !rot2)
-								detail.rotation = 1;
-							else if (!rot1 && rot2)
-								detail.rotation = 2;
-							else if (rot1 && rot2)
-								detail.rotation = 3;
-							else
-								detail.rotation = 0;
-
-							glm::uint32 groundType = 0;
-							groundType += (block.info.slopeType & 1);
-							groundType += (block.info.slopeType & 2);
-							block.groundType = groundType;
-
-							glm::uint32 slopeType = 0;
-
-							for (glm::uint32 k = 2; k < 8; k++) {
-								if (CheckBit(block.info.slopeType, k))
-									slopeType += glm::pow(2, k - 2);
-							}
-
-							switch (slopeType) {
+							switch (block.slopeType) {
 							case SLOPETYPE_DIAGONALSLOPEFACINGUPLEFT:
 							case SLOPETYPE_DIAGONALSLOPEFACINGUPRIGHT:
 							case SLOPETYPE_DIAGONALSLOPEFACINGDOWNLEFT:
 							case SLOPETYPE_DIAGONALSLOPEFACINGDOWNRIGHT:
-								if ((block.info.face[FACETYPE_LID] & 0x3FF) == 1023)
-									slopeType = (slopeType - SLOPETYPE_DIAGONALSLOPEFACINGUPLEFT) + SLOPETYPE_DIAGONALSLOPEFACINGUPLEFTNOZERO;
+								if ((block.details[FACETYPE_LID].tile) == 1023)
+									block.slopeType = (block.slopeType - SLOPETYPE_DIAGONALSLOPEFACINGUPLEFT) + SLOPETYPE_DIAGONALSLOPEFACINGUPLEFTNOZERO;
 								break;
 							}
 
-							block.slopeType = slopeType;
-
 							bool found = false;
-							for (glm::int32 animCount = 0; animCount < animations->size(); animCount++) {
-								CMapTileAnimation& anim = animations->at(animCount);
+							for (glm::int32 animCount = 0; animCount < m_vAnimations->size(); animCount++) {
+								tTileAnimation& anim = m_vAnimations->at(animCount);
 
-								if (anim.base && anim.base < 992 && anim.base == tile) {
+								if (anim.base && anim.base < 992 && anim.base == block.details[faceType].tile) {
 									for (glm::uint32 i = 0; i < cachedAnims.size(); i++) {
-										if (cachedAnims.at(i).tile != -1 && cachedAnims.at(i).tile == tile && cachedAnims.at(i).flipBook) {
+										if (cachedAnims.at(i).tile != -1 && cachedAnims.at(i).tile == block.details[faceType].tile && cachedAnims.at(i).flipBook) {
 											found = true;
-											detail.flipBook = cachedAnims.at(i).flipBook;
+											block.details[faceType].flipBook = cachedAnims.at(i).flipBook;
 											break;
 										}
 									}
 									if (found)
 										break;
 
-									if (!detail.flipBook) {
-										detail.flipBook = std::make_shared<CFlipbook>();
-										detail.flipBook->Set(anim.tiles, anim.repeat, anim.frameRate / ANIMATIONS_FRAME_RATE);
+									if (!block.details[faceType].flipBook) {
+										block.details[faceType].flipBook = std::make_shared<CFlipbook>();
+										block.details[faceType].flipBook->Set(anim.tiles, anim.repeat, anim.frameRate / ANIMATIONS_FRAME_RATE);
 
-										CCachedAnims t;
-										t.tile = tile;
-										t.flipBook = detail.flipBook;
+										tCachedAnims t;
+										t.tile = block.details[faceType].tile;
+										t.flipBook = block.details[faceType].flipBook;
 										cachedAnims.push_back(t);
 									}
 									break;
@@ -309,17 +337,14 @@ void CMap::BuildDetailedMap(std::unique_ptr<std::vector<std::vector<std::vector<
 					}
 				}
 			}
-			m_vGeometryOpaque.push_back(m_ChunkBuffer);
+			m_vGeometryChunks.push_back(m_ChunkBuffer);
 			m_ChunkBuffer = { };
 			index = 0;
 		}
 	}
 }
 
-void CMap::Render() {
-	if (!m_bInitialised)
-		return;
-
+void CMap::Render(std::shared_ptr<CStyle> style) {
 	const glm::int32 visibleChunks = 2;
 	glm::int32 startx = (static_cast<glm::int32>(Camera.GetPosition().x + (MAP_NUM_BLOCKS_X * 0.5f)) / MAP_NUM_BLOCKS_X) - (visibleChunks);
 	glm::int32 endx = (static_cast<glm::int32>(Camera.GetPosition().x + (MAP_NUM_BLOCKS_X * 0.5f)) / MAP_NUM_BLOCKS_X) + (visibleChunks);
@@ -331,28 +356,33 @@ void CMap::Render() {
 	starty = Clamp(starty, 0, MAP_NUM_BLOCKS_Y);
 	endy = Clamp(endy, 0, MAP_NUM_BLOCKS_Y);
 
+	if (m_vGeometryChunks.empty())
+		return;
+
 	for (glm::int32 i = starty; i < endy; i++) {
 		for (glm::int32 j = startx; j < endx; j++) {
-			CGeometry* opaque = &m_vGeometryOpaque.at(i * MAP_NUM_BLOCKS_X + j);
-			std::vector<CFaceDetails>& animatedFaces = m_vAnimatedFaces.at(i * MAP_NUM_BLOCKS_X + j);
+			CGeometry* chunk = &m_vGeometryChunks.at(i * MAP_NUM_BLOCKS_X + j);
+			std::vector<tFaceInfo>& animatedFaces = m_vAnimatedFaces.at(i * MAP_NUM_BLOCKS_X + j);
 
 			for (auto& it : animatedFaces) {
-				EditFace(opaque, &it);
+				EditFace(chunk, &it);
 			}
 
 			glm::vec3 pos = { static_cast<float>(j * MAP_NUM_BLOCKS_X), static_cast<float>(i * MAP_NUM_BLOCKS_Y), 0.0f };
-			opaque->SetLocation(pos);
-			opaque->SetRotation(0.0f, 0.0f, 1.0f, 0.0f);
-			opaque->SetScale(1.0f, 1.0f, 1.0f);
-			opaque->Render();
+
+			chunk->SetTexture(style->GetTextureAtlas()->GetID());
+			chunk->SetLocation(pos);
+			chunk->SetRotation(0.0f, 0.0f, 1.0f, 0.0f);
+			chunk->SetScale(1.0f, 1.0f, 1.0f);
+			chunk->Render();
 		}
 	}
 }
 
-void CMap::AddBlock(glm::uint32 chunkIndex, CBlockInfoDetailed& block, glm::vec3 offset, glm::uint32& index) {
+void CMap::AddBlock(glm::uint32 chunkIndex, tBlockInfoDetailed& block, glm::vec3 offset, glm::uint32& index) {
 	for (glm::int32 faceType = 0; faceType < NUM_FACETYPES; faceType++) {
-		CFaceDetails* oppositeFace = NULL;
-		CFaceDetails& detail = block.details[faceType];
+		tFaceInfo* oppositeFace = NULL;
+		tFaceInfo& detail = block.details[faceType];
 
 		switch (faceType) {
 		case FACETYPE_LEFT:
@@ -414,24 +444,7 @@ void CMap::AddBlock(glm::uint32 chunkIndex, CBlockInfoDetailed& block, glm::vec3
 	}
 }
 
-bool CMap::CheckBit(glm::int32 const& value, glm::int32 const& bitOffset) {
-	if (bitOffset < 0 || bitOffset >= sizeof(glm::int32) * 8)
-		throw "Argument out of range";
-	return (value & (1 << bitOffset)) == (1 << bitOffset);
-}
-
-glm::vec2 CMap::RotateUV(glm::vec2 uv, float rotation, glm::vec2 center) {
-	glm::vec2 v = { 
-		glm::cos(rotation) * (uv.x - center.x) + glm::sin(rotation) * (uv.y - center.y) + center.x,
-		glm::cos(rotation) * (uv.y - center.y) - glm::sin(rotation) * (uv.x - center.x) + center.y
-	};
-
-	return v;
-}
-
 void CMap::AddFace(glm::uint32 slopeType, glm::uint8 faceType, glm::uint32 tile, glm::uint32 rot, bool flip, bool flat, bool oppositeFlat, glm::vec3 offset, glm::uint32& index) {
-	m_ChunkBuffer.SetTexture(GetStyle()->GetTextureAtlas()->GetID());
-
 	if (oppositeFlat && slopeType == SLOPETYPE_NONE) {
 		glm::vec3 f[4] = {
 			glm::vec3(1.0f, 0.0f, 0.0f),
@@ -824,7 +837,7 @@ void CMap::AddFace(glm::uint32 slopeType, glm::uint8 faceType, glm::uint32 tile,
 	}
 }
 
-void CMap::EditFace(CGeometry* chunk, CFaceDetails* details) {
+void CMap::EditFace(CGeometry* chunk, tFaceInfo* details) {
 	if (!chunk || !details)
 		return;
 

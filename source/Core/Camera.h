@@ -49,12 +49,13 @@ private:
 
 public:
     CCamera();
-    ~CCamera();
-    void Init();
-    void Update();
-    void LateUpdate();
-    void Shutdown();
 
+    void BeginPlay() override;
+    void Update() override;
+    void LateUpdate() override;
+    void EndPlay()  override;
+
+public:
     void ComputeProjection();
 
     template<eFrustumPlanes a, eFrustumPlanes b, eFrustumPlanes c>

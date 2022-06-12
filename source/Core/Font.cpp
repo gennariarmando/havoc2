@@ -42,23 +42,36 @@ glm::vec2 CFont::GetCharacterSize(char c) {
 	v.x = roundf(16.0f / imageAR * targetAR);
 	v.y = 16.0f;
 
-	v.x *= m_fScale;
-	v.y *= m_fScale;
+	v.x *= m_fScale / 8.0f;
+	v.y *= m_fScale / 8.0f;
 
 	return v;
 }
 
-float CFont::GetStringWidth(std::string str, bool spaces) {
+float CFont::GetStringWidth(std::string str) {
 	float w = 0.0f;
-	const char* s = str.c_str();
-	for (; (*s != ' ' || spaces) && *s != '\0'; s++) {
-		w += GetCharacterSize(*s).x;
+
+	for (auto c : str) {
+		switch (m_eFontStyle) {
+		case FONT_STYLE_BIGMESSAGE:
+		case FONT_STYLE_VEHICLE:
+		case FONT_STYLE_ZONE:
+		case FONT_STYLE_HEADING:
+		case FONT_STYLE_BANK:
+		case FONT_STYLE_MENU:
+			if (c >= 'a' && c <= 'z') {
+				c = c - ('a' - 'A');
+			}
+			break;
+		}
+
+		w += GetCharacterSize(c).x;
 	}
 	return w;
 }
 
 void CFont::Reset() {
-	m_eFontStyle = FONT_BIG_MESSAGES;
+	m_eFontStyle = FONT_STYLE_BIGMESSAGE;
 	m_eFontAlignment = FONT_ALIGN_LEFT;
 	m_fScale = 1.0f;
 	m_fWrapX = SCREEN_WIDTH;
@@ -92,10 +105,10 @@ void CFont::PrintString(glm::vec2 pos, std::string str) {
 
 	switch (m_eFontAlignment) {
 	case FONT_ALIGN_RIGHT:
-		pos.x -= GetStringWidth(str.c_str(), true);
+		pos.x -= GetStringWidth(str);
 		break;
 	case FONT_ALIGN_CENTER:
-		pos.x -= GetStringWidth(str.c_str(), true) * 0.5f;
+		pos.x -= GetStringWidth(str) * 0.5f;
 		break;
 	default:
 		break;
@@ -104,12 +117,12 @@ void CFont::PrintString(glm::vec2 pos, std::string str) {
 	const glm::vec2 initialPos = pos;
 	for (auto c : str) {
 		switch (m_eFontStyle) {
-		case FONT_BIG_MESSAGES:
-		case FONT_VEHICLE_NAMES:
-		case FONT_ZONE_NAMES:
-		case FONT_HEADING:
-		case FONT_BANK:
-		case FONT_MENU:
+		case FONT_STYLE_BIGMESSAGE:
+		case FONT_STYLE_VEHICLE:
+		case FONT_STYLE_ZONE:
+		case FONT_STYLE_HEADING:
+		case FONT_STYLE_BANK:
+		case FONT_STYLE_MENU:
 			if (c >= 'a' && c <= 'z') {
 				c = c - ('a' - 'A');
 			}

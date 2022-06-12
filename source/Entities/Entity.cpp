@@ -1,8 +1,6 @@
 #include "Entity.h"
 
-IMPLEMENT_PRIMARY_GAME_MODULE(CEntity, "CEntity");
-
-void CEntity::Construct() {
+CEntity::CEntity() {
 	m_vPosition = { 0.0f, 0.0f, 0.0f };
 	m_vScale = { 1.0f, 1.0f };
 	m_vColor = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -10,7 +8,7 @@ void CEntity::Construct() {
 	m_pSprite = std::make_shared<CSprite>();
 }
 
-void CEntity::Init() {
+void CEntity::BeginPlay() {
 
 }
 
@@ -26,10 +24,6 @@ void CEntity::Render() {
 	m_pSprite->DrawPlane(m_vPosition, m_vScale, m_vColor);
 }
 
-void CEntity::Shutdown() {
-
-}
-
-void CEntity::Destruct() {
+void CEntity::EndPlay() {
 
 }

@@ -27,6 +27,7 @@ ABaseDevice::ABaseDevice() {
     DeviceObjects.m_vMouseDelta = {};
     DeviceObjects.m_vOldInputKeys.resize(GLFW_KEY_LAST, 0);
     DeviceObjects.m_vNewInputKeys.resize(GLFW_KEY_LAST, 0);
+    DeviceObjects.m_vTempInputKeys.resize(GLFW_KEY_LAST, 0);
 
     DeviceObjects.m_pDefaultShader = 0;
 }
@@ -86,10 +87,9 @@ void ABaseDevice::Init() {
     CreateDefaultTextures();
 
     DeviceObjects.m_pDefaultShader = std::make_shared<CShader>(vertexShader, fragmentShader, true);
-
 }
 
-void ABaseDevice::Update() {
+bool ABaseDevice::Update() {
     bool altPressed = false;
     bool enterPressed = false;
     static bool thisFrame = true;
@@ -107,8 +107,11 @@ void ABaseDevice::Update() {
             CenterWindowPosition();
             SetFullscreen(!DeviceObjects.m_bFullscreen);
             thisFrame = false;
+            return false;
         }
     }
+
+    return true;
 }
 
 void ABaseDevice::Shutdown() {
@@ -157,6 +160,10 @@ void ABaseDevice::SwapBuffers() {
     glfwSwapBuffers(DeviceObjects.m_pWindow);
 }
 
+void ABaseDevice::QuitGame() {
+    DeviceObjects.m_bQuitGame = true;
+}
+
 void ABaseDevice::SetFullscreen(bool on) {
     glfwSetWindowMonitor(DeviceObjects.m_pWindow, on ? DeviceObjects.m_pMonitor : NULL, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GLFW_DONT_CARE);
     CenterWindowPosition();
@@ -202,8 +209,7 @@ void ABaseDevice::ErrorCallback(glm::int32 error, const char* description) {
 }
 
 void ABaseDevice::KeyCallback(GLFWwindow* window, glm::int32 key, glm::int32 scancode, glm::int32 action, glm::int32 mods) {
-    DeviceObjects.m_vOldInputKeys.at(key) = DeviceObjects.m_vNewInputKeys.at(key);
-    DeviceObjects.m_vNewInputKeys.at(key) = action;
+    DeviceObjects.m_vTempInputKeys.at(key) = action;
 }
 
 void ABaseDevice::CursorCallback(GLFWwindow* window, double x, double y) {
@@ -230,7 +236,7 @@ void ABaseDevice::BeginDrawing() {
 
     std::string fps = std::to_string(static_cast<glm::uint32>(DeviceObjects.m_fFramePerSecond));
     std::string ms = std::to_string((DeviceObjects.m_fTimeDifference / DeviceObjects.m_nFrameCounter) * 1000.0);
-    std::string title = "havoc2 - " + fps + "FPS / " + ms + "ms";
+    std::string title = "GTA2 - " + fps + "FPS / " + ms + "ms";
     glfwSetWindowTitle(DeviceObjects.m_pWindow, title.c_str());
 
     if (Abs(distance(DeviceObjects.m_vOldMousePosition, DeviceObjects.m_vMousePosition)) > 0.0f) {
@@ -240,8 +246,10 @@ void ABaseDevice::BeginDrawing() {
         DeviceObjects.m_vOldMousePosition = DeviceObjects.m_vMousePosition;
     }
 
-    //std::fill(DeviceObjects.oldInputKeys->begin(), DeviceObjects.oldInputKeys->end(), 0);
-    //std::fill(DeviceObjects.newInputKeys->begin(), DeviceObjects.oldInputKeys->end(), 0);
+    for (glm::int32 i = 0; i < GLFW_KEY_LAST; i++) {
+        DeviceObjects.m_vOldInputKeys.at(i) = DeviceObjects.m_vNewInputKeys.at(i);
+        DeviceObjects.m_vNewInputKeys.at(i) = DeviceObjects.m_vTempInputKeys.at(i);
+    }
 
     ClearColorBuffer();
 }
@@ -289,6 +297,6 @@ bool ABaseDevice::GetKeyJustDown(glm::uint32 key) {
     return DeviceObjects.m_vNewInputKeys.at(key) && !DeviceObjects.m_vOldInputKeys.at(key);
 }
 
-bool ABaseDevice::GetKeyUp(glm::uint32 key) {
+bool ABaseDevice::GetKeyJustUp(glm::uint32 key) {
     return !DeviceObjects.m_vNewInputKeys.at(key) && DeviceObjects.m_vOldInputKeys.at(key);
 }

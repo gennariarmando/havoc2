@@ -2,15 +2,11 @@
 #include "ABaseDevice.h"
 #include "Camera.h"
 
-IMPLEMENT_PRIMARY_GAME_MODULE(CDebug, "CDebug");
-
-CDebug Debug;
-
-void CDebug::Construct() {
+CDebug::CDebug() {
 
 }
 
-void CDebug::Init() {
+void CDebug::BeginPlay() {
 
 }
 
@@ -34,10 +30,6 @@ void CDebug::Draw2DDebug() {
 
 }
 
-void CDebug::Destruct() {
-
-}
-
-void CDebug::Shutdown() {
+void CDebug::EndPlay() {
 
 }

@@ -1,31 +1,69 @@
 #pragma once
 #include "ABaseHeader.h"
+#include "Common.h"
 
-#ifndef IMPLEMENT_PRIMARY_GAME_MODULE
-#define IMPLEMENT_PRIMARY_GAME_MODULE(cl, str) cl::cl() { Super::ABaseObject(), this->m_sClassName = str, this->m_nId = (BaseObjectsList.size()), BaseObjectsList.push_back(this), this->Construct(); } cl::~cl() { this->Destruct(); }
-#endif
+enum eBaseCallEvents {
+    BASECALLEVENT_BEGINPLAY,
+    BASECALLEVENT_UPDATE,
+    BASECALLEVENT_RENDER,
+    BASECALLEVENT_DRAW2D,
+    BASECALLEVENT_DRAW2DDEBUG,
+    BASECALLEVENT_LATEUPDATE,
+    BASECALLEVENT_ENDPLAY,
+    NUM_BASE_EVENTS
+};
+
+enum eObjectState {
+    STATE_BEGIN,
+    STATE_TICK,
+    STATE_END
+};
 
 class ABaseObject {
 public:
+    friend class ABaseEngine;
     typedef ABaseObject Super;
 
 public:
-    bool m_bInitialized;
+    ABaseObject* m_pObject;
     std::string m_sClassName;
-    glm::uint32 m_nId;
+    glm::uint64 m_nId;
+    glm::uint8 m_nState;
 
 public:
     ABaseObject();
     ~ABaseObject();
-    virtual void Construct() { }
-    virtual void Init() { }
-    virtual void Update() { }
-    virtual void LateUpdate() { }
-    virtual void Render() { }
-    virtual void Draw2D() { }
-    virtual void Draw2DDebug() { }
-    virtual void Shutdown() { }
-    virtual void Destruct() { }
+
+protected:
+    inline virtual void BeginPlay() { }
+    inline virtual void Update() { }
+    inline virtual void LateUpdate() { }
+    inline virtual void Render() { }
+    inline virtual void Draw2D() { }
+    inline virtual void Draw2DDebug() { }
+    inline virtual void EndPlay() { }
+
+private:
+    void CallEvent(glm::uint8 e);
+
+public:
+    bool IsValid();
+
+public:
+    static void Flush();
 };
 
-extern std::list<ABaseObject*> BaseObjectsList;
+extern std::vector<ABaseObject*> baseObjects;
+extern std::vector<ABaseObject*> newObjects;
+extern std::vector<glm::uint64> oldObjects;
+
+template<typename T>
+static T* NewObject() {
+    T* t = new T();
+    return t;
+}
+
+template<typename T>
+static void Delete(T* t) {
+    t->m_nState = STATE_END;
+}

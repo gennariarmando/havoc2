@@ -3,13 +3,13 @@
 #include "Screen.h"
 #include "Map.h"
 
-IMPLEMENT_PRIMARY_GAME_MODULE(CCamera, "CCamera");
-
 CCamera Camera;
 
-void CCamera::Init() {
+CCamera::CCamera() {
     m_nMode = MODE_DEBUG3D;
     m_nProjType = PROJECTION_PERSPECTIVE;
+    m_mProjection = {};
+    m_mView = {};
     m_vPosition = glm::vec3(159.50f, 139.50f, 10.0f);
     m_vFront = glm::vec3(0.0f, -1.0f, 0.0f);
     m_vUp = glm::vec3(0.0f, 0.0f, 1.0f);
@@ -19,8 +19,21 @@ void CCamera::Init() {
     m_vAngle.y = -90.0f;
     m_fFOV = 45.0f;
     m_fFrontDist = 0.0f;
+    m_bScene3D = false;
     m_fNearClip = 0.1f;
     m_fFarClip = 100.0f;
+
+    for (glm::uint32 i = 0; i < FPLANE_COUNT; i++) {
+        m_vPlanes[i] = {};
+    }
+
+    for (glm::uint32 i = 0; i < FPLANE_COUNT + 2; i++) {
+        m_vPoints[i] = {};
+    }
+}
+
+void CCamera::BeginPlay() {
+
 }
 
 void CCamera::Update() {
@@ -39,7 +52,7 @@ void CCamera::LateUpdate() {
 
 }
 
-void CCamera::Shutdown() {
+void CCamera::EndPlay() {
 
 }
 
@@ -64,8 +77,6 @@ void CCamera::ComputeProjection() {
 
     m_mProjection = proj;
     m_mView = look;
-
-    Frustum(m_mProjection * m_mView);
 }
 
 void CCamera::UpdateCameraVectors() {

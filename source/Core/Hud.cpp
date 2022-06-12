@@ -6,15 +6,13 @@
 #include "Camera.h"
 #include "Screen.h"
 
-IMPLEMENT_PRIMARY_GAME_MODULE(CHud, "CHud");
-
 CHud Hud;
 
-void CHud::Construct() {
+CHud::CHud() {
 
 }
 
-void CHud::Init() {
+void CHud::BeginPlay() {
 
 }
 
@@ -35,28 +33,36 @@ void CHud::Draw2D() {
 }
 
 void CHud::Draw2DDebug() {
-    Font.Reset();
-    Font.SetFontAlignment(FONT_ALIGN_LEFT);
-    Font.SetWrapX(SCREEN_WIDTH);
-    Font.SetScale(HUD_H(0.9f));
-    Font.SetFontStyle(FONT_HEADING);
-
-    Font.SetColor(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
-    Font.PrintString({ HUD_X(0.0f), 0.0f }, "x:" + std::to_string((Camera.GetPosition().x)));
-
-    Font.SetColor(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-    Font.PrintString({ HUD_X(128.0f), 0.0f }, "y: " + std::to_string((Camera.GetPosition().y)));
-
-    Font.SetColor(glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
-    Font.PrintString({ HUD_X(256.0f), 0.0f }, "z: " + std::to_string((Camera.GetPosition().z)));
+   //Font.Reset();
+   //Font.SetFontAlignment(FONT_ALIGN_LEFT);
+   //Font.SetWrapX(SCREEN_WIDTH);
+   //Font.SetScale(SCREEN_SCALE_H(0.9f));
+   //Font.SetFontStyle(FONT_STYLE_HEADING);
+   //
+   //Font.SetColor(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+   //Font.PrintString({ SCREEN_SCALE_X(0.0f), 0.0f }, "x:" + std::to_string((Camera.GetPosition().x)));
+   //
+   //Font.SetColor(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+   //Font.PrintString({ SCREEN_SCALE_X(128.0f), 0.0f }, "y: " + std::to_string((Camera.GetPosition().y)));
+   //
+   //Font.SetColor(glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+   //Font.PrintString({ SCREEN_SCALE_X(256.0f), 0.0f }, "z: " + std::to_string((Camera.GetPosition().z)));
 }
 
-void CHud::Destruct() {
+void CHud::EndPlay() {
 
 }
 
-void CHud::Shutdown() {
+void CHud::DrawProgressBar(glm::vec4 rect, float progress, glm::vec4 const& frontColor, glm::vec4 const& backColor) {
+    if (progress <= 0.0f)
+        progress = 0.0f;
+    else if (progress >= 1.0f)
+        progress = 1.0f;
 
+    CSprite2D::DrawRect(rect, backColor);
+
+    rect.z *= progress;
+    CSprite2D::DrawRect(rect, frontColor);
 }
 
 void CHud::DrawProgressBar(float x, float y, float w, float h, float progress, glm::vec4 const& frontColor, glm::vec4 const& backColor) {

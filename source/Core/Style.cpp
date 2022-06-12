@@ -1,6 +1,12 @@
 #include "Style.h"
+#include "Frontend.h"
+
+CStyle::CStyle() {
+	Clear();
+}
 
 CStyle::CStyle(std::string const& fileName) {	
+	Clear();
 	Read(fileName);
 }
 
@@ -8,7 +14,19 @@ CStyle::~CStyle() {
 
 }
 
+void CStyle::Clear() {
+	m_bFileParsed = false;
+	m_bBuildComplete = false;
+	m_pGraphics = NULL;
+	m_pTextureAtlas = NULL;
+	m_pSprites = {};
+	m_pTextures = {};
+}
+
 void CStyle::Read(std::string const& fileName) {
+	if (m_bFileParsed)
+		return;
+
 	if (!Init(fileName, STY_FILE_VERSION)) {
 		return;
 	}
@@ -68,8 +86,7 @@ void CStyle::Read(std::string const& fileName) {
 		}
 	}
 
-	BuildTextures();
-	BuildSprites();
+	m_bFileParsed = true;
 }
 
 void CStyle::ReadPALX() {
@@ -289,6 +306,16 @@ CPhysicalPalette CStyle::GetSpritePalette(glm::int32 sprite, glm::int32 type, gl
 	return m_pGraphics->physicalPalette[m_pGraphics->paletteIndex.physPalette[virtualPalette]];
 }
 
+void CStyle::BuildEverything() {
+	if (m_bBuildComplete || !m_bFileParsed)
+		return;
+
+	BuildTextures();
+	BuildSprites();
+
+	m_bBuildComplete = true;
+}
+
 void CStyle::BuildTextures() {
 	if (!m_pGraphics)
 		return;
@@ -297,13 +324,12 @@ void CStyle::BuildTextures() {
 		for (glm::uint32 i = 0; i < 992; i++) {
 			glm::uint32 vpalette = m_pGraphics->paletteIndex.physPalette[i];
 
-			bool flat = false;
 			std::vector<glm::uint32> pixels;
 			glm::uint8 w, h;
-			WriteTiles(flat, i, w, h, pixels);
+			WriteTiles(i, w, h, pixels);
 
 			std::shared_ptr<CTexture2D> texture = std::make_shared<CTexture2D>();
-			texture->Build(pixels.data(), w, h, 4, GL_NEAREST, flat);
+			texture->Build(pixels.data(), w, h, 4, GL_NEAREST);
 			m_pTextures.push_back(texture);
 		}
 
@@ -320,11 +346,10 @@ void CStyle::BuildTextureAtlas() {
 	for (glm::uint32 i = 0; i < 992; i++) {
 		glm::uint32 vpalette = m_pGraphics->paletteIndex.physPalette[i];
 
-		bool hasTransparency = false;
 		std::vector<glm::uint32> pixels;
 		glm::uint8 w, h;
-		WriteTiles(hasTransparency, i, w, h, pixels);
-		m_pTextureAtlas->Update(pixels.data(), x, y, w, h, 4, GL_NEAREST, hasTransparency);
+		WriteTiles(i, w, h, pixels);
+		m_pTextureAtlas->Update(pixels.data(), x, y, w, h, 4, GL_NEAREST);
 		x += w;
 
 		if (x >= 2048) {
@@ -351,7 +376,7 @@ void CStyle::BuildSprites() {
 	}
 }
 
-void CStyle::WriteTiles(bool& flat, glm::uint32 i, glm::uint8& w, glm::uint8& h, std::vector<glm::uint32>& pixels) {
+void CStyle::WriteTiles(glm::uint32 i, glm::uint8& w, glm::uint8& h, std::vector<glm::uint32>& pixels) {
 	glm::uint32 vpalette = m_pGraphics->paletteIndex.physPalette[i];
 
 	w = 64;
@@ -362,9 +387,6 @@ void CStyle::WriteTiles(bool& flat, glm::uint32 i, glm::uint8& w, glm::uint8& h,
 		for (glm::uint32 x = 0; x < w; x++) {
 			glm::uint32* color = reinterpret_cast<glm::uint32*>(m_pGraphics->physicalPalette[vpalette].colors[m_pGraphics->tileData[i].pixels[y][x]]);
 			glm::uint32 alpha = ((m_pGraphics->tileData[i].pixels[y][x] > 0) * 0xff000000);
-
-			if (alpha < 1)
-				flat = true;
 
 			pixels[x + w * y] = (*color) + alpha;
 		}
@@ -394,4 +416,36 @@ void CStyle::WriteSprites(glm::uint32 i, glm::uint8& w, glm::uint8& h, std::vect
 			pixels[x + s.w * y] = *color + alpha;
 		}
 	}
+}
+
+glm::uint32 const& CStyle::GetBaseIndex(eBaseIndices b) {
+	glm::uint32 base = 0;
+	switch (b) {
+	case BASEINDEX_CARS:
+		base = 0;
+		break;
+	case BASEINDEX_PEDS:
+		base += m_pGraphics->spriteBase.car;
+		break;
+	case BASEINDEX_CODEOBJ:
+		base += m_pGraphics->spriteBase.car + m_pGraphics->spriteBase.ped;
+		break;
+	case BASEINDEX_MAPOBJ:
+		base += m_pGraphics->spriteBase.car + m_pGraphics->spriteBase.ped + m_pGraphics->spriteBase.codeObj;
+		break;
+	case BASEINDEX_USER:
+		base += m_pGraphics->spriteBase.car + m_pGraphics->spriteBase.ped + m_pGraphics->spriteBase.codeObj + m_pGraphics->spriteBase.mapObj;
+		break;
+	case BASEINDEX_FONT:
+		base += m_pGraphics->spriteBase.car + m_pGraphics->spriteBase.ped + m_pGraphics->spriteBase.codeObj + m_pGraphics->spriteBase.mapObj + m_pGraphics->spriteBase.user;
+		break;
+	case BASEINDEX_LAST:
+		base += m_pGraphics->spriteBase.car + m_pGraphics->spriteBase.ped + m_pGraphics->spriteBase.codeObj + m_pGraphics->spriteBase.mapObj + m_pGraphics->spriteBase.user + m_pGraphics->spriteBase.font;
+		break;
+	}
+	return base;
+}
+
+glm::uint32 const& CStyle::GetFontBaseIndex(glm::uint8 fontStyle) {
+	return GetBaseIndex(BASEINDEX_FONT) + m_pGraphics->fontBase.base[fontStyle];
 }

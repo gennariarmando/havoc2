@@ -59,11 +59,12 @@ project "havoc2"
 	links {
 		"glfw3",
 		"glad",
+		"binkw32"
 	}
 	
 	kind "WindowedApp"
 	language "C++"
-	targetdir "output/exe/"
+	targetdir "output/exe/GTA2/"
 	objdir ("output/obj")
 	targetextension ".exe"
 	characterset ("MBCS")
@@ -75,13 +76,13 @@ project "havoc2"
 		targetname "havoc2"
 		defines { "DEBUG" }
 		staticruntime "on"
-		debugdir "output/exe/"
-		debugcommand "output/exe/havoc2.exe"
+		debugdir "output/exe/GTA2/"
+		debugcommand "output/exe/GTA2/havoc2.exe"
 
 	filter "configurations:Release"
 		targetname "havoc2"
 		defines { "NDEBUG" }
 		optimize "On"
 		staticruntime "on"
-		debugdir "output/exe/"
-		debugcommand "output/exe/havoc2.exe"
+		debugdir "output/exe/GTA2/"
+		debugcommand "output/exe/GTA2/havoc2.exe"

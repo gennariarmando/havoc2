@@ -121,8 +121,7 @@ enum {
 	MAP_SIZE = (MAP_SCALE_X * MAP_SCALE_Y),
 };
 
-class CMapLight {
-public:
+struct tMapLight {
 	glm::vec4 color;
 	glm::vec3 pos;
 	float radius;
@@ -132,30 +131,21 @@ public:
 	glm::uint8 timeOff;
 };
 
-class CMapTileAnimation {
-public:
+struct tTileAnimation {
 	glm::uint16 base;
 	glm::uint8 frameRate;
 	glm::uint8 repeat;
 	std::vector<glm::uint16> tiles;
 };
 
-class CMapPsxTable {
-public:
-	glm::uint8 tileNumber;
-	glm::uint8 undefined;
-};
-
-class CMapObject {
-public:
+struct tMapObject {
 	glm::int16 x;
 	glm::int16 y;
 	glm::int8 rot;
 	glm::uint8 objectType;
 };
 
-class CMapZone {
-public:
+struct tMapZone {
 	eZoneType zoneType;
 	float x;
 	float y;
@@ -164,15 +154,7 @@ public:
 	std::string name;
 };
 
-class CBlockInfo {
-public:
-	glm::uint16 face[NUM_FACETYPES];
-	glm::uint8 arrows;
-	glm::uint8 slopeType;
-};
-
-class CFaceDetails {
-public:
+struct tFaceInfo {
 	glm::uint32 tile;
 	glm::uint32 wall;
 	glm::uint32 bulletWall;
@@ -186,66 +168,60 @@ public:
 	glm::uint32 index;
 };
 
-class CBlockInfoDetailed {
-public:
-	CBlockInfo info;
-	CFaceDetails details[NUM_FACETYPES];
+struct tBlockInfo {
+	glm::uint16 face[NUM_FACETYPES];
+	glm::uint8 arrows;
+	glm::uint8 slopeType;
+};
+
+struct tBlockInfoDetailed {
+	tFaceInfo details[NUM_FACETYPES];
 	glm::uint8 groundType;
 	glm::uint8 slopeType;
 };
 
-class CCachedAnims {
-public:
+struct tCachedAnims {
 	glm::int16 tile;
 	std::shared_ptr<CFlipbook> flipBook;
-
-public:
-	CCachedAnims() {
-		tile = -1;
-		flipBook = NULL;
-	}
 };
 
 class CMap : CGBH {
 public:
-	bool m_bInitialised;
+	bool m_bFileParsed;
+	bool m_bBuildComplete;
+	std::unique_ptr<std::vector<std::vector<std::vector<tBlockInfoDetailed>>>> m_vChunks;
+	std::unique_ptr<std::vector<tTileAnimation>> m_vAnimations;
+	std::unique_ptr<std::vector<tMapZone>> m_vZones;
+	std::unique_ptr<std::vector<tMapObject>> m_vObjects;
+	std::unique_ptr<std::vector<tMapLight>> m_vLights;
+	std::vector<CGeometry> m_vGeometryChunks;
+	std::vector<std::vector<tFaceInfo>> m_vAnimatedFaces;
 	CGeometry m_ChunkBuffer;
-
-	std::shared_ptr<CStyle> m_pStyle;
-
-	std::vector<CGeometry> m_vGeometryOpaque;
-
-	std::vector<std::vector<CFaceDetails>> m_vAnimatedFaces;
-
-	std::vector<CMapLight> m_vLights;
-	std::vector<CMapZone> m_vZones;
 
 public:
 	CMap();
-	CMap(std::string const& fileName, std::string const& styFileName);
+	CMap(std::string const& fileName);
 	~CMap();
 
 private:
 	void Clear();
-	void Read(std::string const& fileName, std::string const& styFileName);
-	void Read32BitMap(std::unique_ptr<std::vector<std::vector<std::vector<CBlockInfoDetailed>>>>& detailedBlock);
+	void Read(std::string const& fileName);
+	void Read32BitMap();
 	void ReadZones();
 	void ReadObjects();
-	void ReadAnimations(std::unique_ptr<std::vector<CMapTileAnimation>>& animations);
+	void ReadAnimations();
 	void ReadLights();
 
-	void BuildDetailedMap(std::unique_ptr<std::vector<std::vector<std::vector<CBlockInfoDetailed>>>>& block, std::unique_ptr<std::vector<CMapTileAnimation>>& animations);
-
-	bool CheckBit(glm::int32 const& value, glm::int32 const& bitOffset);
-	glm::vec2 RotateUV(glm::vec2 uv, float rotation, glm::vec2 center);
-	void AddBlock(glm::uint32 chunkIndex, CBlockInfoDetailed& block, glm::vec3 offset, glm::uint32& index);
+	tBlockInfoDetailed ParseBlockInfo(tBlockInfo& block);
+	void BuildChunks();
+	void AddBlock(glm::uint32 chunkIndex, tBlockInfoDetailed& block, glm::vec3 offset, glm::uint32& index);
 	void AddFace(glm::uint32 slopeType, glm::uint8 faceType, glm::uint32 tile, glm::uint32 rot, bool flip, bool flat, bool oppositeFlat, glm::vec3 offset, glm::uint32& index);
-	void EditFace(CGeometry* chunk, CFaceDetails* details);
+	void EditFace(CGeometry* chunk, tFaceInfo* details);
 
 public:
-	void Render();
+	void Render(std::shared_ptr<CStyle> style);
+	void BuildEverything();
 
 public:
-	std::shared_ptr<CStyle> GetStyle() { return m_pStyle; }
-
+	bool const& IsLoading() const { return !m_bFileParsed && !m_bBuildComplete; }
 };

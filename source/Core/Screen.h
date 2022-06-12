@@ -11,17 +11,20 @@
 #define SCREEN_ASPECT_RATIO (Screen.GetAspectRatio())
 
 #ifdef FRONTEND_KEEP_PROPORTIONS
-#define HUD_X(x) (Screen.ScaleXKeepCentered(x))
+#define SCREEN_SCALE_X(x) (Screen.ScaleXKeepCentered(x))
 #else
-#define HUD_X(x) (Screen.ScaleX(x))
+#define SCREEN_SCALE_X(x) (Screen.ScaleX(x))
 #endif
-#define HUD_Y(y) (Screen.ScaleY(y))
+#define SCREEN_SCALE_Y(y) (Screen.ScaleY(y))
 
-#define HUD_W(w) (Screen.ScaleW(w))
-#define HUD_H(h) (Screen.ScaleH(h))
+#define SCREEN_SCALE_W(w) (Screen.ScaleW(w))
+#define SCREEN_SCALE_H(h) (Screen.ScaleH(h))
 
-#define HUD_RIGHT(x) (Screen.ScaleFromRight(x))
-#define HUD_BOTTOM(y) (Screen.ScaleFromBottom(y))
+#define SCREEN_SCALE_RIGHT(x) (Screen.ScaleFromRight(x))
+#define SCREEN_SCALE_BOTTOM(y) (Screen.ScaleFromBottom(y))
+
+#define SCREEN_SCALE_CENTER_X(x) ((SCREEN_WIDTH / 2) + SCREEN_SCALE_X(x))
+#define SCREEN_SCALE_CENTER_Y(y) ((SCREEN_HEIGHT / 2) + SCREEN_SCALE_Y(y))
 
 class CScreen {
 public:

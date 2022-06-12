@@ -35,27 +35,30 @@ enum {
     LEVEL_BONUS_I, // mike2h - Mike Stirling 2 Hard	
 };
 
+struct tLevelList {
+    std::string gmp;
+    std::string sty;
+};
+
 class CWorld : public ABaseObject {
 public:
-    std::unique_ptr<CMap> m_pMap;
+    std::shared_ptr<CMap> m_pMap;
+    std::shared_ptr<CStyle> m_pStyle;
+
     float m_fGravity;
     std::shared_ptr<CPlayerPed> m_pPlayerPed;
 
 public:
     CWorld();
-    ~CWorld();
 
-    void Construct();
-    void Init();
-    void Update();
-    void LateUpdate();
-    void Render();
-    void Destruct();
-    void Shutdown();
+    void BeginPlay() override;
+    void Update() override;
+    void LateUpdate() override;
+    void Render() override;
+    void EndPlay()  override;
    
 public:
-    bool const& IsLevelLoaded() { return m_pMap && m_pMap->m_bInitialised; }
-    std::shared_ptr<CStyle> const& GetStyle() { return m_pMap->GetStyle(); }
+    std::shared_ptr<CStyle> const& GetStyle() { return m_pStyle; }
 
 public:
     void LoadLevel(glm::uint8 area);

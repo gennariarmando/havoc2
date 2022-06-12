@@ -1,9 +1,7 @@
 #include "Flipbook.h"
 #include "ABaseDevice.h"
 
-IMPLEMENT_PRIMARY_GAME_MODULE(CFlipbook, "CFlipbook");
-
-void CFlipbook::Construct() {
+CFlipbook::CFlipbook() {
 	m_nCurrentFrame = 0;
 
 	m_vFrames = {};
@@ -11,6 +9,10 @@ void CFlipbook::Construct() {
 	m_nRepeat = 0;
 	m_nCycles = 0;
 	m_fTimeRate = 1.0f;
+}
+
+void CFlipbook::BeginPlay() {
+
 }
 
 void CFlipbook::Set(std::vector<glm::uint16> frames, glm::uint8 repeat, float rate) {

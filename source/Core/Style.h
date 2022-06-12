@@ -137,21 +137,23 @@ public:
 
 class CStyle : CGBH {
 public:
+	bool m_bFileParsed;
+	bool m_bBuildComplete;
 	std::shared_ptr<CStyGraphics> m_pGraphics;
-
-public:
-	std::vector<std::shared_ptr<CTexture2D>> m_pSprites;
-	std::vector<std::shared_ptr<CTexture2D>> m_pTextures;
 	std::shared_ptr<CTexture2D> m_pTextureAtlas;
 
+	std::vector<std::shared_ptr<CTexture2D>> m_pSprites;
+	std::vector<std::shared_ptr<CTexture2D>> m_pTextures;
+
 public:
-	CStyle() {}
+	CStyle();
 	CStyle(std::string const& fileName);
 	~CStyle();
 
-	void Read(std::string const& fileName);
+	void Clear();
 
 private:
+	void Read(std::string const& fileName);
 	void ReadPALX();
 	void ReadPPAL();
 	void ReadPALB();
@@ -168,50 +170,25 @@ private:
 	void ReadRECY();
 	void ReadSPEC();
 
-public:
-	std::vector<glm::uint8> GetSingleSpriteData(glm::int32 sprite);
-	CPhysicalPalette GetSpritePalette(glm::int32 sprite, glm::int32 type, glm::int32 remap);
-
-	std::vector<std::shared_ptr<CTexture2D>>& GetSprite() { return m_pSprites; }
-	std::vector<std::shared_ptr<CTexture2D>>& GetTexture() { return m_pTextures; }
-	std::shared_ptr<CTexture2D>& GetTextureAtlas() { return m_pTextureAtlas; }
-
-	glm::uint32 const& GetBaseIndex(eBaseIndices b) {
-		glm::uint32 base = 0;
-		switch (b) {
-		case BASEINDEX_CARS:
-			base = 0;
-			break;
-		case BASEINDEX_PEDS:
-			base += m_pGraphics->spriteBase.car;
-			break;
-		case BASEINDEX_CODEOBJ:
-			base += m_pGraphics->spriteBase.car + m_pGraphics->spriteBase.ped;
-			break;
-		case BASEINDEX_MAPOBJ:
-			base += m_pGraphics->spriteBase.car + m_pGraphics->spriteBase.ped + m_pGraphics->spriteBase.codeObj;
-			break;
-		case BASEINDEX_USER:
-			base += m_pGraphics->spriteBase.car + m_pGraphics->spriteBase.ped + m_pGraphics->spriteBase.codeObj + m_pGraphics->spriteBase.mapObj;
-			break;
-		case BASEINDEX_FONT:
-			base += m_pGraphics->spriteBase.car + m_pGraphics->spriteBase.ped + m_pGraphics->spriteBase.codeObj + m_pGraphics->spriteBase.mapObj + m_pGraphics->spriteBase.user;
-			break;
-		case BASEINDEX_LAST:
-			base += m_pGraphics->spriteBase.car + m_pGraphics->spriteBase.ped + m_pGraphics->spriteBase.codeObj + m_pGraphics->spriteBase.mapObj + m_pGraphics->spriteBase.user + m_pGraphics->spriteBase.font;
-			break;
-		}
-		return base;
-	}
-
-	glm::uint32 const& GetFontBaseIndex(glm::uint8 fontStyle) {
-		return GetBaseIndex(BASEINDEX_FONT) + m_pGraphics->fontBase.base[fontStyle];
-	}
-
 	void BuildTextures();
 	void BuildTextureAtlas();
 	void BuildSprites();
 
-	void WriteTiles(bool& flat, glm::uint32 i, glm::uint8& w, glm::uint8& h, std::vector<glm::uint32>& pixels);
+	void WriteTiles(glm::uint32 i, glm::uint8& w, glm::uint8& h, std::vector<glm::uint32>& pixels);
 	void WriteSprites(glm::uint32 i, glm::uint8& w, glm::uint8& h, std::vector<glm::uint32>& pixels);
+
+public:
+	std::vector<glm::uint8> GetSingleSpriteData(glm::int32 sprite);
+	CPhysicalPalette GetSpritePalette(glm::int32 sprite, glm::int32 type, glm::int32 remap);
+	std::vector<std::shared_ptr<CTexture2D>>& GetSprite() { return m_pSprites; }
+	std::vector<std::shared_ptr<CTexture2D>>& GetTexture() { return m_pTextures; }
+	std::shared_ptr<CTexture2D>& GetTextureAtlas() { return m_pTextureAtlas; }
+	glm::uint32 const& GetBaseIndex(eBaseIndices b);
+	glm::uint32 const& GetFontBaseIndex(glm::uint8 fontStyle);
+
+	void BuildEverything();
+
+public:
+	bool const& IsLoading() const { return !m_bFileParsed && !m_bBuildComplete; }
+
 };

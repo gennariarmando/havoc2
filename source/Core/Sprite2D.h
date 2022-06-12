@@ -8,7 +8,6 @@ private:
     glm::int32 m_nWidth;
     glm::int32 m_nHeight;
     glm::int32 m_nChannels;
-    bool m_bHasTransparency;
 
 public:
     CTexture2D() {
@@ -31,7 +30,7 @@ public:
         }
     }
 
-    void Build(void* p, glm::int32 w, glm::int32 h, glm::int32 c, float filter, bool hasTransparency = false) {
+    void Build(void* p, glm::int32 w, glm::int32 h, glm::int32 c, float filter) {
         glGenTextures(1, &m_nId);
         glBindTexture(GL_TEXTURE_2D, m_nId);
 
@@ -44,8 +43,6 @@ public:
         if (c != -1)
             m_nChannels = c;
 
-        m_bHasTransparency = hasTransparency;
-
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
@@ -56,7 +53,7 @@ public:
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    void Update(void* p, glm::int32 x, glm::int32 y, glm::int32 w, glm::int32 h, glm::int32 c, float filter, bool hasTransparency = false) {
+    void Update(void* p, glm::int32 x, glm::int32 y, glm::int32 w, glm::int32 h, glm::int32 c, float filter) {
         glBindTexture(GL_TEXTURE_2D, m_nId);
 
         if (w != -1)
@@ -68,8 +65,6 @@ public:
         if (c != -1)
             m_nChannels = c;
 
-        m_bHasTransparency = hasTransparency;
-
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
@@ -80,12 +75,15 @@ public:
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
+    void Delete() {
+        glDeleteTextures(1, &m_nId);
+    }
+
 public:
     glm::uint32& GetID() { return m_nId; }
     glm::int32& GetWidth() { return m_nWidth; }
     glm::int32& GetHeight() { return m_nHeight; }
     glm::int32& GetChannels() { return m_nChannels; }
-    bool& HasTransparency() { return m_bHasTransparency; }
 };
 
 class CSprite2D {
@@ -98,11 +96,10 @@ public:
 
 public:
     CSprite2D();
-    CSprite2D(glm::uint32 id);
-    CSprite2D(std::string path, std::string name);
     ~CSprite2D();
 
 public:
+    void Delete();
     bool SetTexture(glm::uint32 id);
     bool SetTexture(std::string path, std::string name);
     void Draw(float x, float y, float w, float h, glm::vec4 const& col);
