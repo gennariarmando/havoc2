@@ -29,6 +29,7 @@ public:
     std::string m_sClassName;
     glm::uint64 m_nId;
     glm::uint8 m_nState;
+    bool m_bHeap;
 
 public:
     ABaseObject();
@@ -48,9 +49,23 @@ private:
 
 public:
     bool IsValid();
+    void SetState(eObjectState state);
 
 public:
     static void Flush();
+    static void Erase();
+
+    void* operator new(size_t size) {
+        void* p = ::operator new(size);
+        ABaseObject* a = static_cast<ABaseObject*>(p);
+        a->m_bHeap = true;
+        return p;
+    }
+
+    void operator delete(void* p) {
+        if (static_cast<ABaseObject*>(p)->m_bHeap)
+            delete p;
+    }
 };
 
 extern std::vector<ABaseObject*> baseObjects;
@@ -65,5 +80,5 @@ static T* NewObject() {
 
 template<typename T>
 static void Delete(T* t) {
-    t->m_nState = STATE_END;
+    t->SetState(STATE_END);
 }

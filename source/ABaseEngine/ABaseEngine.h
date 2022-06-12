@@ -11,6 +11,7 @@ private:
     bool m_bRunning;
     eBaseEngineState m_eState;
     std::vector<void(*)()> m_pFunPointers;
+    std::unique_ptr<std::thread> m_pThread;
 
 private:
     void SetState(eBaseEngineState state);

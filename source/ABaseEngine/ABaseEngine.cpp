@@ -41,7 +41,7 @@ void ABaseEngine::Run() {
         }
     };
 
-    std::unique_ptr<std::thread> t = std::make_unique<std::thread>(a);
+    m_pThread = std::make_unique<std::thread>(a);
 
     while (!BaseDevice->WindowShouldClose()) {
         BaseDevice->BeginDrawing();
@@ -76,9 +76,9 @@ void ABaseEngine::Run() {
             BaseDevice->EndDrawing();
         }
     }
-    t->join();
 
-
+    ABaseObject::Erase();
+    m_pThread->join();
 
     BaseDevice->Shutdown();
 }

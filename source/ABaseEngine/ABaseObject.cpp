@@ -9,6 +9,7 @@ ABaseObject::ABaseObject() {
     m_sClassName = typeid(this).name();
     m_nId = baseObjects.size();
     m_nState = STATE_BEGIN;
+    m_bHeap = false;
     newObjects.push_back(this);
 }
 
@@ -60,6 +61,10 @@ bool ABaseObject::IsValid() {
     return m_pObject != nullptr;
 }
 
+void ABaseObject::SetState(eObjectState state) {
+    m_nState = state;
+}
+
 void ABaseObject::Flush() {
     for (auto& it : newObjects) {
         if (it->IsValid())
@@ -82,4 +87,12 @@ void ABaseObject::Flush() {
         newObjects.clear();
         newObjects.shrink_to_fit();
     }
+}
+
+void ABaseObject::Erase() {
+    for (glm::uint32 i = 0; i < baseObjects.size(); i++)
+        if (baseObjects.at(i)->IsValid()) {
+            Delete<ABaseObject>(baseObjects.at(i));
+            baseObjects.at(i)->CallEvent(BASECALLEVENT_ENDPLAY);
+        }
 }

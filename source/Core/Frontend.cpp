@@ -260,8 +260,7 @@ void CFrontend::GoBack() {
 }
 
 void CFrontend::DoStuffBeforeStartingGame() {
-	CLoadingScreen* t;
-	t = NewObject<CLoadingScreen>();
+	NewObject<CLoadingScreen>();
 
 	auto a = []() { World.LoadLevel(LEVEL_DOWNTOWN_SP); };
 	BaseEngine.AddFun(a);
