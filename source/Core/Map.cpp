@@ -4,6 +4,7 @@
 #include "ABaseDevice.h"
 #include "Config.h"
 #include "Frontend.h"
+#include "ABaseEngine.h"
 
 CMap::CMap() {
 	Clear();
@@ -72,6 +73,7 @@ void CMap::Read(std::string const& fileName) {
 	}
 
 	m_bFileParsed = true;
+	BaseEngine.ThreadCallBack(false, [&]() { BuildEverything(); });
 }
 
 void CMap::Read32BitMap() {
@@ -319,7 +321,7 @@ void CMap::BuildChunks() {
 										break;
 
 									if (!block.details[faceType].flipBook) {
-										block.details[faceType].flipBook = std::make_shared<CFlipbook>();
+										block.details[faceType].flipBook = NewObject<CFlipbook>();
 										block.details[faceType].flipBook->Set(anim.tiles, anim.repeat, anim.frameRate / ANIMATIONS_FRAME_RATE);
 
 										tCachedAnims t;

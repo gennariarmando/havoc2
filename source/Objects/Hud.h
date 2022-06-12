@@ -9,9 +9,9 @@ public:
     void Update() override;
     void LateUpdate() override;
     void Render() override;
-    void Draw2D()  override;
-    void Draw2DDebug()  override;
-    void EndPlay()  override;
+    void Draw2D() override;
+    void Draw2DDebug() override;
+    void EndPlay() override;
 
 public:
     void DrawProgressBar(glm::vec4 rect, float progress, glm::vec4 const& frontColor, glm::vec4 const& backColor);

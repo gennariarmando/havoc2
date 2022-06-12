@@ -1,5 +1,5 @@
 #include "Style.h"
-#include "Frontend.h"
+#include "ABaseEngine.h"
 
 CStyle::CStyle() {
 	Clear();
@@ -87,6 +87,7 @@ void CStyle::Read(std::string const& fileName) {
 	}
 
 	m_bFileParsed = true;
+	BaseEngine.ThreadCallBack(false, [&]() { BuildEverything(); });
 }
 
 void CStyle::ReadPALX() {

@@ -1,84 +1,99 @@
 #include "ABaseEngine.h"
 #include "ABaseObject.h"
 #include "ABaseDevice.h"
+#include "ABaseNextFrame.h"
 
 ABaseEngine BaseEngine;
 
-void ABaseEngine::SetState(eBaseEngineState state) {
-    m_eState = state;
+ABaseEngine::ABaseEngine() {
+#ifdef SUPPORT_MT
+    m_pSecondThread = std::make_shared<tMultiThread>();
+    m_pSecondThread->state = TSTATE_IDLE;
+    m_pSecondThread->thread = std::thread([&]() { this->Run2(); });
+    m_pSecondThread->stop = false;
+#endif
 }
 
-void ABaseEngine::AddFun(void (*function)()) {
-    m_pFunPointers.push_back(function);
+ABaseEngine::~ABaseEngine() {
+
 }
 
-void ABaseEngine::FlushFun() {
-    SetState(STATE_LOAD);
+#ifdef SUPPORT_MT
+void ABaseEngine::SetState(eThreadState state) {
+    m_pSecondThread->state = state;
+}
+#endif
 
-    glm::uint32 i = 0;
-    for (auto it : m_pFunPointers) {
-        it();
-        m_pFunPointers.erase(m_pFunPointers.begin() + i);
-        i++;
+void ABaseEngine::ThreadCallBack(bool second, std::function<void()> function) {
+#ifdef SUPPORT_MT
+    if (second) {
+        m_pSecondThread->funcs.push_back(function);
     }
-
-    SetState(STATE_IDLE);
+    else
+#endif
+        NewObject<ABaseNextFrame>(function, 1);
 }
 
-void ABaseEngine::Run() {
-    if (m_bRunning)
-        return;
-
-    m_bRunning = true;
-    SetState(STATE_IDLE);
-
+void ABaseEngine::Run(int argc, char* argv[]) {
     BaseDevice = std::make_unique<ABaseDevice>();
     BaseDevice->Init();
-
-    auto a = []() {
-        while (!BaseDevice->WindowShouldClose()) {
-            BaseEngine.FlushFun();
-        }
-    };
-
-    m_pThread = std::make_unique<std::thread>(a);
 
     while (!BaseDevice->WindowShouldClose()) {
         BaseDevice->BeginDrawing();
         if (BaseDevice->Update()) {
-            for (glm::uint32 i = 0; i < baseObjects.size(); i++)
-                if (baseObjects.at(i)->IsValid()) baseObjects.at(i)->CallEvent(BASECALLEVENT_BEGINPLAY);
+            for (glm::uint32 i = 0; i < vBaseObjects.size(); i++)
+                if (vBaseObjects.at(i)->IsValid()) vBaseObjects.at(i)->CallEvent(BASECALLEVENT_BEGINPLAY);
 
-            for (glm::uint32 i = 0; i < baseObjects.size(); i++)
-                if (baseObjects.at(i)->IsValid()) baseObjects.at(i)->CallEvent(BASECALLEVENT_UPDATE);
+            for (glm::uint32 i = 0; i < vBaseObjects.size(); i++)
+                if (vBaseObjects.at(i)->IsValid()) vBaseObjects.at(i)->CallEvent(BASECALLEVENT_UPDATE);
 
             BaseDevice->BeginScene3D();
 
-            for (glm::uint32 i = 0; i < baseObjects.size(); i++)
-                if (baseObjects.at(i)->IsValid()) baseObjects.at(i)->CallEvent(BASECALLEVENT_RENDER);
+            for (glm::uint32 i = 0; i < vBaseObjects.size(); i++)
+                if (vBaseObjects.at(i)->IsValid()) vBaseObjects.at(i)->CallEvent(BASECALLEVENT_RENDER);
 
             BaseDevice->EndScene3D();
 
-            for (glm::uint32 i = 0; i < baseObjects.size(); i++)
-                if (baseObjects.at(i)->IsValid()) baseObjects.at(i)->CallEvent(BASECALLEVENT_DRAW2D);
+            for (glm::uint32 i = 0; i < vBaseObjects.size(); i++)
+                if (vBaseObjects.at(i)->IsValid()) vBaseObjects.at(i)->CallEvent(BASECALLEVENT_DRAW2D);
 
-            for (glm::uint32 i = 0; i < baseObjects.size(); i++)
-                if (baseObjects.at(i)->IsValid()) baseObjects.at(i)->CallEvent(BASECALLEVENT_DRAW2DDEBUG);
+            for (glm::uint32 i = 0; i < vBaseObjects.size(); i++)
+                if (vBaseObjects.at(i)->IsValid()) vBaseObjects.at(i)->CallEvent(BASECALLEVENT_DRAW2DDEBUG);
 
-            for (glm::uint32 i = 0; i < baseObjects.size(); i++)
-                if (baseObjects.at(i)->IsValid()) baseObjects.at(i)->CallEvent(BASECALLEVENT_LATEUPDATE);
+            for (glm::uint32 i = 0; i < vBaseObjects.size(); i++)
+                if (vBaseObjects.at(i)->IsValid()) vBaseObjects.at(i)->CallEvent(BASECALLEVENT_LATEUPDATE);
 
                 ABaseObject::Flush();
 
-            for (glm::uint32 i = 0; i < baseObjects.size(); i++)
-                    if (baseObjects.at(i)->IsValid()) baseObjects.at(i)->CallEvent(BASECALLEVENT_ENDPLAY);
+            for (glm::uint32 i = 0; i < vBaseObjects.size(); i++)
+                    if (vBaseObjects.at(i)->IsValid()) vBaseObjects.at(i)->CallEvent(BASECALLEVENT_ENDPLAY);
 
             BaseDevice->EndDrawing();
         }
     }
 
     ABaseObject::Erase();
-    m_pThread->join();
+
+#ifdef SUPPORT_MT
+    m_pSecondThread->stop = true;
+    m_pSecondThread->thread.join();
+#endif
 
     BaseDevice->Shutdown();
 }
+
+#ifdef SUPPORT_MT
+void ABaseEngine::Run2() {
+    while (!m_pSecondThread->stop) {
+        glm::uint32 i = 0;
+        for (auto it : m_pSecondThread->funcs) {
+            SetState(TSTATE_LOAD);
+            it();
+            m_pSecondThread->funcs.erase(m_pSecondThread->funcs.begin() + i);
+            i++;
+        }
+
+        SetState(TSTATE_IDLE);
+    }
+}
+#endif

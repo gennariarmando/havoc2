@@ -10,12 +10,13 @@
 int main(int argc, char *argv[]) {
 #if defined DEBUG && defined _WIN32
     AllocConsole();
-    freopen("CONIN$", "r", stdin);
-    freopen("CONOUT$", "w", stdout);
-    freopen("CONOUT$", "w", stderr);
+    FILE* f = nullptr;
+    f = freopen("CONIN$", "r", stdin);
+    f = freopen("CONOUT$", "w", stdout);
+    f = freopen("CONOUT$", "w", stderr);
     std::setvbuf(stdout, NULL, _IONBF, 0);
 #endif
 
-    BaseEngine.Run();
+    BaseEngine.Run(argc, argv);
     return false;
 }

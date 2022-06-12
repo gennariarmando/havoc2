@@ -3,7 +3,7 @@
 #include "Screen.h"
 #include "ABaseDevice.h"
 #include "Common.h"
-#include "World.h"
+#include "Game.h"
 #include "Hud.h"
 #include "ABaseEngine.h"
 #include "LoadingScreen.h"
@@ -260,15 +260,9 @@ void CFrontend::GoBack() {
 }
 
 void CFrontend::DoStuffBeforeStartingGame() {
-	NewObject<CLoadingScreen>();
-
-	auto a = []() { World.LoadLevel(LEVEL_DOWNTOWN_SP); };
-	BaseEngine.AddFun(a);
+	BaseEngine.ThreadCallBack(true, []() { Game.LoadLevel(LEVEL_DOWNTOWN_SP); });
 	CloseMenu();
-}
-
-bool CFrontend::IsLoading() {
-	return (BaseEngine.IsLoading() || World.m_pMap->IsLoading() || World.m_pStyle->IsLoading());
+	NewObject<CLoadingScreen>();
 }
 
 tMenuPage* CFrontend::AddPage(eMenuPages index, tMenuPage page) {

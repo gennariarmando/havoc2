@@ -164,7 +164,7 @@ struct tFaceInfo {
 	bool flip;
 	glm::uint32 rotation;
 	glm::uint32 lighting;
-	std::shared_ptr<CFlipbook> flipBook;
+	CFlipbook* flipBook;
 	glm::uint32 index;
 };
 
@@ -182,7 +182,7 @@ struct tBlockInfoDetailed {
 
 struct tCachedAnims {
 	glm::int16 tile;
-	std::shared_ptr<CFlipbook> flipBook;
+	CFlipbook* flipBook;
 };
 
 class CMap : CGBH {
@@ -223,5 +223,5 @@ public:
 	void BuildEverything();
 
 public:
-	bool const& IsLoading() const { return !m_bFileParsed && !m_bBuildComplete; }
+	bool IsLoading() { return !m_bFileParsed || !m_bBuildComplete; }
 };

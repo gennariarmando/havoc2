@@ -13,8 +13,8 @@ private:
 	
 public:
 	CFlipbook();
+	CFlipbook(std::vector<glm::uint16> frames, glm::uint8 repeat, float rate);
 
-	void BeginPlay() override;
 	void Update() override;
 
 public:

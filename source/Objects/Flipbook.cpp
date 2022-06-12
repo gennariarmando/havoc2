@@ -11,8 +11,8 @@ CFlipbook::CFlipbook() {
 	m_fTimeRate = 1.0f;
 }
 
-void CFlipbook::BeginPlay() {
-
+CFlipbook::CFlipbook(std::vector<glm::uint16> frames, glm::uint8 repeat, float rate) : Super::ABaseObject() {
+	Set(frames, repeat, rate);
 }
 
 void CFlipbook::Set(std::vector<glm::uint16> frames, glm::uint8 repeat, float rate) {
@@ -22,9 +22,6 @@ void CFlipbook::Set(std::vector<glm::uint16> frames, glm::uint8 repeat, float ra
 }
 
 void CFlipbook::Update() {
-	if (!DeviceObjects.m_pWindow)
-		return;
-
 	if (m_nCycles > m_nRepeat) {
 		m_nCurrentFrame = m_vFrames.size() - 1;
 		return;

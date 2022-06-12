@@ -1,28 +1,38 @@
 #pragma once
 #include "ABaseHeader.h"
+#include "Config.h"
 
-enum eBaseEngineState {
-    STATE_IDLE,
-    STATE_LOAD,
+enum eThreadState {
+    TSTATE_IDLE,
+    TSTATE_LOAD,
+};
+
+struct tMultiThread {
+    std::thread thread;
+    glm::uint8 state;
+    bool stop;
+    std::vector<std::function<void()>> funcs;
 };
 
 class ABaseEngine {
 private:
-    bool m_bRunning;
-    eBaseEngineState m_eState;
-    std::vector<void(*)()> m_pFunPointers;
-    std::unique_ptr<std::thread> m_pThread;
+#ifdef SUPPORT_MT
+    std::shared_ptr<tMultiThread> m_pSecondThread;
 
 private:
-    void SetState(eBaseEngineState state);
-    void FlushFun();
+    void SetState(eThreadState state);
+#endif
 
 public:
-    bool const& IsLoading() const { return m_eState == STATE_LOAD; }
+    ABaseEngine();
+    ~ABaseEngine();
 
-public:
-    void Run();
-    void AddFun(void (*function)());
+    void Run(int argc, char* argv[]);
+
+#ifdef SUPPORT_MT
+    void Run2();
+#endif
+    void ThreadCallBack(bool second, std::function<void()>);
 };
 
 extern ABaseEngine BaseEngine;

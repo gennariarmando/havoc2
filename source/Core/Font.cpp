@@ -1,6 +1,6 @@
 #include "Font.h"
 #include "Frontend.h"
-#include "World.h"
+#include "Game.h"
 #include "Screen.h"
 
 CFont Font;
@@ -16,7 +16,7 @@ CFont::~CFont() {
 
 std::shared_ptr<CStyle> CFont::GetStyleForThisFont(eFontStyle fontStyle) {
 	if (fontStyle < FSTYLE_FONT_START)
-		return World.GetStyle();
+		return Game.GetStyle();
 
 	return Frontend.GetStyle();
 }

@@ -40,16 +40,17 @@ struct tLevelList {
     std::string sty;
 };
 
-class CWorld : public ABaseObject {
+class CGame : public ABaseObject {
 public:
     std::shared_ptr<CMap> m_pMap;
     std::shared_ptr<CStyle> m_pStyle;
 
     float m_fGravity;
+    bool m_bInGame;
     std::shared_ptr<CPlayerPed> m_pPlayerPed;
 
 public:
-    CWorld();
+    CGame();
 
     void BeginPlay() override;
     void Update() override;
@@ -58,10 +59,10 @@ public:
     void EndPlay()  override;
    
 public:
-    std::shared_ptr<CStyle> const& GetStyle() { return m_pStyle; }
+    std::shared_ptr<CStyle> const& GetStyle() { return !m_pStyle || m_pStyle->IsLoading() ? nullptr : m_pStyle; }
 
 public:
     void LoadLevel(glm::uint8 area);
 };
 
-extern CWorld World;
+extern CGame Game;

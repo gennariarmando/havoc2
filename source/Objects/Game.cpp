@@ -1,4 +1,4 @@
-#include "World.h"
+#include "Game.h"
 #include "ABaseDevice.h"
 #include "ABaseEngine.h"
 #include "Camera.h"
@@ -7,7 +7,7 @@
 #include "Frontend.h"
 #include "LoadingScreen.h"
 
-CWorld World;
+CGame Game;
 
 std::vector<tLevelList> levelList = {
     { "data/wil.gmp", "data/wil.sty" },
@@ -30,47 +30,41 @@ std::vector<tLevelList> levelList = {
     { "data/mike2h.gmp", "data/bil.sty" },
 };
 
-CWorld::CWorld() {
-    m_pMap = std::make_shared<CMap>();
-    m_pStyle = std::make_shared<CStyle>();
-
+CGame::CGame() {
+    m_pMap = NULL;
+    m_pStyle = NULL;
     m_fGravity = 9.81f;
+    m_bInGame = false;
 }
 
-void CWorld::BeginPlay() {
+void CGame::BeginPlay() {
 
 }
 
-void CWorld::Update() {
+void CGame::Update() {
     if (Frontend.m_bMenuActive)
         return;
 
-    if (!m_pMap || !m_pStyle)
-        return;
-
-    m_pMap->BuildEverything();
-    m_pStyle->BuildEverything();
-
-    if (!Frontend.IsLoading())
-        Frontend.CloseMenu();
+    if ((m_pMap && !m_pMap->IsLoading()) && (m_pStyle && !m_pStyle->IsLoading()))
+        m_bInGame = true;
 }
 
-void CWorld::LateUpdate() {
+void CGame::LateUpdate() {
 
 }
 
-void CWorld::Render() {
-    if (!m_pMap || !m_pStyle)
+void CGame::Render() {
+    if (!m_bInGame)
         return;
 
     m_pMap->Render(m_pStyle);
 }
 
-void CWorld::EndPlay() {
-
+void CGame::EndPlay() {
+    m_bInGame = false;
 }
 
-void CWorld::LoadLevel(glm::uint8 area) {
+void CGame::LoadLevel(glm::uint8 area) {
     m_pMap.reset();
     m_pMap = std::make_shared<CMap>(levelList.at(area).gmp); 
 

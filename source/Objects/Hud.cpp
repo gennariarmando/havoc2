@@ -33,20 +33,20 @@ void CHud::Draw2D() {
 }
 
 void CHud::Draw2DDebug() {
-   //Font.Reset();
-   //Font.SetFontAlignment(FONT_ALIGN_LEFT);
-   //Font.SetWrapX(SCREEN_WIDTH);
-   //Font.SetScale(SCREEN_SCALE_H(0.9f));
-   //Font.SetFontStyle(FONT_STYLE_HEADING);
-   //
-   //Font.SetColor(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
-   //Font.PrintString({ SCREEN_SCALE_X(0.0f), 0.0f }, "x:" + std::to_string((Camera.GetPosition().x)));
-   //
-   //Font.SetColor(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-   //Font.PrintString({ SCREEN_SCALE_X(128.0f), 0.0f }, "y: " + std::to_string((Camera.GetPosition().y)));
-   //
-   //Font.SetColor(glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
-   //Font.PrintString({ SCREEN_SCALE_X(256.0f), 0.0f }, "z: " + std::to_string((Camera.GetPosition().z)));
+    Font.Reset();
+    Font.SetFontAlignment(FONT_ALIGN_LEFT);
+    Font.SetWrapX(SCREEN_WIDTH);
+    Font.SetScale(SCREEN_SCALE_H(0.9f));
+    Font.SetFontStyle(FONT_STYLE_HEADING);
+
+    Font.SetColor(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+    Font.PrintString({ SCREEN_SCALE_X(0.0f), 0.0f }, "x:" + std::to_string((Camera.GetPosition().x)));
+
+    Font.SetColor(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+    Font.PrintString({ SCREEN_SCALE_X(128.0f), 0.0f }, "y: " + std::to_string((Camera.GetPosition().y)));
+
+    Font.SetColor(glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+    Font.PrintString({ SCREEN_SCALE_X(256.0f), 0.0f }, "z: " + std::to_string((Camera.GetPosition().z)));
 }
 
 void CHud::EndPlay() {

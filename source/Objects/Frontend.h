@@ -99,7 +99,6 @@ public:
 	void ChangeMenuPage(glm::int32 page, glm::int32 item = 0);
 	void GoBack();
 	void DoStuffBeforeStartingGame();
-	bool IsLoading();
 
 public:
 	tMenuPage* AddPage(eMenuPages index, tMenuPage page = { {} });
@@ -108,7 +107,7 @@ public:
 	tMenuItem* GetCurrentItem() { return &m_vMenuPages.at(m_nCurrentPage).menuItems.at(m_nCurrentItem); }
 
 public:
-	std::shared_ptr<CStyle> const& GetStyle() { return m_pStyle; }
+	std::shared_ptr<CStyle> const& GetStyle() { return !m_pStyle || m_pStyle->IsLoading() ? nullptr : m_pStyle; }
 };
 
 extern CFrontend Frontend;

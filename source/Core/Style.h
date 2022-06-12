@@ -189,6 +189,6 @@ public:
 	void BuildEverything();
 
 public:
-	bool const& IsLoading() const { return !m_bFileParsed && !m_bBuildComplete; }
+	bool IsLoading() { return !m_bFileParsed || !m_bBuildComplete; }
 
 };

@@ -24,7 +24,6 @@ public:
     friend class ABaseEngine;
     typedef ABaseObject Super;
 
-public:
     ABaseObject* m_pObject;
     std::string m_sClassName;
     glm::uint64 m_nId;
@@ -45,6 +44,8 @@ protected:
     inline virtual void EndPlay() { }
 
 private:
+    void AddObjectToEventList();
+    void RemoveObjectFromEventList();
     void CallEvent(glm::uint8 e);
 
 public:
@@ -68,13 +69,9 @@ public:
     }
 };
 
-extern std::vector<ABaseObject*> baseObjects;
-extern std::vector<ABaseObject*> newObjects;
-extern std::vector<glm::uint64> oldObjects;
-
-template<typename T>
-static T* NewObject() {
-    T* t = new T();
+template<typename T, typename... Args>
+static T* NewObject(Args... a) {
+    T* t = new T(a...);
     return t;
 }
 
@@ -82,3 +79,7 @@ template<typename T>
 static void Delete(T* t) {
     t->SetState(STATE_END);
 }
+
+extern std::vector<ABaseObject*> vBaseObjects;
+extern std::vector<ABaseObject*> vNewObjects;
+extern std::vector<glm::uint64> vOldObjects;

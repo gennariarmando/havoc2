@@ -1,20 +1,30 @@
 #include "ABaseObject.h"
+#include "ABaseEngine.h"
 
-std::vector<ABaseObject*> baseObjects;
-std::vector<ABaseObject*> newObjects;
-std::vector<glm::uint64> oldObjects;
+std::vector<ABaseObject*> vBaseObjects;
+std::vector<ABaseObject*> vNewObjects;
+std::vector<glm::uint64> vOldObjects;
 
 ABaseObject::ABaseObject() {
     m_pObject = this;
     m_sClassName = typeid(this).name();
-    m_nId = baseObjects.size();
+    m_nId = 0;
     m_nState = STATE_BEGIN;
     m_bHeap = false;
-    newObjects.push_back(this);
+    AddObjectToEventList();
 }
 
 ABaseObject::~ABaseObject() {
-    oldObjects.push_back(m_nId);
+    RemoveObjectFromEventList();
+}
+
+void ABaseObject::AddObjectToEventList() {
+    m_nId = vBaseObjects.size();
+    vNewObjects.push_back(this);
+}
+
+void ABaseObject::RemoveObjectFromEventList() {
+    vOldObjects.push_back(m_nId);
 }
 
 void ABaseObject::CallEvent(glm::uint8 e) {
@@ -24,8 +34,8 @@ void ABaseObject::CallEvent(glm::uint8 e) {
     switch (e) {
     case BASECALLEVENT_BEGINPLAY:
         if (m_nState == STATE_BEGIN) {
-            BeginPlay();
             m_nState = STATE_TICK;
+            BeginPlay();
         }
         break;
     case BASECALLEVENT_UPDATE:
@@ -66,33 +76,33 @@ void ABaseObject::SetState(eObjectState state) {
 }
 
 void ABaseObject::Flush() {
-    for (auto& it : newObjects) {
+    for (auto& it : vNewObjects) {
         if (it->IsValid())
-            baseObjects.push_back(it);
+            vBaseObjects.push_back(it);
     }
 
-    if (baseObjects.size() > 1) {
-        for (auto it : oldObjects) {
-            if (it < baseObjects.size())
-                baseObjects.erase(baseObjects.begin() + it);
+    if (vBaseObjects.size() > 1) {
+        for (auto it : vOldObjects) {
+            if (it < vBaseObjects.size())
+                vBaseObjects.erase(vBaseObjects.begin() + it);
         }
     }
 
-    if (oldObjects.size() > 0) {
-        oldObjects.clear();
-        oldObjects.shrink_to_fit();
+    if (vOldObjects.size() > 0) {
+        vOldObjects.clear();
+        vOldObjects.shrink_to_fit();
     }
 
-    if (newObjects.size() > 0) {
-        newObjects.clear();
-        newObjects.shrink_to_fit();
+    if (vNewObjects.size() > 0) {
+        vNewObjects.clear();
+        vNewObjects.shrink_to_fit();
     }
 }
 
 void ABaseObject::Erase() {
-    for (glm::uint32 i = 0; i < baseObjects.size(); i++)
-        if (baseObjects.at(i)->IsValid()) {
-            Delete<ABaseObject>(baseObjects.at(i));
-            baseObjects.at(i)->CallEvent(BASECALLEVENT_ENDPLAY);
+    for (glm::uint32 i = 0; i < vBaseObjects.size(); i++)
+        if (vBaseObjects.at(i)->IsValid()) {
+            Delete<ABaseObject>(vBaseObjects.at(i));
+            vBaseObjects.at(i)->CallEvent(BASECALLEVENT_ENDPLAY);
         }
 }
