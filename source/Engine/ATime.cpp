@@ -13,10 +13,11 @@ ATime::ATime() {
 }
 
 void ATime::BeginFrame() {
+	m_nFrameCounter++;
+
 	m_dCurrentTime = glfwGetTime();
 	m_dTimeDifference = Time.m_dCurrentTime - Time.m_dPreviousTime;
 
-	m_nFrameCounter++;
 	m_dFramePerSecond = (1.0 / m_dTimeDifference) * m_nFrameCounter;
 	m_dDeltaTime = (Time.m_dTimeDifference / Time.m_nFrameCounter);
 }

@@ -112,3 +112,22 @@ std::string string_format(const std::string& format, Args ... args) {
     std::snprintf(buf.get(), size, format.c_str(), args ...);
     return std::string(buf.get(), buf.get() + size - 1);
 }
+
+static float LimitAngle(float angle) {
+    float result = angle;
+
+    while (result >= 180.0f) {
+        result -= 2 * 180.0f;
+    }
+
+    while (result < -180.0f) {
+        result += 2 * 180.0f;
+    }
+
+    return result;
+}
+
+static bool DecomposeMatrix(glm::mat4 const& transformation, glm::vec3& scale, glm::quat& rotation, glm::vec3& translation, glm::vec3& skew, glm::vec4& perspective) {
+    glm::decompose(transformation, scale, rotation, translation, skew, perspective);
+    return true;
+}

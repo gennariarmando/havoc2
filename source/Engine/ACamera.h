@@ -1,5 +1,6 @@
 #pragma once
 #include "common.h"
+#include "Entity.h"
 
 enum eCameraMode {
     MODE_DEBUG3D,
@@ -30,7 +31,6 @@ struct ij2k {
 class ACamera {
 private:
     glm::uint8 m_nMode;
-    glm::uint8 m_nProjType;
     glm::mat4 m_mProjection;
     glm::mat4 m_mView;
     glm::vec3 m_vPosition;
@@ -45,13 +45,13 @@ private:
     float m_fNearClip;
     glm::vec4 m_vPlanes[FPLANE_COUNT];
     glm::vec3 m_vPoints[FPLANE_COUNT + 2];
+    CEntity* m_pTargetEntity;
 
 public:
 	ACamera();
 
     bool Init();
-    void BeginFrame();
-    void EndFrame();
+    void Update();
     void Shutdown();
 
 public:
@@ -66,10 +66,11 @@ public:
 public:
     void UpdateCameraVectors();
     void ProcessDebug();
+    void ProcessFollowEntity();
+    void SetTargetEntity(CEntity* e);
 
 public:
     glm::uint8& GetMode() { return m_nMode; }
-    glm::uint8& GetProjectionType() { return m_nProjType; }
     glm::mat4& GetProjection() { return m_mProjection; }
     glm::mat4& GetView() { return m_mView; }
     glm::vec3& GetPosition() { return m_vPosition; }
@@ -83,6 +84,8 @@ public:
     float& GetFarClip() { return m_fFarClip; }
     float& GetNearClip() { return m_fNearClip; }
     glm::vec3 GetPoint(glm::int8 plane) { return m_vPlanes[plane]; }
+    CEntity*& GetTargetEntity() { return m_pTargetEntity; }
+
 };
 
 extern ACamera Camera;

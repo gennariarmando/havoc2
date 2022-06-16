@@ -34,7 +34,9 @@ public:
     void SetLocation(glm::vec3 pos);
     void Translate(float x, float y, float z);
     void SetScale(float x, float y, float z);
+    void SetScale(glm::vec3 scale);
     void SetRotation(float x, float y, float z, float angle);
+    void SetRotation(glm::vec3 rot, float angle);
     void SetColor(float r, float g, float b, float a);
 
     void SetVertex(float x, float y, float z = 0.0f);

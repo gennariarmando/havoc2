@@ -1,6 +1,6 @@
 #pragma once
 #include "GBH.h"
-#include "ASprite2D.h"		
+#include "ASprite.h"		
 
 enum eBaseIndices {
 	BASEINDEX_CARS,

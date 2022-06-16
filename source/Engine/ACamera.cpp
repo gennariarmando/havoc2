@@ -2,21 +2,21 @@
 #include "AScreen.h"
 #include "AInput.h"
 #include "ATime.h"
+#include "AGraphicDevice.h"
 
 ACamera Camera;
 
 ACamera::ACamera() {
     m_nMode = MODE_DEBUG3D;
-    m_nProjType = PROJECTION_PERSPECTIVE;
     m_mProjection = {};
     m_mView = {};
-    m_vPosition = {0.0f, 0.0f, 0.0f};//glm::vec3(159.50f, 139.50f, 10.0f);
+    m_vPosition = glm::vec3(159.50f, 139.50f, 10.0f);
     m_vFront = glm::vec3(0.0f, -1.0f, 0.0f);
     m_vUp = glm::vec3(0.0f, 0.0f, 1.0f);
     m_vRight = glm::vec3(0.0f, 0.0f, 0.0f);
     m_vWorldUp = m_vUp;
-    m_vAngle.x = -90.0f;
-    m_vAngle.y = -90.0f;
+    m_vAngle.x = glm::radians(0.0f);
+    m_vAngle.y = glm::radians(-90.0f);
     m_fFOV = 45.0f;
     m_fFrontDist = 0.0f;
     m_fNearClip = 0.1f;
@@ -29,13 +29,16 @@ ACamera::ACamera() {
     for (glm::uint32 i = 0; i < FPLANE_COUNT + 2; i++) {
         m_vPoints[i] = {};
     }
+
+    m_pTargetEntity = nullptr;
 }
 
 bool ACamera::Init() {
     return true;
 }
 
-void ACamera::BeginFrame() {
+void ACamera::Update() {
+    GraphicDevice.SetCursorOnOff(false);
     ComputeProjection();
 
     switch (GetMode()) {
@@ -43,13 +46,16 @@ void ACamera::BeginFrame() {
         ProcessDebug();
         break;
     case MODE_FOLLOWENTITY:
+        ProcessFollowEntity();
         break;
     }
 
     UpdateCameraVectors();
-}
 
-void ACamera::EndFrame() {
+    if (Input.GetKeyJustDown(KEY_F1)) {
+        GetMode() = GetMode() == MODE_DEBUG3D;
+
+    }
 
 }
 
@@ -58,52 +64,32 @@ void ACamera::Shutdown() {
 }
 
 void ACamera::ComputeProjection() {
-    glm::mat4 proj = glm::mat4(1.0f);
+    glm::mat4 proj = glm::perspective(glm::radians(Camera.GetFov()), SCREEN_ASPECT_RATIO, GetNearClip(), GetFarClip());
     glm::mat4 look = glm::lookAt(m_vPosition, m_vPosition + m_vFront, m_vUp);
-
-    switch (Camera.GetMode()) {
-    case PROJECTION_PERSPECTIVE:
-        proj = glm::perspective(glm::radians(Camera.GetFov()), 16.0f / 9.0f, GetNearClip(), GetFarClip());
-        break;
-    case PROJECTION_ORTHOGRAPHIC:
-        proj = glm::ortho(0.0f, 1.0f, 1.0f, 0.0f, GetNearClip(), GetFarClip());
-        break;
-    }
 
     m_mProjection = proj;
     m_mView = look;
 }
 
 void ACamera::UpdateCameraVectors() {
+    while (m_vAngle.x >= glm::pi<float>()) m_vAngle.x -= 2.0f * glm::pi<float>();
+    while (m_vAngle.x < -glm::pi<float>()) m_vAngle.x += 2.0f * glm::pi<float>();
+    while (m_vAngle.y >= glm::pi<float>()) m_vAngle.y -= 2.0f * glm::pi<float>();
+    while (m_vAngle.y < -glm::pi<float>()) m_vAngle.y += 2.0f * glm::pi<float>();
+
+    float yaw = m_vAngle.x - glm::half_pi<float>();
+    float pitch = m_vAngle.y;
+
     glm::vec3 f;
-    f.x = cos(glm::radians(m_vAngle.x)) * cos(glm::radians(m_vAngle.y));
-    f.y = sin(glm::radians(m_vAngle.x)) * cos(glm::radians(m_vAngle.y));
-    f.z = sin(glm::radians(m_vAngle.y));
+    f.x = cos(yaw) * cos(pitch);
+    f.y = sin(yaw) * cos(pitch);
+    f.z = sin(pitch);
 
     glm::vec3 u(0.0f, 0.0f, 1.0f);
 
     m_vFront = glm::normalize(f);
     m_vRight = glm::normalize(glm::cross(u, m_vFront));
     m_vUp = glm::normalize(glm::cross(m_vFront, m_vRight));
-
-    // Limit camera to map
-    //if (m_vPosition.x < MAP_NUM_BLOCKS_X * 0.5f)
-    //    m_vPosition.x = MAP_NUM_BLOCKS_X * 0.5f;
-    //
-    //if (m_vPosition.x > MAP_SCALE_X - (MAP_NUM_BLOCKS_X * 0.5f))
-    //    m_vPosition.x = MAP_SCALE_X - (MAP_NUM_BLOCKS_X * 0.5f);
-    //
-    //if (m_vPosition.y < MAP_NUM_BLOCKS_Y * 0.5f)
-    //    m_vPosition.y = MAP_NUM_BLOCKS_Y * 0.5f;
-    //
-    //if (m_vPosition.y > MAP_SCALE_Y - (MAP_NUM_BLOCKS_X * 0.5f))
-    //    m_vPosition.y = MAP_SCALE_Y - (MAP_NUM_BLOCKS_X * 0.5f);
-    //
-    //if (m_vPosition.z < MAP_NUM_BLOCKS_Z * 0.5f)
-    //    m_vPosition.z = MAP_NUM_BLOCKS_Z * 0.5f;
-    //
-    //if (m_vPosition.z > MAP_SCALE_Z)
-    //    m_vPosition.z = MAP_SCALE_Z;
 }
 
 void ACamera::ProcessDebug() {
@@ -112,18 +98,20 @@ void ACamera::ProcessDebug() {
     float right = 0.0f;
     float up = 0.0f;
 
-    right = Input.m_NewMouse.delta.x  * 0.05f;
+    right = Input.m_NewMouse.delta.x * 0.05f;
     up = Input.m_NewMouse.delta.y * 0.05f;
 
-    m_vAngle.x += right;
-    m_vAngle.y += up;
+    if (right)
+        m_vAngle.x += glm::radians(right);
+
+    if (up)
+        m_vAngle.y += glm::radians(up);
+
+    if (m_vAngle.y > glm::radians(89.9f)) m_vAngle.y = glm::radians(89.9f);
+    if (m_vAngle.y < -glm::radians(89.9f)) m_vAngle.y = -glm::radians(89.9f);
+
     right = 0.0f;
     up = 0.0f;
-
-    if (m_vAngle.y > 89.9f)
-        m_vAngle.y = 89.9f;
-    if (m_vAngle.y < -89.9f)
-        m_vAngle.y = -89.9f;
 
     float velocity = 10.0f * Time.GetDeltaTime();
     float forward = 0.0f;
@@ -149,6 +137,24 @@ void ACamera::ProcessDebug() {
 
     m_vPosition += GetFront() * forward;
     m_vPosition += GetRight() * side;
+}
+
+void ACamera::ProcessFollowEntity() {
+    m_fFOV = 45.0f;  
+
+    m_vAngle.x = glm::radians(0.0f);
+    m_vAngle.y = glm::radians(-90.0f);
+
+    if (m_vAngle.y > glm::radians(89.9f)) m_vAngle.y = glm::radians(89.9f);
+    if (m_vAngle.y < -glm::radians(89.9f)) m_vAngle.y = -glm::radians(89.9f);
+
+    glm::vec3 pos = GetTargetEntity()->m_vPosition;
+    pos.z += 8.0f;
+    m_vPosition = pos;
+}
+
+void ACamera::SetTargetEntity(CEntity* e) {
+    m_pTargetEntity = e;
 }
 
 void ACamera::Frustum(glm::mat4 m) {

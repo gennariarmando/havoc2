@@ -19,6 +19,8 @@ AGraphicDevice::AGraphicDevice() {
 	m_pWindow = nullptr;
 	m_pMonitor = nullptr;
 	m_vShaders.resize(NUM_DEFAULT_SHADERS);
+	m_bPreviousCursorMode = true;
+	m_bCursorMode = true;
 }
 
 bool AGraphicDevice::Init() {
@@ -168,9 +170,6 @@ void AGraphicDevice::BeginFrame() {
 	glfwSetWindowTitle(GraphicDevice.m_pWindow, title.c_str());
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClearDepth(1.0f);
-	glDepthFunc(GL_LEQUAL);
-	glEnable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
@@ -181,8 +180,17 @@ void AGraphicDevice::EndFrame() {
 	bool altPressed = false;
 	bool enterPressed = false;
 	if (Input.GetKeyDown(KEY_LEFT_ALT) && Input.GetKeyJustDown(KEY_ENTER)) {
-		GraphicDevice.SetFullscreen(!Screen.m_bFullscreen);
+		SetFullscreen(!Screen.m_bFullscreen);
 		Input.Clear();
+	}
+
+	if (m_bCursorMode != m_bPreviousCursorMode) {
+		if (m_bCursorMode)
+			glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		else
+			glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+		m_bPreviousCursorMode = m_bCursorMode;
 	}
 }
 
@@ -191,8 +199,5 @@ void AGraphicDevice::SwapBuffers() {
 }
 
 void AGraphicDevice::SetCursorOnOff(bool on) {
-	if (on)
-		glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-	else
-		glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	m_bCursorMode = on;
 }

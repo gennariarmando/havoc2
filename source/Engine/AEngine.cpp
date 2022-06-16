@@ -4,12 +4,13 @@
 #include "AGraphicDevice.h"
 #include "ATime.h"
 #include "AScreen.h"
-#include "ASprite2D.h"
+#include "ASprite.h"
 #include "AEngineSettings.h"
 #include "AInput.h"
 #include "ACamera.h"
 #include "Game.h"
 #include "Frontend.h"
+#include "LoadingScreen.h"
 #include "version.h"
 
 AEngine Engine;
@@ -115,7 +116,7 @@ bool AEngine::Init(glm::int32 argc, char* argv[]) {
         return false;
     }
 
-    if (!ASprite2D::Init()) {
+    if (!ASprite::Init()) {
         Console.WriteLine("Error initializing sprites");
         return false;
     }
@@ -129,6 +130,10 @@ bool AEngine::Init(glm::int32 argc, char* argv[]) {
         Console.WriteLine("Error initializing frontend");
         return false;
     }
+
+    BeginFrame();
+    LoadingScreen.Draw();
+    EndFrame();
 }
 
 void AEngine::Shutdown(glm::uint32 code) {
@@ -138,7 +143,7 @@ void AEngine::Shutdown(glm::uint32 code) {
         EngineSettings.Save();
     }
 
-    ASprite2D::Shutdown();
+    ASprite::Shutdown();
     Console.Shutdown();
     GraphicDevice.Shutdown();
     Camera.Shutdown();
@@ -148,24 +153,13 @@ void AEngine::Shutdown(glm::uint32 code) {
 }
 
 void AEngine::BeginFrame() {
-
-    {
-        Time.BeginFrame();
-        Input.BeginFrame();
-        GraphicDevice.BeginFrame();
-    }
-    // ALWAYS ADD DOWN HERE
-    Camera.BeginFrame();
-
+    Time.BeginFrame();
+    Input.BeginFrame();
+    GraphicDevice.BeginFrame();
 }
 
 void AEngine::EndFrame() {
-    Camera.EndFrame();
-    // ALWAYS UP ADD HERE
-
-    {
-        GraphicDevice.EndFrame();
-        Input.EndFrame();
-        Time.EndFrame();
-    }
+    GraphicDevice.EndFrame();
+    Input.EndFrame();
+    Time.EndFrame();
 }

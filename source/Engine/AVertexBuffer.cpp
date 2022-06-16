@@ -53,8 +53,16 @@ void AVertexBuffer::SetScale(float x, float y, float z) {
     m_mTransform = glm::scale(m_mTransform, glm::vec3(x, y, z));
 }
 
+void AVertexBuffer::SetScale(glm::vec3 scale) {
+    m_mTransform = glm::scale(m_mTransform, scale);
+}
+
 void AVertexBuffer::SetRotation(float x, float y, float z, float angle) {
     m_mTransform = glm::rotate(m_mTransform, angle, glm::vec3(x, y, z));
+}
+
+void AVertexBuffer::SetRotation(glm::vec3 rot, float angle) {
+    SetRotation(rot.x, rot.y, rot.z, angle);
 }
 
 void AVertexBuffer::SetColor(float r, float g, float b, float a) {

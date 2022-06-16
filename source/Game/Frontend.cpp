@@ -49,8 +49,7 @@ CFrontend::CFrontend() {
 	m_vMenuPages.resize(NUM_MENUPAGES);
 	m_fItemColorPulse = 1.0f;
 	m_bItemColorPulseSwap = false;
-	m_vPreviousPages = {};
-	m_bMenuActive = true;
+	m_bMenuActive = false;
 	m_bWantsToLoad = false;
 	m_bDrawMouse = false;
 }
@@ -64,21 +63,21 @@ bool CFrontend::Init() {
 	m_pStyle = std::make_shared<CStyle>("data/fstyle.sty");
 
 	for (auto& it : frontendTexFileNames) {
-		std::shared_ptr<ASprite2D> sprite = std::make_shared<ASprite2D>();
+		std::shared_ptr<ASprite> sprite = std::make_shared<ASprite>();
 		if (!sprite->SetTexture("data/frontend", it))
 			return false;
 		m_pFrontendSprites.push_back(sprite);
 	}
 
 	// MENUPAGE_MAIN
-	if (tMenuPage* page = AddPage(MENUPAGE_MAIN, { { FE_1_PLAY, FE_1_OPTIONS, FE_1_QUIT }, { } } )) {
+	if (tMenuPage* page = AddPage(MENUPAGE_MAIN, { MENUPAGE_NONE, 0, { FE_1_PLAY, FE_1_OPTIONS, FE_1_QUIT }, { } } )) {
 		AddItem(page, { MENUACTION_STARTGAME, "PLAY", MENUPAGE_NONE });
 		AddItem(page, { MENUACTION_CHANGEPAGE, "OPTIONS", MENUPAGE_OPTIONS });
 		AddItem(page, { MENUACTION_CHANGEPAGE, "QUIT", MENUPAGE_CREDITS });
 	}
 
 	// MENUPAGE_PLAY
-	if (tMenuPage* page = AddPage(MENUPAGE_PLAY, { { FE_2_NAME, FE_2_RESTART, FE_2_LEAGUE, FE_2_LEVEL1 }, { } } )) {
+	if (tMenuPage* page = AddPage(MENUPAGE_PLAY, { MENUPAGE_MAIN, 0, { FE_2_NAME, FE_2_RESTART, FE_2_LEAGUE, FE_2_LEVEL1 }, { } } )) {
 		AddItem(page, { MENUACTION_SETPLAYERNAME, "PLAYER NAME", MENUPAGE_NONE });
 		AddItem(page, { MENUACTION_CHANGEPAGE, "RESUME SAVED STATUS", MENUPAGE_RESUMESAVEDSTATUS });
 		AddItem(page, { MENUACTION_CHANGEPAGE, "VIEW HIGH SCORES", MENUPAGE_VIEWHIGHSCORES });
@@ -86,17 +85,17 @@ bool CFrontend::Init() {
 	}
 
 	// MENUPAGE_OPTIONS
-	if (tMenuPage* page = AddPage(MENUPAGE_OPTIONS, { { FE_1_OPTIONS, FE_1_OPTIONS }, { } })) {
+	if (tMenuPage* page = AddPage(MENUPAGE_OPTIONS, { MENUPAGE_MAIN, 1, { FE_1_OPTIONS, FE_1_OPTIONS }, { } })) {
 		AddItem(page, { MENUACTION_CHANGEPAGE, "VIDEO", MENUPAGE_VIDEO });
 	}
 
 	// MENUPAGE_CREDITS
-	if (tMenuPage* page = AddPage(MENUPAGE_CREDITS, { { FE_CREDITS }, { } })) {
+	if (tMenuPage* page = AddPage(MENUPAGE_CREDITS, { MENUPAGE_NONE, 0, { FE_CREDITS }, { } })) {
 
 	}
 
 	// MENUPAGE_VIDEO
-	if (tMenuPage* page = AddPage(MENUPAGE_VIDEO, { { FE_1_OPTIONS }, { } })) {
+	if (tMenuPage* page = AddPage(MENUPAGE_VIDEO, { MENUPAGE_OPTIONS, 0, { FE_1_OPTIONS }, { } })) {
 		AddItem(page, { MENUACTION_SCREENRES, "RESOLUTION", MENUPAGE_VIDEO });
 
 	}
@@ -289,20 +288,12 @@ void CFrontend::ChangeMenuPage(glm::int32 page, glm::int32 item) {
 	if (page == MENUPAGE_NONE || m_vMenuPages.size() < page)
 		return;
 
-	tPreviousPage t = {};
-	t.page = m_nCurrentPage;
-	t.item = m_nCurrentItem;
-	m_vPreviousPages.push_back(t);
 	m_nCurrentPage = page;
 	m_nCurrentItem = item;
 }
 
 void CFrontend::GoBack() {
-	if (m_vPreviousPages.empty())
-		return;
-
-	ChangeMenuPage(m_vPreviousPages.back().page, m_vPreviousPages.back().item);
-	m_vPreviousPages.pop_back();
+	ChangeMenuPage(GetCurrentPage()->previousPage, GetCurrentPage()->previousItem);
 }
 
 void CFrontend::DoStuffBeforeStartingGame() {

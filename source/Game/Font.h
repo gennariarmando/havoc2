@@ -1,6 +1,6 @@
 #pragma once
 #include "Common.h"
-#include "ASprite2D.h"
+#include "ASprite.h"
 #include "Style.h"
 
 #define FSTYLE_FONT_START 8
@@ -25,7 +25,7 @@ enum eFontAlignment {
 
 class CFont {
 private:
-	std::unique_ptr<ASprite2D> m_pSprite;
+	std::unique_ptr<ASprite> m_pSprite;
 	eFontStyle m_eFontStyle;
 	eFontAlignment m_eFontAlignment;
 	float m_fScale;

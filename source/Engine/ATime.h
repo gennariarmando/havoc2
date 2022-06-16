@@ -8,7 +8,7 @@ private:
 	double m_dCurrentTime;
 	double m_dTimeDifference;
 	double m_dFramePerSecond;
-	glm::uint32 m_nFrameCounter;
+	glm::int32 m_nFrameCounter;
 
 public:
 	ATime();
@@ -22,7 +22,7 @@ public:
 	float const& GetTimeDifference() { return static_cast<float>(m_dTimeDifference); }
 	float const& GetFramePerSecond() { return static_cast<float>(m_dFramePerSecond); }
 
-	glm::uint32 const& GetFrameCounter() { return m_nFrameCounter; }
+	glm::int32 const& GetFrameCounter() { return m_nFrameCounter; }
 };
 
 extern ATime Time;

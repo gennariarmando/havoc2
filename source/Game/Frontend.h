@@ -62,6 +62,8 @@ struct tMenuItem {
 };
 
 struct tMenuPage {
+	eMenuPages previousPage;
+	glm::uint8 previousItem;
 	std::vector<glm::uint8> background;
 	std::vector<tMenuItem> menuItems;
 };
@@ -75,8 +77,7 @@ class CFrontend {
 public:
 	bool m_bInitialized;
 	std::shared_ptr<CStyle> m_pStyle;
-	std::vector<std::shared_ptr<ASprite2D>> m_pFrontendSprites;
-	std::vector<tPreviousPage> m_vPreviousPages;
+	std::vector<std::shared_ptr<ASprite>> m_pFrontendSprites;
 	glm::int32 m_nCurrentPage;
 	glm::int32 m_nCurrentItem;
 	std::vector<tMenuPage> m_vMenuPages;

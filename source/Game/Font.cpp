@@ -1,12 +1,12 @@
 #include "Font.h"
 #include "Frontend.h"
-#include "Game.h"
+#include "World.h"
 #include "AScreen.h"
 
 CFont Font;
 
 CFont::CFont() {
-	m_pSprite = std::make_unique<ASprite2D>();
+	m_pSprite = std::make_unique<ASprite>();
 	Reset();
 }
 
@@ -16,7 +16,7 @@ CFont::~CFont() {
 
 std::shared_ptr<CStyle> CFont::GetStyleForThisFont(eFontStyle fontStyle) {
 	if (fontStyle < FSTYLE_FONT_START)
-		return Game.GetStyle();
+		return World.GetStyle();
 
 	return Frontend.GetStyle();
 }
@@ -136,7 +136,7 @@ void CFont::PrintString(glm::vec2 pos, std::string str) {
 
 		if (c != ' ') {
 			glm::uint32 index = style->GetFontBaseIndex(GetFontStyleFrontendShift()) + c - '!';
-			m_pSprite->SetTexture(style->GetSprite().at(index)->GetID());
+			m_pSprite->SetTexture(style->GetSprite().at(index));
 			m_pSprite->Draw(pos.x, pos.y, GetCharacterSize(c).x, GetCharacterSize(c).y, m_vColor);
 		}
 

@@ -361,12 +361,6 @@ void CMap::Render(std::shared_ptr<CStyle> style) {
 	starty = Clamp(starty, 0, MAP_NUM_BLOCKS_Y);
 	endy = Clamp(endy, 0, MAP_NUM_BLOCKS_Y);
 
-	SetRenderState(RENDERSTATE_STENCILTESTENABLE, false);
-	SetRenderState(RENDERSTATE_DEPTHTESTENABLE, true);
-	SetRenderState(RENDERSTATE_DEPTHMODE, DEPTHTEST_LESS);
-	SetRenderState(RENDERSTATE_CULLENABLE, true);
-	SetRenderState(RENDERSTATE_CULLMODE, CULLMODE_BACK);
-
 	for (glm::int32 i = starty; i < endy; i++) {
 		for (glm::int32 j = startx; j < endx; j++) {
 			AVertexBuffer* chunk = &m_vGeometryChunks.at(i * MAP_NUM_BLOCKS_X + j);

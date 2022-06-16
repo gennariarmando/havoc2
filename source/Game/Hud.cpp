@@ -1,5 +1,5 @@
 #include "Hud.h"
-#include "ASprite2D.h"
+#include "ASprite.h"
 #include "Style.h"
 #include "Font.h"
 #include "AScreen.h"
@@ -8,6 +8,10 @@
 CHud Hud;
 
 CHud::CHud() {
+
+}
+
+void CHud::Draw() {
 
 }
 
@@ -34,10 +38,10 @@ void CHud::DrawProgressBar(glm::vec4 rect, float progress, glm::vec4 const& fron
     else if (progress >= 1.0f)
         progress = 1.0f;
 
-    ASprite2D::DrawRect(rect, backColor);
+    ASprite::DrawRect(rect, backColor);
 
     rect.z *= progress;
-    ASprite2D::DrawRect(rect, frontColor);
+    ASprite::DrawRect(rect, frontColor);
 }
 
 void CHud::DrawProgressBar(float x, float y, float w, float h, float progress, glm::vec4 const& frontColor, glm::vec4 const& backColor) {
@@ -46,6 +50,7 @@ void CHud::DrawProgressBar(float x, float y, float w, float h, float progress, g
     else if (progress >= 1.0f)
         progress = 1.0f;
 
-    ASprite2D::DrawRect(glm::vec4(x, y, x + w, y + h), backColor);
-    ASprite2D::DrawRect(glm::vec4(x, y, x + (w * progress), y + h), frontColor);
+    ASprite::DrawRect(glm::vec4(x, y, x + w, y + h), backColor);
+    ASprite::DrawRect(glm::vec4(x, y, x + (w * progress), y + h), frontColor);
 }
+

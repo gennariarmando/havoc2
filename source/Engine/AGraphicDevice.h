@@ -15,6 +15,7 @@ enum eRenderStates {
 	RENDERSTATE_VERTEXALPHAENABLE,
 	RENDERSTATE_STENCILTESTENABLE,
 	RENDERSTATE_DEPTHTESTENABLE,
+	RENDERSTATE_DEPTHMASKENABLE,
 	RENDERSTATE_DEPTHMODE,
 	RENDERSTATE_CULLMODE,
 	RENDERSTATE_CULLENABLE,
@@ -49,6 +50,8 @@ public:
 	GLFWwindow* m_pWindow;
 	GLFWmonitor* m_pMonitor;
 	std::vector<AShader*> m_vShaders;
+	bool m_bPreviousCursorMode;
+	bool m_bCursorMode;
 
 public:
 	AGraphicDevice();
@@ -92,10 +95,20 @@ static bool SetGraphicDeviceRenderState(eRenderStates state, T value) {
 			glDisable(GL_STENCIL_TEST);
 		break;
 	case RENDERSTATE_DEPTHTESTENABLE:
-		if (value)
+		if (value) {
 			glEnable(GL_DEPTH_TEST);
-		else
+		}
+		else {
 			glDisable(GL_DEPTH_TEST);
+		}
+		break;
+	case RENDERSTATE_DEPTHMASKENABLE:
+		if (value) {
+			glDepthMask(GL_TRUE);
+		}
+		else {
+			glDepthMask(GL_FALSE);
+		}
 		break;
 	case RENDERSTATE_DEPTHMODE:
 		glDepthFunc(value);
