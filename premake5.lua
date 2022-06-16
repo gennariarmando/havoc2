@@ -45,6 +45,7 @@ project "havoc2"
 
 	files {
 		"source/**.*",
+		"vendor/pugixml/src/*.*"
 	}
 	
 	includedirs { 
@@ -59,7 +60,6 @@ project "havoc2"
 	links {
 		"glfw3",
 		"glad",
-		"binkw32"
 	}
 	
 	kind "WindowedApp"
@@ -68,7 +68,7 @@ project "havoc2"
 	objdir ("output/obj")
 	targetextension ".exe"
 	characterset ("MBCS")
-	linkoptions "/SAFESEH:NO"
+	linkoptions  { "/SAFESEH:NO", "/ENTRY:mainCRTStartup", "/NODEFAULTLIB:LIBCMT.lib" }
 	buildoptions { "-std:c++latest", "/Zc:threadSafeInit-", "/Zc:strictStrings" }
 	symbols "on"
 

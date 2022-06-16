@@ -1,0 +1,42 @@
+#include "AConsole.h"
+
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
+AConsole Console;
+
+bool AConsole::Init() {
+#ifdef DEBUG
+#ifdef _WIN32
+    AllocConsole();
+#endif
+    FILE* f = nullptr;
+    f = freopen("CONIN$", "r", stdin);
+    f = freopen("CONOUT$", "w", stdout);
+    f = freopen("CONOUT$", "w", stderr);
+    std::setvbuf(stdout, NULL, _IONBF, 0);
+#endif
+    return true;
+}
+
+void AConsole::WriteLine(std::string str) {
+#ifdef DEBUG
+    std::cout << str << std::endl;
+    m_vLines.push_back(str);
+#endif
+}
+
+void AConsole::Shutdown() {
+#ifdef DEBUG
+#ifdef _WIN32
+    FreeConsole();
+#endif
+#endif
+}
+
+void AConsole::Flush() {
+#ifdef DEBUG
+    m_vLines.clear();
+#endif
+}

@@ -1,8 +1,8 @@
-static const struct {
-  glm::uint32 width;
-  glm::uint32 height;
-  glm::uint32 bytes_per_pixel; /* 2:RGB16, 3:RGB, 4:RGBA */ 
-  glm::uint8 pixel_data[256 * 256 * 4 + 1];
+static struct {
+  int width;
+  int height;
+  int bytes_per_pixel; /* 2:RGB16, 3:RGB, 4:RGBA */ 
+  unsigned char pixel_data[256 * 256 * 4 + 1];
 } icon = {
   256, 256, 4,
   "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"

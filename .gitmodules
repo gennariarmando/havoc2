@@ -7,3 +7,6 @@
 [submodule "vendor/box2d"]
 	path = vendor/box2d
 	url = https://github.com/erincatto/box2d
+[submodule "vendor/pugixml"]
+	path = vendor/pugixml
+	url = https://github.com/zeux/pugixml

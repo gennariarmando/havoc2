@@ -1,0 +1,71 @@
+#include "common.h"
+#include "Style.h"
+#include "Map.h"
+
+enum {
+    LEVEL_WIL, // wil - William Mills - Downtown District (Singleplayer)
+    LEVEL_STE, // ste - Stephen Banks - Residential District (Singleplayer)
+    LEVEL_BIL, // bil - Billy Thompson - Industrial District (Singleplayer)
+
+    LEVEL_DOWNTOWN_SP = LEVEL_WIL,
+    LEVEL_RESIDENT_SP = LEVEL_STE,
+    LEVEL_INDUST_SP = LEVEL_BIL,
+
+    LEVEL_DOWNTOWN_MP, // wil-multi
+    LEVEL_RESIDENT_MP, // ste-multi
+    LEVEL_INDUST_MP, // bil-multi
+
+    LEVEL_MP1, // mp1
+    LEVEL_MP2, // mp2
+    LEVEL_MP3, // mp3 
+
+    LEVEL_BONUS_A, // lorne2e - Lorne Campbell 2 Easy
+    LEVEL_BONUS_B, // lorne2m - Lorne Campbell 2 Medium	
+    LEVEL_BONUS_C, // lorne2h - Lorne Campbell 2 Hard
+
+    LEVEL_BONUS_D, // mike1e - Mike Stirling 1 Easy	
+    LEVEL_BONUS_E, // mike1m - Mike Stirling 1 Medium	
+    LEVEL_BONUS_F, // mike1h - Mike Stirling 1 Hard	
+
+    LEVEL_BONUS_G, // mike2e - Mike Stirling 2 Easy	
+    LEVEL_BONUS_H, // mike2m - Mike Stirling 2 Medium	
+    LEVEL_BONUS_I, // mike2h - Mike Stirling 2 Hard	
+};
+
+struct tLevelList {
+    std::string gmp;
+    std::string sty;
+};
+
+enum eGameState {
+    GS_BEGIN,
+    GS_INTRO,
+    GS_FRONTEND,
+    GS_LOAD,
+    GS_INGAME,
+    GS_END,
+};
+
+class CGame {
+public:
+    eGameState m_eGameState;
+
+    std::shared_ptr<CMap> m_pMap;
+    std::shared_ptr<CStyle> m_pStyle;
+    float m_fGravity;
+
+public:
+	CGame();
+    void Run();
+     
+public:
+    void SetGameState(eGameState state);
+    bool InitialiseGame(glm::uint8 level);
+    void RenderScene();
+
+public:
+    std::shared_ptr<CStyle> const& GetStyle() { return !m_pStyle || m_pStyle->IsLoading() ? nullptr : m_pStyle; }
+
+};
+
+extern CGame Game;
