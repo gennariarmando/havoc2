@@ -79,8 +79,8 @@ bool AGraphicDevice::Init() {
 		});
 
 	glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset) {
-		Input.m_TempMouse.wheel.x = xoffset;
-		Input.m_TempMouse.wheel.y = yoffset;
+		Input.m_TempMouse.wheel.x = static_cast<float>(xoffset);
+		Input.m_TempMouse.wheel.y = static_cast<float>(yoffset);
 		});
 
 	glfwSetFramebufferSizeCallback(window, ([](GLFWwindow* window, glm::int32 width, glm::int32 height) {
@@ -107,6 +107,11 @@ bool AGraphicDevice::Init() {
 		}
 		i++;
 	}
+
+	BeginFrame();
+	EndFrame();
+
+	CenterMousePosition();
 
 	return true;
 }
@@ -157,6 +162,16 @@ void AGraphicDevice::CenterWindowPosition() {
 	Screen.m_nRefreshRate = mode->refreshRate;
 }
 
+void AGraphicDevice::CenterMousePosition() {
+	if (!m_pWindow)
+		return;
+
+	glm::int32 w, h;
+	glfwGetWindowSize(m_pWindow, &w, &h);
+
+	glfwSetCursorPos(m_pWindow, (w * 0.5), (h * 0.5));
+}
+
 void AGraphicDevice::SetFullscreen(bool on) {
 	glfwSetWindowMonitor(m_pWindow, on ? m_pMonitor : NULL, 0, 0, Screen.m_nScreenWidth, Screen.m_nScreenHeight, GLFW_DONT_CARE);
 	CenterWindowPosition();
@@ -169,7 +184,7 @@ void AGraphicDevice::BeginFrame() {
 	std::string title = GAME_TITLE " - " + fps + "FPS / " + ms + "ms";
 	glfwSetWindowTitle(GraphicDevice.m_pWindow, title.c_str());
 
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 

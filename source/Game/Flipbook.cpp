@@ -23,7 +23,7 @@ void CFlipbook::Set(std::vector<glm::uint16> frames, glm::uint8 repeat, float ra
 
 void CFlipbook::Update() {
 	if (m_nCycles > m_nRepeat) {
-		m_nCurrentFrame = m_vFrames.size() - 1;
+		m_nCurrentFrame = static_cast<glm::uint16>(m_vFrames.size()) - 1;
 		return;
 	}
 

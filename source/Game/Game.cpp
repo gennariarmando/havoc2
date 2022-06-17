@@ -10,6 +10,8 @@
 #include "VideoPlayer.h"
 #include "World.h"
 #include "Renderer.h"
+#include "VideoPlayer.h"
+#include "AInput.h"
 
 CGame Game;
 
@@ -60,12 +62,22 @@ bool CGame::InitialiseGame(glm::uint8 level) {
 }
 
 void CGame::StateBegin() {
+	auto v = VideoPlayer.Open("data/Movie/intro.bik");
+	if (!v)
+		Console.WriteLine("Error while opening bink video");
+
 	SetGameState(GS_INTRO);
 }
 
 void CGame::StateIntro() {
-	Frontend.OpenMenu(MENUPAGE_MAIN);
-	SetGameState(GS_FRONTEND);
+	auto v = VideoPlayer.PlayFrame();
+	bool skip = Input.GetKeyJustDown(KEY_ENTER) || Input.m_NewMouse.button[MOUSE_BUTTON_LEFT];
+
+	if (v != VIDEOPLAYER_PLAYING || skip) {
+		VideoPlayer.Close();
+		Frontend.OpenMenu(MENUPAGE_MAIN);
+		SetGameState(GS_FRONTEND);
+	}
 }
 
 void CGame::StateFrontend() {

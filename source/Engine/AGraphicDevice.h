@@ -60,6 +60,7 @@ public:
 	
 	void SetWindowSize(glm::uint32 width, glm::uint32 height);
 	void CenterWindowPosition();
+	void CenterMousePosition();
 	void SetFullscreen(bool on);
 	void BeginFrame();
 	void EndFrame();

@@ -131,3 +131,32 @@ static bool DecomposeMatrix(glm::mat4 const& transformation, glm::vec3& scale, g
     glm::decompose(transformation, scale, rotation, translation, skew, perspective);
     return true;
 }
+
+#ifdef INCLUDE_WINDOWS
+template <typename T>
+static std::function<T> LoadFuncFromDll(const std::string& dllName, const std::string& funcName) {
+    // Load DLL.
+    HINSTANCE hGetProcIDDLL = LoadLibrary(dllName.c_str());
+
+    // Check if DLL is loaded.
+    if (hGetProcIDDLL == NULL) {
+        std::cerr << "Could not load DLL \"" << dllName << "\"" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    // Locate function in DLL.
+    FARPROC lpfnGetProcessID = GetProcAddress(hGetProcIDDLL, funcName.c_str());
+
+    // Check if function was located.
+    if (!lpfnGetProcessID) {
+        std::cerr << "Could not locate the function \"" << funcName << "\" in DLL\"" << dllName << "\"" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    // Create function object from function pointer.
+    std::function<T> func(reinterpret_cast<__stdcall T*>(lpfnGetProcessID));
+
+    return func;
+}
+#undef INCLUDE_WINDOWS
+#endif

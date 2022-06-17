@@ -95,7 +95,7 @@ void AVertexBuffer::SetTexCoords(glm::vec2 const& pos) {
 }
 
 void AVertexBuffer::EditTexCoords(glm::int32 index, float x, float y) {
-    if (m_vTexCoords.size() > index)
+    if (static_cast<glm::int32>(m_vTexCoords.size()) > index)
         m_vTexCoords.at(index) = { x, y };
 }
 

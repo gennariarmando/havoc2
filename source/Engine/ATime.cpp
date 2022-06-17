@@ -9,7 +9,7 @@ ATime::ATime() {
 	m_dCurrentTime = 0.0;
 	m_dTimeDifference = 0.0;
 	m_dFramePerSecond = 0.0;
-	m_nFrameCounter = 0;
+	m_nFrameCounter = 1;
 }
 
 void ATime::BeginFrame() {

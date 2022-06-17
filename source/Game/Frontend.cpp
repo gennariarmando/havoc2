@@ -228,11 +228,13 @@ void CFrontend::OpenMenu(glm::int32 page) {
 	ChangeMenuPage(page);
 	m_bMenuActive = true;
 	GraphicDevice.SetCursorOnOff(true);
+	GraphicDevice.CenterMousePosition();
 }
 
 void CFrontend::CloseMenu() {
 	m_bMenuActive = false;
 	GraphicDevice.SetCursorOnOff(false);
+	GraphicDevice.CenterMousePosition();
 }
 
 void CFrontend::DrawCredits() {
