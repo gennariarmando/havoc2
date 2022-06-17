@@ -7,8 +7,12 @@ workspace "havoc2"
 	configurations { "Release", "Debug" }
 	location "project_files"
    	startproject "havoc2"
-    platforms { "Win64" }
-	architecture "x64"
+    platforms { "x64" }
+	
+	filter "platforms:x64"
+		architecture "x64"
+		system "windows"
+
 
 if(_OPTIONS["with-glad"]) then
 project "glad"
@@ -16,16 +20,19 @@ project "glad"
     kind "StaticLib"
     language "C"
     staticruntime "on"
-    
-	targetdir "vendor/glad/lib/"
+				    
+	filter { "platforms:x64" }
+		targetdir "vendor/glad/lib/x64/"
+		
 	objdir ("vendor/glad/obj")
 
     files {
-		"vendor/glad/**.*",
+		"vendor/glad/include/*.*",
+		"vendor/glad/src/*.*",
     }
 
     includedirs {
-        "vendor/glad"
+        "vendor/glad/***"
     }
     
     filter "system:windows"
@@ -38,6 +45,9 @@ project "glad"
     filter "configurations:Release"
         runtime "Release"
         optimize "on"
+		
+	filter {}
+
 end
    
 project "havoc2"
@@ -49,18 +59,15 @@ project "havoc2"
 	}
 	
 	includedirs { 
-		"source/**",
-		"vendor/*",
+		"source/****",
+		"vendor/****",
 	}
-	
-	libdirs { 
-		"vendor/*/lib",
-	}
-	
-	links {
-		"glfw3",
-		"glad",
-	}
+
+	filter "platforms:x64"	
+		libdirs { "vendor/*/lib/x64/" }
+		links { "glfw3", "glad" }
+
+	filter {}
 	
 	kind "WindowedApp"
 	language "C++"

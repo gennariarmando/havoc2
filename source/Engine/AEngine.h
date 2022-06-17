@@ -17,7 +17,7 @@ class AEngine {
 private:
     bool m_bCloseEngine;
 
-#ifdef SUPPORT_MT
+#ifdef ASYNC_DATA_LOAD
     std::shared_ptr<tMultiThread> m_pSecondThread;
 
 private:
@@ -35,7 +35,7 @@ public:
     void BeginFrame();
     void EndFrame();
 
-#ifdef SUPPORT_MT
+#ifdef ASYNC_DATA_LOAD
     void Run2();
 #endif
     glm::int32 ThreadCallBack(bool second, std::function<glm::int32()> fun);

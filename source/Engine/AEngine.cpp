@@ -18,7 +18,7 @@ AEngine Engine;
 AEngine::AEngine() {
     m_bCloseEngine = false;
 
-#ifdef SUPPORT_MT
+#ifdef ASYNC_DATA_LOAD
     m_pSecondThread = std::make_shared<tMultiThread>();
     m_pSecondThread->state = TSTATE_IDLE;
     m_pSecondThread->thread = std::thread([&]() { this->Run2(); });
@@ -30,14 +30,14 @@ AEngine::~AEngine() {
 
 }
 
-#ifdef SUPPORT_MT
+#ifdef ASYNC_DATA_LOAD
 void AEngine::SetState(eThreadState state) {
     m_pSecondThread->state = state;
 }
 #endif
 
 glm::int32 AEngine::ThreadCallBack(bool second, std::function<glm::int32()> fun) {
-#ifdef SUPPORT_MT
+#ifdef ASYNC_DATA_LOAD
     if (second) {
         m_pSecondThread->funcs.push_back(fun);
     }
@@ -64,7 +64,7 @@ void AEngine::Run(glm::int32 argc, char* argv[]) {
         EndFrame();   
     }
 
-#ifdef SUPPORT_MT
+#ifdef ASYNC_DATA_LOAD
     m_pSecondThread->stop = true;
     m_pSecondThread->thread.join();
 #endif
@@ -72,7 +72,7 @@ void AEngine::Run(glm::int32 argc, char* argv[]) {
     Shutdown(EXIT_SUCCESS);
 }
 
-#ifdef SUPPORT_MT
+#ifdef ASYNC_DATA_LOAD
 void AEngine::Run2() {
     while (!m_pSecondThread->stop) {
         glm::uint32 i = 0;

@@ -42,7 +42,7 @@ void CEntity::Update() {
 
 	m_bInAir = false;
 
-	ApplyGravity();
+	//ApplyGravity();
 }
 
 void CEntity::ApplyGravity() {
@@ -67,4 +67,9 @@ void CEntity::UpdateEntityVectors() {
 	m_vPosition.z += m_vVelocity.z * Time.GetDeltaTime();
 	m_fHeading += (m_fHeadingVelocity * m_fRotSpeed) * Time.GetDeltaTime();
 	m_fHeading = LimitAngle(m_fHeading);
+
+	if (m_vPosition.z < -50.0f) {
+		m_vPosition.z = 50.0f;
+		m_vVelocity.z = 0.0f;
+	}
 }

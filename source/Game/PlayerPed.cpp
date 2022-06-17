@@ -38,10 +38,8 @@ void CPlayerPed::Update() {
 	else if (keyBackward)
 		forward = -m_fMoveSpeed;
 
-	if (abs(forward) > 0.0f) {
-		m_vVelocity.x = m_vFront.x * forward;
-		m_vVelocity.y = m_vFront.x * forward;
-	}
+	m_vVelocity.x = m_vFront.x * forward;
+	m_vVelocity.y = m_vFront.y * forward;
 
 	if (keyLeft)
 		m_fHeadingVelocity = -1.0f;
