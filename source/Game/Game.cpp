@@ -27,6 +27,9 @@ void CGame::Run() {
 	case GS_INTRO:
 		StateIntro();
 		break;
+	case GS_INIT_FRONTEND:
+		StateInitFrontend();
+		break;
 	case GS_FRONTEND:
 		StateFrontend();
 		break;
@@ -62,10 +65,6 @@ bool CGame::InitialiseGame(glm::uint8 level) {
 }
 
 void CGame::StateBegin() {
-	auto f = Frontend.OpenMenu(MENUPAGE_MAIN);
-	if (!f)
-		Console.WriteLine("Error initializing frontend");
-
 	auto v = VideoPlayer.Open("data/Movie/intro.bik");
 	if (!v)
 		Console.WriteLine("Error while opening bink video");
@@ -79,9 +78,14 @@ void CGame::StateIntro() {
 
 	if (v != VIDEOPLAYER_PLAYING || skip) {
 		VideoPlayer.Close();
-		Frontend.OpenMenu(MENUPAGE_MAIN);
-		SetGameState(GS_FRONTEND);
+		GraphicDevice.BeginFrame();
+		SetGameState(GS_INIT_FRONTEND);
 	}
+}
+
+void CGame::StateInitFrontend() {
+	Frontend.OpenMenu(MENUPAGE_MAIN);
+	SetGameState(GS_FRONTEND);
 }
 
 void CGame::StateFrontend() {

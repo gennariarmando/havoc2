@@ -52,7 +52,7 @@ void ATexture2D::Update(const void* p, glm::uint32 x, glm::uint32 y, glm::uint32
         m_nHeight = h;
 
     if (format != -1)
-        m_nFormat = h;
+        m_nFormat = format;
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);

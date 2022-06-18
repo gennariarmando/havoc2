@@ -3,6 +3,7 @@
 enum eGameState {
     GS_BEGIN,
     GS_INTRO,
+    GS_INIT_FRONTEND,
     GS_FRONTEND,
     GS_LOAD,
     GS_INGAME,
@@ -23,6 +24,7 @@ public:
     
     void StateBegin();
     void StateIntro();
+    void StateInitFrontend();
     void StateFrontend();
     void StateLoad();
     void StateInGame();

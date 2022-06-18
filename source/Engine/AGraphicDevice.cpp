@@ -179,11 +179,6 @@ void AGraphicDevice::SetFullscreen(bool on) {
 }
 
 void AGraphicDevice::BeginFrame() {
-	std::string fps = std::to_string(static_cast<glm::uint32>(Time.GetFramePerSecond()));
-	std::string ms = std::to_string((Time.GetTimeDifference() / Time.GetFrameCounter()) * 1000.0);
-	std::string title = GAME_TITLE " - " + fps + "FPS / " + ms + "ms";
-	glfwSetWindowTitle(GraphicDevice.m_pWindow, title.c_str());
-
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -191,22 +186,6 @@ void AGraphicDevice::BeginFrame() {
 void AGraphicDevice::EndFrame() {
 	glfwPollEvents();
 	SwapBuffers();
-
-	bool altPressed = false;
-	bool enterPressed = false;
-	if (Input.GetKeyDown(KEY_LEFT_ALT) && Input.GetKeyJustDown(KEY_ENTER)) {
-		SetFullscreen(!Screen.m_bFullscreen);
-		Input.Clear();
-	}
-
-	if (m_bCursorMode != m_bPreviousCursorMode) {
-		if (m_bCursorMode)
-			glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-		else
-			glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-		m_bPreviousCursorMode = m_bCursorMode;
-	}
 }
 
 void AGraphicDevice::SwapBuffers() {
@@ -223,4 +202,29 @@ void AGraphicDevice::SetRefreshRate(glm::int32 rate) {
 		rate = mode->refreshRate;
 	}
 	Screen.m_nRefreshRate = rate;
+}
+
+void AGraphicDevice::SetWindowTitleBarCounter() {
+	std::string fps = std::to_string(static_cast<glm::uint32>(Time.GetFramePerSecond()));
+	std::string ms = std::to_string((Time.GetTimeDifference() / Time.GetFrameCounter()) * 1000.0);
+	std::string title = GAME_TITLE " - " + fps + "FPS / " + ms + "ms";
+	glfwSetWindowTitle(GraphicDevice.m_pWindow, title.c_str());
+}
+
+void AGraphicDevice::Update() {
+	SetWindowTitleBarCounter();
+
+	if (Input.GetKeyDown(KEY_LEFT_ALT) && Input.GetKeyJustDown(KEY_ENTER)) {
+		SetFullscreen(!Screen.m_bFullscreen);
+		Input.Clear();
+	}
+
+	if (m_bCursorMode != m_bPreviousCursorMode) {
+		if (m_bCursorMode)
+			glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		else
+			glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+		m_bPreviousCursorMode = m_bCursorMode;
+	}
 }

@@ -6,6 +6,7 @@
 #include "AGraphicDevice.h"
 #include "AEngine.h"
 #include "AScreen.h"
+#include "AConsole.h"
 #include "Font.h"
 #include "LoadingScreen.h"
 #include "World.h"
@@ -283,6 +284,7 @@ void CMap::BuildEverything() {
 	if (!m_bFileParsed)
 		return;
 
+	Console.WriteLine("Building chunks...");
 	BuildChunks();
 
 	m_bBuildComplete = true;

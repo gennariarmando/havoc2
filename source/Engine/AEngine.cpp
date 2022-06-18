@@ -100,6 +100,9 @@ void AEngine::ParseLaunchArguments(glm::int32 argc, char* argv[]) {
         if (arg == "-windowed") {
             EngineSettings.m_bFullscreen = false;
         }
+        if (arg == "-nointro") {
+            Game.SetGameState(GS_INIT_FRONTEND);
+        }
     }
 }
 
@@ -148,6 +151,7 @@ void AEngine::BeginFrame() {
     Time.BeginFrame();
     Input.BeginFrame();
     GraphicDevice.BeginFrame();
+    GraphicDevice.Update();
 }
 
 void AEngine::EndFrame() {

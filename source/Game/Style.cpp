@@ -1,6 +1,7 @@
 #include "Style.h"
 #include "AEngine.h"
 #include "LoadingScreen.h"
+#include "AConsole.h"
 
 CStyle::CStyle() {
 	Clear();
@@ -158,8 +159,7 @@ void CStyle::ReadTILE() {
 
 void CStyle::ReadSPRG() {
 	std::vector<glm::uint8> sprg(static_cast<glm::uint32>(GetChunkSize()));
-	for (glm::uint32 i = 0; i < GetChunkSize(); i++)
-		sprg[i] = GetFile()->ReadUInt8();
+	GetFile()->ReadCustom(sprg.data(), sizeof(glm::uint8) * sprg.size());
 
 	m_pGraphics->spriteGraphics = sprg;
 
@@ -312,7 +312,10 @@ void CStyle::BuildEverything() {
 	if (!m_bFileParsed)
 		return;
 
+	Console.WriteLine("Building textures...");
 	BuildTextures();
+
+	Console.WriteLine("Building sprites...");
 	BuildSprites();
 
 	m_bBuildComplete = true;
@@ -324,8 +327,6 @@ void CStyle::BuildTextures() {
 
 	if (m_pGraphics->tileData.size() > 0) {
 		for (glm::uint32 i = 0; i < 992; i++) {
-			glm::uint32 vpalette = m_pGraphics->paletteIndex.physPalette[i];
-
 			std::vector<glm::uint32> pixels;
 			glm::uint8 w, h;
 			WriteTiles(i, w, h, pixels);
@@ -411,8 +412,6 @@ void CStyle::WriteSprites(glm::uint32 i, glm::uint8& w, glm::uint8& h, std::vect
 	for (glm::uint32 y = 0; y < h; y++) {
 		for (glm::uint32 x = 0; x < w; x++) {
 			glm::uint32* color = reinterpret_cast<glm::uint32*>(p.colors[spriteData[y * s.w + x]]);
-
-
 			glm::uint32 alpha = ((spriteData[y * s.w + x] > 0) * 0xff000000);
 
 			pixels[x + s.w * y] = *color + alpha;

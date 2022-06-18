@@ -1,10 +1,16 @@
 #include "AConsole.h"
+#include "Font.h"
+#include "AScreen.h"
 
 #ifdef _WIN32
 #include <Windows.h>
 #endif
 
 AConsole Console;
+
+AConsole::AConsole() {
+    m_vLines = {};
+}
 
 bool AConsole::Init() {
 #ifdef DEBUG
@@ -17,6 +23,7 @@ bool AConsole::Init() {
     f = freopen("CONOUT$", "w", stderr);
     std::setvbuf(stdout, NULL, _IONBF, 0);
 #endif
+
     return true;
 }
 

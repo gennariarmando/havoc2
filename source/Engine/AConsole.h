@@ -6,6 +6,7 @@ public:
 	std::vector<std::string> m_vLines;
 
 public:
+	AConsole();
 	bool Init();
 	void WriteLine(std::string str);
 	void Shutdown();
