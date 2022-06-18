@@ -66,14 +66,6 @@ static glm::int32 ArraySize(T a) {
     return (sizeof(a) / sizeof(a[0]));
 }
 
-static float DegToRad(float x) {
-    return static_cast<float>(x * glm::pi<float>() / 180.0f);
-}
-
-static float RadToDeg(float x) {
-    return static_cast<float>(x * 180.0f / glm::pi<float>());
-}
-
 static glm::int32 SetBit(glm::int32 const& num, glm::int32 const& position) {
     glm::int32 mask = 1 << position;
     return num | mask;
@@ -102,17 +94,6 @@ static glm::vec4 ToVec4(glm::uint8 r, glm::uint8 g, glm::uint8 b, glm::uint8 a) 
     return { r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f };
 }
 
-template<typename ... Args>
-std::string string_format(const std::string& format, Args ... args) {
-    int size_s = std::snprintf(nullptr, 0, format.c_str(), args ...) + 1;
-    if (size_s <= 0)
-        throw std::runtime_error("Error during formatting.");
-    auto size = static_cast<size_t>(size_s);
-    std::unique_ptr<char[]> buf(new char[size]);
-    std::snprintf(buf.get(), size, format.c_str(), args ...);
-    return std::string(buf.get(), buf.get() + size - 1);
-}
-
 static float LimitAngle(float angle) {
     float result = angle;
 
@@ -131,32 +112,3 @@ static bool DecomposeMatrix(glm::mat4 const& transformation, glm::vec3& scale, g
     glm::decompose(transformation, scale, rotation, translation, skew, perspective);
     return true;
 }
-
-#ifdef INCLUDE_WINDOWS
-template <typename T>
-static std::function<T> LoadFuncFromDll(const std::string& dllName, const std::string& funcName) {
-    // Load DLL.
-    HINSTANCE hGetProcIDDLL = LoadLibrary(dllName.c_str());
-
-    // Check if DLL is loaded.
-    if (hGetProcIDDLL == NULL) {
-        std::cerr << "Could not load DLL \"" << dllName << "\"" << std::endl;
-        exit(EXIT_FAILURE);
-    }
-
-    // Locate function in DLL.
-    FARPROC lpfnGetProcessID = GetProcAddress(hGetProcIDDLL, funcName.c_str());
-
-    // Check if function was located.
-    if (!lpfnGetProcessID) {
-        std::cerr << "Could not locate the function \"" << funcName << "\" in DLL\"" << dllName << "\"" << std::endl;
-        exit(EXIT_FAILURE);
-    }
-
-    // Create function object from function pointer.
-    std::function<T> func(reinterpret_cast<__stdcall T*>(lpfnGetProcessID));
-
-    return func;
-}
-#undef INCLUDE_WINDOWS
-#endif

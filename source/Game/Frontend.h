@@ -90,15 +90,17 @@ public:
 
 public:
 	CFrontend();
+	~CFrontend();
 
 	bool Init();
 	void Update();
 	void ProcessMenuOptions(bool enter, glm::int8 input);
 	void Draw();
 	void Shutdown();
+	void Clear();
 
 public:
-	void OpenMenu(glm::int32 page);
+	bool OpenMenu(glm::int32 page);
 	void CloseMenu();
 	void DrawCredits();
 	void DrawBackground();
@@ -114,7 +116,7 @@ public:
 	tMenuItem* GetCurrentItem() { return &m_vMenuPages.at(m_nCurrentPage).menuItems.at(m_nCurrentItem); }
 
 public:
-	std::shared_ptr<CStyle> const& GetStyle() { return !m_pStyle || m_pStyle->IsLoading() ? nullptr : m_pStyle; }
+	std::shared_ptr<CStyle> GetStyle() { return !m_pStyle || m_pStyle->IsLoading() ? nullptr : m_pStyle; }
 };
 
 extern CFrontend Frontend;

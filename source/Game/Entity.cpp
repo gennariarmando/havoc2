@@ -5,6 +5,7 @@
 #include "Map.h"
 #include "AConsole.h"
 #include "AScreen.h"
+#include "Collision.h"
 
 CEntity::CEntity() {
 	{
@@ -37,12 +38,33 @@ void CEntity::Render() {
 	m_pSpriteObject->Render();
 }
 
+int is_point_in_rectangle(glm::vec4 r, int x, int y) {
+	if ((r.x <= x && r.z >= x) &&
+		(r.w <= y && r.y >= y))
+		return 1;
+	return 0;
+}
+
+int do_rectangles_intersect(glm::vec4 a, glm::vec4 b) {
+	if (is_point_in_rectangle(a, b.x, b.y) ||
+		is_point_in_rectangle(a, b.z, b.y) ||
+		is_point_in_rectangle(a, b.x, b.w) ||
+		is_point_in_rectangle(a, b.z, b.w))
+		return 1;
+	if (is_point_in_rectangle(b, a.x, a.y) ||
+		is_point_in_rectangle(b, a.z, a.y) ||
+		is_point_in_rectangle(b, a.x, a.w) ||
+		is_point_in_rectangle(b, a.z, a.w))
+		return 1;
+	return 0;
+}
+
 void CEntity::Update() {
 	UpdateEntityVectors();
 
 	m_bInAir = false;
 
-	//ApplyGravity();
+	ApplyGravity();
 }
 
 void CEntity::ApplyGravity() {

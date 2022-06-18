@@ -20,7 +20,7 @@ public:
     void Delete();
 
 public:
-    glm::uint32 const& GetID() { return m_nId; }
-    glm::uint32 const& GetWidth() { return m_nWidth; }
-    glm::uint32 const& GetHeight() { return m_nHeight; }
+    glm::uint32 GetID() { return m_nId; }
+    glm::uint32 GetWidth() { return m_nWidth; }
+    glm::uint32 GetHeight() { return m_nHeight; }
 };

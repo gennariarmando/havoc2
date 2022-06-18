@@ -13,22 +13,19 @@ enum eBaseIndices {
 	NUM_BASE_INDICES,
 };
 
-class CFontBase {
-public:
+struct tFontBase {
 	glm::uint16 fontCount;
 	std::vector<glm::uint16> base;
 };
 
-class CSpriteEntry {
-public:
+struct tSpriteEntry {
 	glm::uint32 ptr;
 	glm::uint8 w;
 	glm::uint8 h;
 	glm::uint16 pad;
 };
 
-class CSpriteBase {
-public:
+struct tSpriteBase {
 	glm::uint16 car;
 	glm::uint16 ped;
 	glm::uint16 codeObj;
@@ -37,8 +34,7 @@ public:
 	glm::uint16 font;
 };
 
-class CPaletteBase {
-public:
+struct tPaletteBase {
 	glm::uint16 tile;
 	glm::uint16 sprite;
 	glm::uint16 carRemap;
@@ -49,46 +45,40 @@ public:
 	glm::uint16 fontRemap;
 };
 
-class CPaletteIndex {
-public:
+struct tPaletteIndex {
 	std::vector<glm::uint16> physPalette;
 };
 
-class CPhysicalPalette {
-public:
+struct tPhysicalPalette {
 	glm::uint8 colors[256][4];
 };
 
-class CDelta {
-public:
+struct tDelta {
 	glm::uint16 offset;
 	glm::uint8 length;
 	std::vector<glm::uint8> data;
 };
 
-class CDeltaEntry {
+struct tDeltaEntry {
 	glm::uint16 whichSprite;
 	glm::uint8 deltaCount;
 	glm::uint8 pad;
 	std::vector<glm::uint16> deltaSize;
 };
 
-class CDeltaSprite {
-public:
+struct tDeltaSprite {
 	glm::uint16 sprite;
 	glm::uint8 width;
 	glm::uint8 height;
 	std::vector<glm::uint16> data;
 };
 
-class CDoorInfo {
-public:
+struct tDoorInfo {
 	glm::int8 rx;
 	glm::int8 ry;
 };
 
-class CCarInfo {
-public:
+struct tCarInfo {
 	glm::uint8 model;
 	glm::uint8 sprite;
 	glm::uint8 w;
@@ -105,43 +95,40 @@ public:
 	glm::uint8 infoFlags2;
 	std::vector<glm::uint8> remap;
 	glm::uint8 numDoors;
-	std::vector<CDoorInfo> doors;
+	std::vector<tDoorInfo> doors;
 };
 
-class CTileData {
-public:
+struct tTileData {
 	glm::uint8 pixels[64][64];
 };
 
-class CSpriteData {
-public:
+struct tSpriteData {
 	std::vector<glm::uint8> pixels;
 };
 
-class CStyGraphics {
-public:
-	CPaletteIndex paletteIndex;
-	std::vector<CPhysicalPalette> physicalPalette;
-	CPaletteBase paletteBase;
-	std::vector<CTileData> tileData;
-	std::vector<CSpriteData> spriteData;
+struct tStyGraphics {
+	tPaletteIndex paletteIndex;
+	std::vector<tPhysicalPalette> physicalPalette;
+	tPaletteBase paletteBase;
+	std::vector<tTileData> tileData;
+	std::vector<tSpriteData> spriteData;
 	std::vector<glm::uint8> spriteGraphics;
-	std::vector<CSpriteEntry> spriteIndex;
-	CSpriteBase spriteBase;
-	std::vector<CDelta> deltaStore;
-	std::vector<CDeltaEntry> deltaIndex;
-	std::vector<CDeltaSprite> deltaSprites;
-	std::vector<CCarInfo> carInfo;
-	CFontBase fontBase;
+	std::vector<tSpriteEntry> spriteIndex;
+	tSpriteBase spriteBase;
+	std::vector<tDelta> deltaStore;
+	std::vector<tDeltaEntry> deltaIndex;
+	std::vector<tDeltaSprite> deltaSprites;
+	std::vector<tCarInfo> carInfo;
+	tFontBase fontBase;
 };
 
 class CStyle : CGBH {
 public:
 	bool m_bFileParsed;
 	bool m_bBuildComplete;
-	std::shared_ptr<CStyGraphics> m_pGraphics;
-	std::shared_ptr<ATexture2D> m_pTextureAtlas;
+	std::shared_ptr<tStyGraphics> m_pGraphics;
 
+	std::shared_ptr<ATexture2D> m_pTextureAtlas;
 	std::vector<std::shared_ptr<ATexture2D>> m_pSprites;
 	std::vector<std::shared_ptr<ATexture2D>> m_pTextures;
 
@@ -179,12 +166,12 @@ private:
 
 public:
 	std::vector<glm::uint8> GetSingleSpriteData(glm::int32 sprite);
-	CPhysicalPalette GetSpritePalette(glm::int32 sprite, glm::int32 type, glm::int32 remap);
+	tPhysicalPalette GetSpritePalette(glm::int32 sprite, glm::int32 type, glm::int32 remap);
 	std::vector<std::shared_ptr<ATexture2D>>& GetSprite() { return m_pSprites; }
 	std::vector<std::shared_ptr<ATexture2D>>& GetTexture() { return m_pTextures; }
 	std::shared_ptr<ATexture2D>& GetTextureAtlas() { return m_pTextureAtlas; }
-	glm::uint32 const& GetBaseIndex(eBaseIndices b);
-	glm::uint32 const& GetFontBaseIndex(glm::uint8 fontStyle);
+	glm::uint32 GetBaseIndex(eBaseIndices b);
+	glm::uint32 GetFontBaseIndex(glm::uint8 fontStyle);
 
 	void BuildEverything();
 

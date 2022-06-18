@@ -32,7 +32,7 @@ void CStyle::Read(std::string const& fileName) {
 		return;
 	}
 
-	m_pGraphics = std::make_shared<CStyGraphics>();
+	m_pGraphics = std::make_shared<tStyGraphics>();
 
 	while (LoopThroughChunks()) {
 		switch (GetChunkType()) {
@@ -92,10 +92,10 @@ void CStyle::Read(std::string const& fileName) {
 }
 
 void CStyle::ReadPALX() {
-	CPaletteIndex palx;
+	tPaletteIndex palx;
 
 	for (glm::uint32 i = 0; i < 16384; i++)
-		palx.physPalette.push_back(GetFile().ReadUInt16());
+		palx.physPalette.push_back(GetFile()->ReadUInt16());
 
 	m_pGraphics->paletteIndex = palx;
 }
@@ -104,18 +104,18 @@ void CStyle::ReadPPAL() {
 	const glm::uint32 size = 64 * 256;
 	std::unique_ptr<std::unique_ptr<glm::uint8[]>[]> page = std::make_unique<std::unique_ptr<glm::uint8[]>[]>(size);
 
-	glm::int32 pageCount = GetChunkSize() / (size * 4);
-	std::vector<CPhysicalPalette> palettes;
+	glm::uint64 pageCount = GetChunkSize() / (size * 4);
+	std::vector<tPhysicalPalette> palettes;
 	for (glm::int32 p = 0; p < pageCount; p++) {
 		for (glm::int32 i = 0; i < size; i++) {
 			page[i] = std::make_unique<glm::uint8[]>(4);
-			page[i][0] = GetFile().ReadUInt8();
-			page[i][1] = GetFile().ReadUInt8();
-			page[i][2] = GetFile().ReadUInt8();
-			page[i][3] = GetFile().ReadUInt8();
+			page[i][0] = GetFile()->ReadUInt8();
+			page[i][1] = GetFile()->ReadUInt8();
+			page[i][2] = GetFile()->ReadUInt8();
+			page[i][3] = GetFile()->ReadUInt8();
 		}
 
-		CPhysicalPalette palette;
+		tPhysicalPalette palette;
 		for (glm::int32 i = 0; i < 64; i++) {
 			for (glm::int32 j = 0; j < 256; j++) {
 				for (glm::int32 k = 0; k < 4; k++) {
@@ -130,22 +130,22 @@ void CStyle::ReadPPAL() {
 }
 
 void CStyle::ReadPALB() {
-	CPaletteBase palb;
-	GetFile().ReadCustom(&palb, sizeof(palb));
+	tPaletteBase palb;
+	GetFile()->ReadCustom(&palb, sizeof(palb));
 
 	m_pGraphics->paletteBase = palb;
 }
 
 void CStyle::ReadTILE() {
-	std::vector<CTileData> tiles;
-	std::unique_ptr<CTileData[]> tile = std::make_unique<CTileData[]>(4);
-	glm::int32 halfPageCount = GetChunkSize() / (sizeof(CTileData) * 4);
-	for (glm::int32 i = 0; i < halfPageCount; i++) {
-		for (glm::int32 row = 0; row < 64; row++) {
-			GetFile().ReadCustom(&tile[0].pixels[row], sizeof(tile[0].pixels[row]));
-			GetFile().ReadCustom(&tile[1].pixels[row], sizeof(tile[1].pixels[row]));
-			GetFile().ReadCustom(&tile[2].pixels[row], sizeof(tile[2].pixels[row]));
-			GetFile().ReadCustom(&tile[3].pixels[row], sizeof(tile[3].pixels[row]));
+	std::vector<tTileData> tiles;
+	std::unique_ptr<tTileData[]> tile = std::make_unique<tTileData[]>(4);
+	glm::uint64 halfPageCount = GetChunkSize() / (sizeof(tTileData) * 4);
+	for (glm::uint32 i = 0; i < halfPageCount; i++) {
+		for (glm::uint32 row = 0; row < 64; row++) {
+			GetFile()->ReadCustom(&tile[0].pixels[row], sizeof(tile[0].pixels[row]));
+			GetFile()->ReadCustom(&tile[1].pixels[row], sizeof(tile[1].pixels[row]));
+			GetFile()->ReadCustom(&tile[2].pixels[row], sizeof(tile[2].pixels[row]));
+			GetFile()->ReadCustom(&tile[3].pixels[row], sizeof(tile[3].pixels[row]));
 		}
 		tiles.push_back(tile[0]);
 		tiles.push_back(tile[1]);
@@ -157,15 +157,15 @@ void CStyle::ReadTILE() {
 }
 
 void CStyle::ReadSPRG() {
-	std::vector<glm::uint8> sprg(GetChunkSize());
+	std::vector<glm::uint8> sprg(static_cast<glm::uint32>(GetChunkSize()));
 	for (glm::uint32 i = 0; i < GetChunkSize(); i++)
-		sprg[i] = GetFile().ReadUInt8();
+		sprg[i] = GetFile()->ReadUInt8();
 
 	m_pGraphics->spriteGraphics = sprg;
 
-	std::vector<CSpriteData> sprites;
+	std::vector<tSpriteData> sprites;
 	for (auto&& spriteData : m_pGraphics->spriteIndex) {
-		CSpriteData sprite;
+		tSpriteData sprite;
 		int width = spriteData.w + spriteData.w % 4;
 		for (int i = 0; i < spriteData.h; i++) {
 			for (int j = 0; j < width; j++) {
@@ -179,15 +179,15 @@ void CStyle::ReadSPRG() {
 }
 
 void CStyle::ReadSPRX() {
-	std::vector<CSpriteEntry> sprx(GetChunkSize());
+	std::vector<tSpriteEntry> sprx(static_cast<glm::uint32>(GetChunkSize()));
 
-	GetFile().ReadCustom(sprx.data(), GetChunkSize());
+	GetFile()->ReadCustom(sprx.data(), GetChunkSize());
 	m_pGraphics->spriteIndex = sprx;
 }
 
 void CStyle::ReadSPRB() {
-	CSpriteBase sprb;
-	GetFile().ReadCustom(&sprb, sizeof(sprb));
+	tSpriteBase sprb;
+	GetFile()->ReadCustom(&sprb, sizeof(sprb));
 	m_pGraphics->spriteBase = sprb;
 }
 
@@ -200,14 +200,14 @@ void CStyle::ReadDELX() {
 }
 
 void CStyle::ReadFONB() {
-	CFontBase fonb;
+	tFontBase fonb;
 
-	fonb.fontCount = GetFile().ReadUInt16();
+	fonb.fontCount = GetFile()->ReadUInt16();
 
 	glm::uint16 lastBase = 0;
 	for (glm::uint32 i = 0; i < fonb.fontCount; i++) {
 		uint16_t base;
-		base = GetFile().ReadUInt16();
+		base = GetFile()->ReadUInt16();
 		fonb.base.push_back(lastBase);
 		lastBase += base;
 	}
@@ -216,38 +216,38 @@ void CStyle::ReadFONB() {
 }
 
 void CStyle::ReadCARI() {
-	glm::int64 startOffset = GetFile().GetPosition();
-	std::vector<CCarInfo> cari_vec;
-	while (GetFile().GetPosition() < startOffset + GetChunkSize()) {
-		CCarInfo cari;
+	glm::int64 startOffset = GetFile()->GetPosition();
+	std::vector<tCarInfo> cari_vec;
+	while (GetFile()->GetPosition() < startOffset + GetChunkSize()) {
+		tCarInfo cari;
 
-		cari.model = GetFile().ReadUInt8();
-		cari.sprite = GetFile().ReadUInt8();
-		cari.w = GetFile().ReadUInt8();
-		cari.h = GetFile().ReadUInt8();
-		cari.numRemaps = GetFile().ReadUInt8();
-		cari.passengers = GetFile().ReadUInt8();
-		cari.wreck = GetFile().ReadUInt8();
-		cari.rating = GetFile().ReadUInt8();
-		cari.frontWheelOffset = GetFile().ReadInt8();
-		cari.rearWheelOffset = GetFile().ReadInt8();
-		cari.frontWindowOffset = GetFile().ReadInt8();
-		cari.rearWindowOffset = GetFile().ReadInt8();
-		cari.infoFlags = GetFile().ReadUInt8();
-		cari.infoFlags2 = GetFile().ReadUInt8();
+		cari.model = GetFile()->ReadUInt8();
+		cari.sprite = GetFile()->ReadUInt8();
+		cari.w = GetFile()->ReadUInt8();
+		cari.h = GetFile()->ReadUInt8();
+		cari.numRemaps = GetFile()->ReadUInt8();
+		cari.passengers = GetFile()->ReadUInt8();
+		cari.wreck = GetFile()->ReadUInt8();
+		cari.rating = GetFile()->ReadUInt8();
+		cari.frontWheelOffset = GetFile()->ReadInt8();
+		cari.rearWheelOffset = GetFile()->ReadInt8();
+		cari.frontWindowOffset = GetFile()->ReadInt8();
+		cari.rearWindowOffset = GetFile()->ReadInt8();
+		cari.infoFlags = GetFile()->ReadUInt8();
+		cari.infoFlags2 = GetFile()->ReadUInt8();
 
 		for (glm::int32 i = 0; i < cari.numRemaps; i++) {
 			glm::uint8 remap;
-			remap = GetFile().ReadUInt8();
+			remap = GetFile()->ReadUInt8();
 			cari.remap.push_back(remap);
 		}
 
-		cari.numDoors = GetFile().ReadUInt8();
+		cari.numDoors = GetFile()->ReadUInt8();
 
 		for (glm::int32 i = 0; i < cari.numDoors; i++) {
-			CDoorInfo door;
-			door.rx = GetFile().ReadInt8();
-			door.ry = GetFile().ReadInt8();
+			tDoorInfo door;
+			door.rx = GetFile()->ReadInt8();
+			door.ry = GetFile()->ReadInt8();
 			cari.doors.push_back(door);
 		}
 		cari_vec.push_back(cari);
@@ -274,7 +274,7 @@ void CStyle::ReadSPEC() {
 
 std::vector<glm::uint8> CStyle::GetSingleSpriteData(glm::int32 sprite) {
 	std::vector<glm::uint8> spriteData;
-	CSpriteEntry spriteInfo = m_pGraphics->spriteIndex[sprite];
+	tSpriteEntry spriteInfo = m_pGraphics->spriteIndex[sprite];
 
 	for (glm::int32 i = 0; i < spriteInfo.h; i++) {
 		for (glm::int32 j = 0; j < spriteInfo.w; j++) {
@@ -285,7 +285,7 @@ std::vector<glm::uint8> CStyle::GetSingleSpriteData(glm::int32 sprite) {
 	return spriteData;
 }
 
-CPhysicalPalette CStyle::GetSpritePalette(glm::int32 sprite, glm::int32 type, glm::int32 remap) {
+tPhysicalPalette CStyle::GetSpritePalette(glm::int32 sprite, glm::int32 type, glm::int32 remap) {
 	glm::int32 virtualPalette = sprite + m_pGraphics->paletteBase.tile;
 
 	if (remap > -1) {
@@ -399,8 +399,8 @@ inline glm::int32 qRgb(glm::int32 r, glm::int32 g, glm::int32 b) {
 }
 
 void CStyle::WriteSprites(glm::uint32 i, glm::uint8& w, glm::uint8& h, std::vector<glm::uint32>& pixels) {
-	CPhysicalPalette p = GetSpritePalette(i, -1, -1);
-	CSpriteEntry s = m_pGraphics->spriteIndex[i];
+	tPhysicalPalette p = GetSpritePalette(i, -1, -1);
+	tSpriteEntry s = m_pGraphics->spriteIndex[i];
 
 	w = s.w;
 	h = s.h;
@@ -420,7 +420,7 @@ void CStyle::WriteSprites(glm::uint32 i, glm::uint8& w, glm::uint8& h, std::vect
 	}
 }
 
-glm::uint32 const& CStyle::GetBaseIndex(eBaseIndices b) {
+glm::uint32 CStyle::GetBaseIndex(eBaseIndices b) {
 	glm::uint32 base = 0;
 	switch (b) {
 	case BASEINDEX_CARS:
@@ -448,6 +448,6 @@ glm::uint32 const& CStyle::GetBaseIndex(eBaseIndices b) {
 	return base;
 }
 
-glm::uint32 const& CStyle::GetFontBaseIndex(glm::uint8 fontStyle) {
+glm::uint32 CStyle::GetFontBaseIndex(glm::uint8 fontStyle) {
 	return GetBaseIndex(BASEINDEX_FONT) + m_pGraphics->fontBase.base[fontStyle];
 }

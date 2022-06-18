@@ -126,11 +126,6 @@ bool AEngine::Init(glm::int32 argc, char* argv[]) {
         return false;
     }
 
-    if (!Frontend.Init()) {
-        Console.WriteLine("Error initializing frontend");
-        return false;
-    }
-
     return true;
 }
 
@@ -145,7 +140,6 @@ void AEngine::Shutdown(glm::uint32 code) {
     Console.Shutdown();
     GraphicDevice.Shutdown();
     Camera.Shutdown();
-    Frontend.Shutdown();
 
     exit(code);
 }

@@ -22,10 +22,10 @@ bool AFileMgr::Open(std::string fileName) {
     }
 
     m_File.seekg(0, std::ios::end);
-    m_Size = static_cast<glm::int64>(m_File.tellg());
+    m_Size = static_cast<glm::uint64>(m_File.tellg());
     m_File.seekg(0, std::ios::beg);
 
-    m_Position = static_cast<glm::int64>(m_File.tellg());
+    m_Position = static_cast<glm::uint64>(m_File.tellg());
 
     return true;
 }
@@ -33,7 +33,7 @@ bool AFileMgr::Open(std::string fileName) {
 glm::uint32 AFileMgr::ReadUInt32() {
     glm::uint32 result;
     m_File.read(reinterpret_cast<char*>(&result), sizeof(glm::uint32));
-    m_Position = static_cast<glm::int64>(m_File.tellg());
+    m_Position = static_cast<glm::uint64>(m_File.tellg());
 
     return result;
 }
@@ -41,7 +41,7 @@ glm::uint32 AFileMgr::ReadUInt32() {
 glm::int32 AFileMgr::ReadInt32() {
     glm::int32 result;
     m_File.read(reinterpret_cast<char*>(&result), sizeof(glm::int32));
-    m_Position = static_cast<glm::int64>(m_File.tellg());
+    m_Position = static_cast<glm::uint64>(m_File.tellg());
 
     return result;
 }
@@ -49,7 +49,7 @@ glm::int32 AFileMgr::ReadInt32() {
 glm::uint16 AFileMgr::ReadUInt16() {
     glm::uint16 result;
     m_File.read(reinterpret_cast<char*>(&result), sizeof(glm::uint16));
-    m_Position = static_cast<glm::int64>(m_File.tellg());
+    m_Position = static_cast<glm::uint64>(m_File.tellg());
 
     return result;
 }
@@ -57,7 +57,7 @@ glm::uint16 AFileMgr::ReadUInt16() {
 glm::int16 AFileMgr::ReadInt16() {
     glm::int16 result;
     m_File.read(reinterpret_cast<char*>(&result), sizeof(glm::int16));
-    m_Position = static_cast<glm::int64>(m_File.tellg());
+    m_Position = static_cast<glm::uint64>(m_File.tellg());
 
     return result;
 }
@@ -65,7 +65,7 @@ glm::int16 AFileMgr::ReadInt16() {
 glm::uint8 AFileMgr::ReadUInt8() {
     glm::uint8 result;
     m_File.read(reinterpret_cast<char*>(&result), sizeof(glm::uint8));
-    m_Position = static_cast<glm::int64>(m_File.tellg());
+    m_Position = static_cast<glm::uint64>(m_File.tellg());
 
     return result;
 }
@@ -73,19 +73,19 @@ glm::uint8 AFileMgr::ReadUInt8() {
 glm::int8 AFileMgr::ReadInt8() {
     glm::int8 result;
     m_File.read(reinterpret_cast<char*>(&result), sizeof(glm::int8));
-    m_Position = static_cast<glm::int64>(m_File.tellg());
+    m_Position = static_cast<glm::uint64>(m_File.tellg());
 
     return result;
 }
 
-void AFileMgr::ReadCustom(void* out, glm::uint32 size) {
-    m_File.read(reinterpret_cast<char*>(out), size);
-    m_Position = static_cast<glm::int64>(m_File.tellg());
+void AFileMgr::ReadCustom(void* out, glm::uint64 size) {
+    m_File.read(reinterpret_cast<char*>(out), static_cast<glm::uint64>(size));
+    m_Position = static_cast<glm::uint64>(m_File.tellg());
 }
 
-void AFileMgr::Seek(glm::uint32 size) {
-    m_File.seekg(size, 1);
-    m_Position = static_cast<glm::int64>(m_File.tellg());
+void AFileMgr::Seek(glm::uint64 size) {
+    m_File.seekg(static_cast<glm::uint64>(size), 1);
+    m_Position = static_cast<glm::uint64>(m_File.tellg());
 }
 
 void AFileMgr::Close() {

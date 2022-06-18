@@ -62,6 +62,10 @@ bool CGame::InitialiseGame(glm::uint8 level) {
 }
 
 void CGame::StateBegin() {
+	auto f = Frontend.OpenMenu(MENUPAGE_MAIN);
+	if (!f)
+		Console.WriteLine("Error initializing frontend");
+
 	auto v = VideoPlayer.Open("data/Movie/intro.bik");
 	if (!v)
 		Console.WriteLine("Error while opening bink video");
@@ -87,6 +91,7 @@ void CGame::StateFrontend() {
 	if (!Frontend.m_bMenuActive && Frontend.m_bWantsToLoad) {
 		SetGameState(GS_LOAD);
 		LoadingScreen.Draw();
+		Frontend.CloseMenu();
 	}
 }
 

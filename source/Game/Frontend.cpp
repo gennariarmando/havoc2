@@ -41,24 +41,15 @@ std::vector<std::string> frontendTexFileNames = {
 };
 
 CFrontend::CFrontend() {
-	m_bInitialized = false;
-	m_pStyle = NULL;
-	m_pFrontendSprites = { };
-	m_nCurrentPage = MENUPAGE_MAIN;
-	m_nCurrentItem = 0;
-	m_vMenuPages.resize(NUM_MENUPAGES);
-	m_fItemColorPulse = 1.0f;
-	m_bItemColorPulseSwap = false;
-	m_bMenuActive = false;
-	m_bWantsToLoad = false;
-	m_bDrawMouse = false;
+	Clear();
+}
+CFrontend::~CFrontend() {
+	Clear();
 }
 
 bool CFrontend::Init() {
-	if (m_bInitialized) {
-		Console.WriteLine("Frontend already initialized");
-		return false;
-	}
+	if (m_bInitialized)
+		return true;
 
 	m_pStyle = std::make_shared<CStyle>("data/fstyle.sty");
 
@@ -69,6 +60,7 @@ bool CFrontend::Init() {
 		m_pFrontendSprites.push_back(sprite);
 	}
 
+	m_vMenuPages.resize(NUM_MENUPAGES);
 	// MENUPAGE_MAIN
 	if (tMenuPage* page = AddPage(MENUPAGE_MAIN, { MENUPAGE_NONE, 0, { FE_1_PLAY, FE_1_OPTIONS, FE_1_QUIT }, { } } )) {
 		AddItem(page, { MENUACTION_STARTGAME, "PLAY", MENUPAGE_NONE });
@@ -105,7 +97,7 @@ bool CFrontend::Init() {
 }
 
 void CFrontend::Update() {
-	if (!m_bMenuActive)
+	if (!m_bInitialized || !m_bMenuActive)
 		return;
 
 	bool up = Input.GetKeyJustDown(KEY_UP);
@@ -171,7 +163,7 @@ void CFrontend::ProcessMenuOptions(bool enter, glm::int8 arrows) {
 }
 
 void CFrontend::Draw() {
-	if (!m_bMenuActive)
+	if (!m_bInitialized || !m_bMenuActive)
 		return;
 
 	DrawBackground();
@@ -217,21 +209,41 @@ void CFrontend::Draw() {
 void CFrontend::Shutdown() {
 	if (!m_bInitialized)
 		return;
+
 	for (auto& it : m_pFrontendSprites) {
 		it->Delete();
+		it.reset();
 	}
-
-	m_bInitialized = false;
+	Clear();
 }
 
-void CFrontend::OpenMenu(glm::int32 page) {
+void CFrontend::Clear() {
+	m_bInitialized = false;
+	m_pStyle.reset();
+	m_nCurrentPage = MENUPAGE_NONE;
+	m_nCurrentItem = 0;
+	m_vMenuPages = {};
+	m_fItemColorPulse = 1.0f;
+	m_bItemColorPulseSwap = false;
+	m_fCreditsScrollY = 0.0f;
+	m_bMenuActive = false;
+	m_bWantsToLoad = true;
+	m_bDrawMouse = false;
+}
+
+bool CFrontend::OpenMenu(glm::int32 page) {
+	if (!Init())
+		return false;
+
 	ChangeMenuPage(page);
 	m_bMenuActive = true;
 	GraphicDevice.SetCursorOnOff(true);
 	GraphicDevice.CenterMousePosition();
+	return true;
 }
 
 void CFrontend::CloseMenu() {
+	Shutdown();
 	m_bMenuActive = false;
 	GraphicDevice.SetCursorOnOff(false);
 	GraphicDevice.CenterMousePosition();

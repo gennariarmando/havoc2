@@ -66,6 +66,7 @@ public:
 	void EndFrame();
 	void SwapBuffers();
 	void SetCursorOnOff(bool on);
+	void SetRefreshRate(glm::int32 frameRate);
 
 public:
 	static void UpdateViewport(glm::uint32 width, glm::uint32 height);

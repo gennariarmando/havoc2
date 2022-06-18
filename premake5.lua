@@ -45,6 +45,8 @@ project "havoc2"
 	characterset ("MBCS")
 	linkoptions  { "/SAFESEH:NO", "/ENTRY:mainCRTStartup", "/NODEFAULTLIB:LIBCMT.lib" }
 	buildoptions { "-std:c++latest", "/Zc:threadSafeInit-", "/Zc:strictStrings" }
+	defines { "_CRT_SECURE_NO_WARNINGS", "_CRT_NONSTDC_NO_DEPRECATE", "_WIN32" }
+	disablewarnings { "4244", "4800", "4305", "4073", "4838", "4996", "4221", "4430", "26812", "26495", "6031" }
 	symbols "on"
 
 	filter "configurations:Debug"		

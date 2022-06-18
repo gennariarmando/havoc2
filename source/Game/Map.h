@@ -108,7 +108,7 @@ enum eSlopeType {
 	SLOPETYPE_DIAGONALSLOPEFACINGDOWNRIGHTNOZERO = 67,
 };
 
-enum {
+enum eBlockSizes {
 	MAP_BLOCK_SIZE = 1,
 	MAP_NUM_BLOCKS_X = 16,
 	MAP_NUM_BLOCKS_Y = 16,
@@ -215,6 +215,7 @@ private:
 	tBlockInfoDetailed ParseBlockInfo(tBlockInfo& block);
 	void BuildChunks();
 	void AddBlock(glm::uint32 chunkIndex, tBlockInfoDetailed& block, glm::vec3 offset, glm::uint32& index);
+	bool GetVecFromSlopeType(glm::uint32 slopeType, glm::vec3& tl, glm::vec3& tr, glm::vec3& bl, glm::vec3& br);
 	void AddFace(glm::uint32 slopeType, glm::uint8 faceType, glm::uint32 tile, glm::uint32 rot, bool flip, bool flat, bool oppositeFlat, glm::vec3 offset, glm::uint32& index);
 	void EditFace(AVertexBuffer* chunk, tFaceInfo* details);
 

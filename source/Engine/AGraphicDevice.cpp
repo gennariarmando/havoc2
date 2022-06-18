@@ -108,6 +108,8 @@ bool AGraphicDevice::Init() {
 		i++;
 	}
 
+	SetRefreshRate(-1);
+
 	BeginFrame();
 	EndFrame();
 
@@ -158,8 +160,6 @@ void AGraphicDevice::CenterWindowPosition() {
 	glfwSetWindowPos(m_pWindow,
 		x + (mode->width - w) / 2,
 		y + (mode->height - h) / 2);
-
-	Screen.m_nRefreshRate = mode->refreshRate;
 }
 
 void AGraphicDevice::CenterMousePosition() {
@@ -215,4 +215,12 @@ void AGraphicDevice::SwapBuffers() {
 
 void AGraphicDevice::SetCursorOnOff(bool on) {
 	m_bCursorMode = on;
+}
+
+void AGraphicDevice::SetRefreshRate(glm::int32 rate) {
+	if (rate == -1) {
+		const GLFWvidmode* mode = glfwGetVideoMode(m_pMonitor);
+		rate = mode->refreshRate;
+	}
+	Screen.m_nRefreshRate = rate;
 }

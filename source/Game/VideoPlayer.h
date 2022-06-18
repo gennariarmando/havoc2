@@ -13,7 +13,12 @@ class CVideoPlayer {
 public:
 	BINK* m_pBink;
 	std::shared_ptr<glm::uint8[]> m_pPixels;
-	glm::int32 m_nFrames;
+
+	glm::int32 m_nWidth;
+	glm::int32 m_nHeight;
+	glm::int32 m_nPitch;
+	glm::uint64 m_nCurrentFrame;
+	glm::uint64 m_nLastFrame;
 
 public:
 	CVideoPlayer();

@@ -47,26 +47,29 @@ public:
 class CChunkHeader {
 public:
 	char m_cChunkType[4];
-	glm::uint32 m_nChunkSize;
+	glm::uint64 m_nChunkSize;
 	int m_nType;
 };
 
 class CGBH {
 private:
-	AFileMgr file;
+	std::shared_ptr<AFileMgr> file;
 	CFileHeader fileHeader;
 	CChunkHeader chunkHeader;
 
 public:
-	AFileMgr& GetFile() { return file; }
+	std::shared_ptr<AFileMgr>& GetFile() { return file; }
 
 public:
+	CGBH();
+	~CGBH();
+
 	bool Init(std::string fileName, glm::uint32 version);
 	bool LoopThroughChunks();
 	std::string GetFileType();
 	glm::uint16 GetVersion();
 	std::string GetChunkTypeString();
-	glm::uint32 GetChunkSize();
+	glm::uint64 GetChunkSize();
 	glm::int32 GetChunkType();
 	std::string GetChunkHeader();
 	void SkipChunk();

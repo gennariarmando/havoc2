@@ -8,6 +8,8 @@
 #include "AScreen.h"
 #include "Font.h"
 #include "LoadingScreen.h"
+#include "World.h"
+#include "Collision.h"
 
 CMap::CMap() {
 	Clear();
@@ -83,27 +85,27 @@ void CMap::Read32BitMap() {
 	std::vector<std::vector<glm::uint32>> baseOffset(MAP_SCALE_X, std::vector<glm::uint32>(MAP_SCALE_Y));
 	for (glm::uint32 i = 0; i < MAP_SCALE_X; i++) {
 		for (glm::uint32 j = 0; j < MAP_SCALE_Y; j++) {
-			baseOffset[i][j] = GetFile().ReadUInt32();
+			baseOffset[i][j] = GetFile()->ReadUInt32();
 		}
 	}
 
-	glm::uint32 columnCount = GetFile().ReadUInt32();
+	glm::uint32 columnCount = GetFile()->ReadUInt32();
 	std::vector<glm::uint32> columns(columnCount);
 
 	for (glm::uint32 i = 0; i < columnCount; i++)
-		columns[i] = GetFile().ReadUInt32();
+		columns[i] = GetFile()->ReadUInt32();
 
-	glm::uint32 blockCount = GetFile().ReadUInt32();
+	glm::uint32 blockCount = GetFile()->ReadUInt32();
 	std::vector<tBlockInfo> blocks(blockCount);
 
 	for (glm::uint32 i = 0; i < blockCount; i++) {
-		blocks[i].face[FACETYPE_LEFT] = GetFile().ReadUInt16();
-		blocks[i].face[FACETYPE_RIGHT] = GetFile().ReadUInt16();
-		blocks[i].face[FACETYPE_TOP] = GetFile().ReadUInt16();
-		blocks[i].face[FACETYPE_BOTTOM] = GetFile().ReadUInt16();
-		blocks[i].face[FACETYPE_LID] = GetFile().ReadUInt16();
-		blocks[i].arrows = GetFile().ReadUInt8();
-		blocks[i].slopeType = GetFile().ReadUInt8();
+		blocks[i].face[FACETYPE_LEFT] = GetFile()->ReadUInt16();
+		blocks[i].face[FACETYPE_RIGHT] = GetFile()->ReadUInt16();
+		blocks[i].face[FACETYPE_TOP] = GetFile()->ReadUInt16();
+		blocks[i].face[FACETYPE_BOTTOM] = GetFile()->ReadUInt16();
+		blocks[i].face[FACETYPE_LID] = GetFile()->ReadUInt16();
+		blocks[i].arrows = GetFile()->ReadUInt8();
+		blocks[i].slopeType = GetFile()->ReadUInt8();
 	}
 
 	for (glm::uint32 i = 0; i < 256; i++) {
@@ -122,18 +124,18 @@ void CMap::Read32BitMap() {
 }
 
 void CMap::ReadZones() {
-	glm::uint32 pos = 0;
+	glm::uint64 pos = 0;
 	while (pos < GetChunkSize()) {
 		tMapZone zone = {};
-		zone.zoneType = static_cast<eZoneType>(GetFile().ReadInt8());
-		zone.x = static_cast<float>(GetFile().ReadInt8());
-		zone.y = static_cast<float>(GetFile().ReadInt8());
-		zone.w = static_cast<float>(GetFile().ReadInt8());
-		zone.h = static_cast<float>(GetFile().ReadInt8());
-		glm::int8 nameLength = GetFile().ReadUInt8();
+		zone.zoneType = static_cast<eZoneType>(GetFile()->ReadInt8());
+		zone.x = static_cast<float>(GetFile()->ReadInt8());
+		zone.y = static_cast<float>(GetFile()->ReadInt8());
+		zone.w = static_cast<float>(GetFile()->ReadInt8());
+		zone.h = static_cast<float>(GetFile()->ReadInt8());
+		glm::int8 nameLength = GetFile()->ReadUInt8();
 
 		for (int i = 0; i < nameLength; i++)
-			zone.name += GetFile().ReadUInt8();
+			zone.name += GetFile()->ReadUInt8();
 
 		m_vZones->push_back(zone);
 		pos += 6 + nameLength;
@@ -141,55 +143,55 @@ void CMap::ReadZones() {
 }
 
 void CMap::ReadObjects() {
-	glm::int64 startOffset = GetFile().GetPosition();
-	while (GetFile().GetPosition() < startOffset + GetChunkSize()) {
+	glm::uint64 startOffset = GetFile()->GetPosition();
+	while (GetFile()->GetPosition() < startOffset + GetChunkSize()) {
 		tMapObject object = {};
 
-		object.x = GetFile().ReadInt16();
-		object.y = GetFile().ReadInt16();
-		object.rot = GetFile().ReadInt8();
-		object.objectType = GetFile().ReadUInt8();
+		object.x = GetFile()->ReadInt16();
+		object.y = GetFile()->ReadInt16();
+		object.rot = GetFile()->ReadInt8();
+		object.objectType = GetFile()->ReadUInt8();
 	}
 }
 
 void CMap::ReadAnimations() {
-	glm::int64 startOffset = GetFile().GetPosition();
-	while (GetFile().GetPosition() < startOffset + GetChunkSize()) {
+	glm::uint64 startOffset = GetFile()->GetPosition();
+	while (GetFile()->GetPosition() < startOffset + GetChunkSize()) {
 		tTileAnimation anim = {};
-		anim.base = GetFile().ReadUInt16();
-		anim.frameRate = GetFile().ReadUInt8();
-		anim.repeat = GetFile().ReadUInt8();
+		anim.base = GetFile()->ReadUInt16();
+		anim.frameRate = GetFile()->ReadUInt8();
+		anim.repeat = GetFile()->ReadUInt8();
 
-		glm::uint8 animLength = GetFile().ReadUInt8();
-		GetFile().ReadUInt8();
+		glm::uint8 animLength = GetFile()->ReadUInt8();
+		GetFile()->ReadUInt8();
 
 		for (glm::int32 i = 0; i < animLength; i++)
-			anim.tiles.push_back(GetFile().ReadUInt16());
+			anim.tiles.push_back(GetFile()->ReadUInt16());
 
 		m_vAnimations->push_back(anim);
 	}
 }
 
 void CMap::ReadLights() {
-	glm::int64 startOffset = GetFile().GetPosition();
-	while (GetFile().GetPosition() < startOffset + GetChunkSize()) {
+	glm::uint64 startOffset = GetFile()->GetPosition();
+	while (GetFile()->GetPosition() < startOffset + GetChunkSize()) {
 		tMapLight light = {};
 
-		light.color.a = GetFile().ReadUInt8() / 255.0f;
-		light.color.r = GetFile().ReadUInt8() / 255.0f;
-		light.color.g = GetFile().ReadUInt8() / 255.0f;
-		light.color.b = GetFile().ReadUInt8() / 255.0f;
+		light.color.a = GetFile()->ReadUInt8() / 255.0f;
+		light.color.r = GetFile()->ReadUInt8() / 255.0f;
+		light.color.g = GetFile()->ReadUInt8() / 255.0f;
+		light.color.b = GetFile()->ReadUInt8() / 255.0f;
 
-		light.pos.x = static_cast<float>(GetFile().ReadUInt16());
-		light.pos.y = static_cast<float>(GetFile().ReadUInt16());
-		light.pos.z = static_cast<float>(GetFile().ReadUInt16());
+		light.pos.x = static_cast<float>(GetFile()->ReadUInt16());
+		light.pos.y = static_cast<float>(GetFile()->ReadUInt16());
+		light.pos.z = static_cast<float>(GetFile()->ReadUInt16());
 
-		light.radius = static_cast<float>(GetFile().ReadUInt16());
+		light.radius = static_cast<float>(GetFile()->ReadUInt16());
 
-		light.intensity = static_cast<float>(GetFile().ReadUInt8());
-		light.shape = static_cast<float>(GetFile().ReadUInt8());
-		light.timeOn = static_cast<float>(GetFile().ReadUInt8());
-		light.timeOff = static_cast<float>(GetFile().ReadUInt8());
+		light.intensity = GetFile()->ReadUInt8();
+		light.shape = GetFile()->ReadUInt8();
+		light.timeOn = GetFile()->ReadUInt8();
+		light.timeOff = GetFile()->ReadUInt8();
 
 		m_vLights->push_back(light);
 	}
@@ -269,7 +271,7 @@ tBlockInfoDetailed CMap::ParseBlockInfo(tBlockInfo& block) {
 		glm::uint32 slopeType = 0;
 		for (glm::uint32 k = 2; k < 8; k++) {
 			if (GetBit(block.slopeType, k))
-				slopeType += glm::pow(2, k - 2);
+				slopeType += static_cast<glm::uint32>(glm::pow(2, k - 2));
 		}
 		info.slopeType = slopeType;
 	}
@@ -309,7 +311,7 @@ void CMap::BuildChunks() {
 							}
 
 							bool found = false;
-							for (glm::int32 animCount = 0; animCount < m_vAnimations->size(); animCount++) {
+							for (glm::uint32 animCount = 0; animCount < m_vAnimations->size(); animCount++) {
 								tTileAnimation& anim = m_vAnimations->at(animCount);
 
 								if (anim.base && anim.base < 992 && anim.base == block.details[faceType].tile) {
@@ -453,25 +455,7 @@ void CMap::AddBlock(glm::uint32 chunkIndex, tBlockInfoDetailed& block, glm::vec3
 	}
 }
 
-void CMap::AddFace(glm::uint32 slopeType, glm::uint8 faceType, glm::uint32 tile, glm::uint32 rot, bool flip, bool flat, bool oppositeFlat, glm::vec3 offset, glm::uint32& index) {
-	if (oppositeFlat && slopeType == SLOPETYPE_NONE) {
-		glm::vec3 f[4] = {
-			glm::vec3(1.0f, 0.0f, 0.0f),
-			glm::vec3(-1.0f, 0.0f,0.0f),
-			glm::vec3(0.0f, 1.0f ,0.0f),
-			glm::vec3(0.0f, -1.0f ,0.0f)
-		};
-
-		f[faceType].x *= 0.99f;
-		f[faceType].y *= 0.99f;
-		offset += f[faceType];
-	}
-
-	glm::vec3 tl = glm::vec3(0.0f);
-	glm::vec3 tr = glm::vec3(0.0f);
-	glm::vec3 bl = glm::vec3(0.0f);
-	glm::vec3 br = glm::vec3(0.0f);
-
+bool CMap::GetVecFromSlopeType(glm::uint32 slopeType, glm::vec3& tl, glm::vec3& tr, glm::vec3& bl, glm::vec3& br) {
 	bool reverse = false;
 	switch (slopeType) {
 	case SLOPETYPE_NONE:
@@ -711,7 +695,7 @@ void CMap::AddFace(glm::uint32 slopeType, glm::uint8 faceType, glm::uint32 tile,
 		br = glm::vec3(0.75f, 0.75f, 1.0f);
 		break;
 	case SLOPETYPE_UNUSEDSLOPE:
-		return;
+		break;
 	case SLOPETYPE_SLOPEABOVE:
 		tl = glm::vec3(0.0f, 0.0f, 1.0f);
 		tr = glm::vec3(1.0f, 0.0f, 1.0f);
@@ -743,8 +727,32 @@ void CMap::AddFace(glm::uint32 slopeType, glm::uint8 faceType, glm::uint32 tile,
 		br = glm::vec3(1.0f, 0.0f, 0.0f);
 		break;
 	default:
-		return;
+		break;
 	}
+
+	return reverse;
+}
+
+void CMap::AddFace(glm::uint32 slopeType, glm::uint8 faceType, glm::uint32 tile, glm::uint32 rot, bool flip, bool flat, bool oppositeFlat, glm::vec3 offset, glm::uint32& index) {
+	if (oppositeFlat && slopeType == SLOPETYPE_NONE) {
+		glm::vec3 f[4] = {
+			glm::vec3(1.0f, 0.0f, 0.0f),
+			glm::vec3(-1.0f, 0.0f,0.0f),
+			glm::vec3(0.0f, 1.0f ,0.0f),
+			glm::vec3(0.0f, -1.0f ,0.0f)
+		};
+
+		f[faceType].x *= 0.99f;
+		f[faceType].y *= 0.99f;
+		offset += f[faceType];
+	}
+
+	glm::vec3 tl = glm::vec3(0.0f);
+	glm::vec3 tr = glm::vec3(0.0f);
+	glm::vec3 bl = glm::vec3(0.0f);
+	glm::vec3 br = glm::vec3(0.0f);
+
+	bool reverse = GetVecFromSlopeType(slopeType, tl, tr, bl, br);
 
 	std::vector<glm::vec3> pos;
 	std::vector<glm::vec2> texCoords;
@@ -804,7 +812,7 @@ void CMap::AddFace(glm::uint32 slopeType, glm::uint8 faceType, glm::uint32 tile,
 	}
 
 	for (glm::uint32 i = 0; i < 4; i++) {
-		texCoords[i] = RotateUV(texCoords[i], DegToRad(rot * 90.0f), glm::vec2(x + (cxy * 0.5f), y + (cxy * 0.5f)));
+		texCoords[i] = RotateUV(texCoords[i], glm::radians(rot * 90.0f), glm::vec2(x + (cxy * 0.5f), y + (cxy * 0.5f)));
 	}
 
 	if ((oppositeFlat && flat && faceType != FACETYPE_LID)) {
@@ -863,7 +871,7 @@ void CMap::EditFace(AVertexBuffer* chunk, tFaceInfo* details) {
 	texCoords.push_back(glm::vec2(x, h));
 
 	for (glm::uint32 i = 0; i < 4; i++) {
-		texCoords[i] = RotateUV(texCoords[i], DegToRad(details->rotation * 90.0f), glm::vec2(x + (cxy * 0.5f), y + (cxy * 0.5f)));
+		texCoords[i] = RotateUV(texCoords[i], glm::radians(details->rotation * 90.0f), glm::vec2(x + (cxy * 0.5f), y + (cxy * 0.5f)));
 	}
 
 	for (glm::int32 i = 0; i < 6; i++)

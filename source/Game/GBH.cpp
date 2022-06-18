@@ -6,19 +6,29 @@ const char* gbhChunkHeaders[] = {
 	"FONB", "CARI", "OBJI", "PSXT", "RECY", "SPEC",
 };
 
+CGBH::CGBH() {
+	file = std::make_shared<AFileMgr>();
+	fileHeader = {};
+	chunkHeader = {};
+}
+
+CGBH::~CGBH() {
+	file.reset();
+}
+
 bool CGBH::Init(std::string fileName, glm::uint32 version) {
-	if (!file.Open(fileName)) {
+	if (!file->Open(fileName)) {
 		std::cout << "[CGBH] Unable to read data from file " << "'" << fileName << "'" << std::endl;
 		return false;
 	}
 
 	std::cout << "[CGBH] Reading data from file " << "'" << fileName << "'" << std::endl;
 
-	fileHeader.m_cFileType[0] = file.ReadUInt8();
-	fileHeader.m_cFileType[1] = file.ReadUInt8();
-	fileHeader.m_cFileType[2] = file.ReadUInt8();
-	fileHeader.m_cFileType[3] = file.ReadUInt8();
-	fileHeader.m_nFileVersion = file.ReadUInt16();
+	fileHeader.m_cFileType[0] = file->ReadUInt8();
+	fileHeader.m_cFileType[1] = file->ReadUInt8();
+	fileHeader.m_cFileType[2] = file->ReadUInt8();
+	fileHeader.m_cFileType[3] = file->ReadUInt8();
+	fileHeader.m_nFileVersion = file->ReadUInt16();
 
 	if (GetVersion() != version) {
 		std::cout << "[CGBH] File version is " << fileHeader.m_nFileVersion << " must be " << version << std::endl;
@@ -29,11 +39,11 @@ bool CGBH::Init(std::string fileName, glm::uint32 version) {
 }
 
 bool CGBH::LoopThroughChunks() {
-	chunkHeader.m_cChunkType[0] = file.ReadUInt8();
-	chunkHeader.m_cChunkType[1] = file.ReadUInt8();
-	chunkHeader.m_cChunkType[2] = file.ReadUInt8();
-	chunkHeader.m_cChunkType[3] = file.ReadUInt8();
-	chunkHeader.m_nChunkSize = file.ReadUInt32();
+	chunkHeader.m_cChunkType[0] = file->ReadUInt8();
+	chunkHeader.m_cChunkType[1] = file->ReadUInt8();
+	chunkHeader.m_cChunkType[2] = file->ReadUInt8();
+	chunkHeader.m_cChunkType[3] = file->ReadUInt8();
+	chunkHeader.m_nChunkSize = file->ReadUInt32();
 
 	for (glm::uint32 i = UMAP; i < NUM_CHUNKS; i++) {
 		if (!GetChunkTypeString().compare(gbhChunkHeaders[i])) {
@@ -43,15 +53,15 @@ bool CGBH::LoopThroughChunks() {
 		}
 	}
 
-	if (file.GetPosition() >= file.GetSize()) {
+	if (file->GetPosition() >= file->GetSize()) {
 		std::cout << "[CGBH] Reading complete, closing file" << std::endl;
 		std::cout << std::endl;
 
-		file.Close();
+		file->Close();
 		return false;		
 	}
 
-	return (file.GetPosition() < file.GetSize());
+	return (file->GetPosition() < file->GetSize());
 }
 
 std::string CGBH::GetFileType() {
@@ -68,7 +78,7 @@ std::string CGBH::GetChunkTypeString() {
 	return t;
 }
 
-glm::uint32 CGBH::GetChunkSize() {
+glm::uint64 CGBH::GetChunkSize() {
 	return chunkHeader.m_nChunkSize;
 }
 
@@ -81,6 +91,6 @@ std::string CGBH::GetChunkHeader() {
 }
 
 void CGBH::SkipChunk() {
-	GetFile().Seek(GetChunkSize());
+	file->Seek(GetChunkSize());
 	std::cout << "[CGBH] Skipping " << GetChunkSize() << " bytes" << std::endl;
 }

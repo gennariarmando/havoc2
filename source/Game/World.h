@@ -60,7 +60,7 @@ public:
     std::list<CEntity*> const& GetEntityList() { return m_vEntities; }
     std::shared_ptr<CPlayerInfo> const& GetPlayer() { return m_pPlayer; }
     std::shared_ptr<CMap> const& GetMap() { return m_pMap; }
-    std::shared_ptr<CStyle> const& GetStyle() { return !m_pStyle || m_pStyle->IsLoading() ? nullptr : m_pStyle; }
+    std::shared_ptr<CStyle> GetStyle() { return !m_pStyle || m_pStyle->IsLoading() ? nullptr : m_pStyle; }
     float const& GetGravity() { return m_fGravity; }
 };
 

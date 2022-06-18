@@ -23,9 +23,9 @@ public:
     glm::uint8 ReadUInt8();
     glm::int8 ReadInt8();
 
-    void ReadCustom(void* out, glm::uint32 size);
+    void ReadCustom(void* out, glm::uint64 size);
 
-    void Seek(glm::uint32 size);
+    void Seek(glm::uint64 size);
     void Close();
 
 public:
