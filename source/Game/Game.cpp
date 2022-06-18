@@ -96,8 +96,6 @@ void CGame::StateFrontend() {
 }
 
 void CGame::StateLoad() {
-	Frontend.CloseMenu();
-
 	if (InitialiseGame(LEVEL_DOWNTOWN_SP)) {
 		SetGameState(GS_INGAME);
 	}
