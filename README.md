@@ -14,7 +14,7 @@ Project is in very early stage of development, the game can't be played yet.
 
 ## System Requirements
 - An OpenGL 3.3 compatible graphic card.
-- 2GB or more of RAM
+- 1GB or more of RAM
 
 ## Compiling
 ### On Windows
