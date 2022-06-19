@@ -95,8 +95,8 @@ void CStyle::Read(std::string const& fileName) {
 void CStyle::ReadPALX() {
 	tPaletteIndex palx;
 
-	for (glm::uint32 i = 0; i < 16384; i++)
-		palx.physPalette.push_back(GetFile()->ReadUInt16());
+	palx.physPalette.resize(16384);
+	GetFile()->ReadCustom(palx.physPalette.data(), static_cast<glm::uint64>(16384) * sizeof(glm::uint16));
 
 	m_pGraphics->paletteIndex = palx;
 }
