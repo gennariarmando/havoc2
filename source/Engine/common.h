@@ -37,11 +37,6 @@
 // Engine
 #include "config.h"
 
-// ReactPhysics3D
-#include "reactphysics3d.h"
-
-namespace physics = reactphysics3d;
-
 // Utilities
 template<typename T>
 static T Abs(T a) {

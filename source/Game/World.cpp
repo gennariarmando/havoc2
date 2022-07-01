@@ -34,8 +34,6 @@ CWorld::CWorld() {
 	m_pStyle = nullptr;
 	m_fGravity = DEFAULT_GRAVITY_VALUE;
 
-	m_pPhysicsWorld = std::make_shared<physics::PhysicsWorld>(m_PhysicsCommon.createPhysicsWorld());
-
 
 }
 

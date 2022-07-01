@@ -15,9 +15,6 @@ CEntity::CEntity() {
 		m_pSpriteObject->m_pSprite->SetTexture(World.GetStyle()->GetSprite().at(130));
 	}
 
-	physics::Transform t;
-	m_pRigidBody = std::make_shared<physics::RigidBody>(World.GetPhysicsWorld()->createRigidBody(t));
-
 	m_eType = ENTITYTYPE_NONE;
 	m_vPosition = {};
 	m_vFront = glm::vec3(0.0f, -1.0f, 0.0f);

@@ -1,3 +1,8 @@
+newoption {
+	trigger     = "with-glad",
+	description = "Build glad library"
+}
+
 workspace "havoc2"
 	configurations { "Release", "Debug" }
 	location "project_files"
@@ -11,6 +16,36 @@ workspace "havoc2"
 	filter "platforms:x64"
 		architecture "x64"
 		system "windows"
+		
+if(_OPTIONS["with-glad"]) then
+project "glad"
+	location "project_files/glad"
+    kind "StaticLib"
+    language "C"
+    staticruntime "on"
+    
+	targetdir "vendor/glad/lib/"
+	objdir ("vendor/glad/obj")
+
+    files {
+		"vendor/glad/src/*.*",
+    }
+
+    includedirs {
+        "vendor/glad/include"
+    }
+    
+    filter "system:windows"
+        systemversion "latest"
+
+    filter "configurations:Debug"
+        runtime "Debug"
+        symbols "on"
+
+    filter "configurations:Release"
+        runtime "Release"
+        optimize "on"
+end
    
 project "havoc2"
 	location "project_files/havoc2"
@@ -18,8 +53,6 @@ project "havoc2"
 	files {
 		"source/**.*",
 		"vendor/pugixml/src/*.*",
-		"vendor/glad/src/*.*",
-		"vendor/glad/include/**.*",
 	}
 	
 	includedirs { 
@@ -29,11 +62,11 @@ project "havoc2"
 	
 	filter "platforms:x86"	
 		libdirs { "vendor/*/lib/x86/" }
-		links { "glfw3", "binkw32" }
+		links { "glfw3", "glad", "binkw32" }
 
 	filter "platforms:x64"	
 		libdirs { "vendor/*/lib/x64/" }
-		links { "glfw3" }
+		links { "glfw3", "glad" }
 
 	filter {}
 	
