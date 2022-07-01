@@ -47,6 +47,8 @@ private:
 	std::shared_ptr<CMap> m_pMap;
 	std::shared_ptr<CStyle> m_pStyle;
 	float m_fGravity;
+    physics::PhysicsCommon m_PhysicsCommon;
+    std::shared_ptr<physics::PhysicsWorld> m_pPhysicsWorld;
 
 public:
 	CWorld();
@@ -62,6 +64,9 @@ public:
     std::shared_ptr<CMap> const& GetMap() { return m_pMap; }
     std::shared_ptr<CStyle> GetStyle() { return !m_pStyle || m_pStyle->IsLoading() ? nullptr : m_pStyle; }
     float const& GetGravity() { return m_fGravity; }
+
+    physics::PhysicsCommon& GetPhysicsCommon() { return m_PhysicsCommon; }
+    std::shared_ptr<physics::PhysicsWorld>& GetPhysicsWorld() { return m_pPhysicsWorld; }
 };
 
 extern CWorld World;

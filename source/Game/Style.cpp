@@ -22,7 +22,6 @@ void CStyle::Clear() {
 	m_pGraphics = NULL;
 	m_pTextureAtlas = NULL;
 	m_pSprites = {};
-	m_pTextures = {};
 }
 
 void CStyle::Read(std::string const& fileName) {
@@ -325,19 +324,8 @@ void CStyle::BuildTextures() {
 	if (!m_pGraphics)
 		return;
 
-	if (m_pGraphics->tileData.size() > 0) {
-		for (glm::uint32 i = 0; i < 992; i++) {
-			std::vector<glm::uint32> pixels;
-			glm::uint8 w, h;
-			WriteTiles(i, w, h, pixels);
-
-			std::shared_ptr<ATexture2D> texture = std::make_shared<ATexture2D>();
-			texture->Build(pixels.data(), w, h);
-			m_pTextures.push_back(texture);
-		}
-
+	if (m_pGraphics->tileData.size() > 0)
 		BuildTextureAtlas();
-	}
 }
 
 void CStyle::BuildTextureAtlas() {
@@ -347,8 +335,6 @@ void CStyle::BuildTextureAtlas() {
 	glm::int32 x = 0;
 	glm::int32 y = 0;
 	for (glm::uint32 i = 0; i < 992; i++) {
-		glm::uint32 vpalette = m_pGraphics->paletteIndex.physPalette[i];
-
 		std::vector<glm::uint32> pixels;
 		glm::uint8 w, h;
 		WriteTiles(i, w, h, pixels);
@@ -394,9 +380,6 @@ void CStyle::WriteTiles(glm::uint32 i, glm::uint8& w, glm::uint8& h, std::vector
 			pixels[x + w * y] = (*color) + alpha;
 		}
 	}
-}
-inline glm::int32 qRgb(glm::int32 r, glm::int32 g, glm::int32 b) {
-	return (0xffu << 24) | ((r & 0xffu) << 16) | ((g & 0xffu) << 8) | (b & 0xffu);
 }
 
 void CStyle::WriteSprites(glm::uint32 i, glm::uint8& w, glm::uint8& h, std::vector<glm::uint32>& pixels) {

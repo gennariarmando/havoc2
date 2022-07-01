@@ -33,6 +33,10 @@ CWorld::CWorld() {
 	m_pMap = nullptr;
 	m_pStyle = nullptr;
 	m_fGravity = DEFAULT_GRAVITY_VALUE;
+
+	m_pPhysicsWorld = std::make_shared<physics::PhysicsWorld>(m_PhysicsCommon.createPhysicsWorld());
+
+
 }
 
 void CWorld::Add(CEntity* e) {
@@ -47,6 +51,7 @@ bool CWorld::InitMap(glm::uint8 level) {
 	if (m_pMap)
 		m_pMap.reset();
 	m_pMap = std::make_shared<CMap>(levelList.at(level).gmp);
+
 
 	return true;
 }

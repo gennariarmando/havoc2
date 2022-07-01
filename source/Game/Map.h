@@ -185,11 +185,23 @@ struct tCachedAnims {
 	CFlipbook* flipBook;
 };
 
+struct tCompressedMap {
+	std::vector<glm::uint32> base;
+	glm::uint32 columnWords;
+	std::vector<glm::uint32> column;
+	glm::uint32 numBlocks;
+	std::vector<tBlockInfoDetailed> blocks;
+};
+
+struct tCollisionMap {
+	std::vector<glm::vec4> pos;
+};
+
 class CMap : CGBH {
 public:
 	bool m_bFileParsed;
 	bool m_bBuildComplete;
-	std::unique_ptr<std::vector<std::vector<std::vector<tBlockInfoDetailed>>>> m_vChunks;
+	std::unique_ptr<tCompressedMap> m_pCompressedMap;
 	std::unique_ptr<std::vector<tTileAnimation>> m_vAnimations;
 	std::unique_ptr<std::vector<tMapZone>> m_vZones;
 	std::unique_ptr<std::vector<tMapObject>> m_vObjects;
@@ -197,6 +209,7 @@ public:
 	std::vector<AVertexBuffer> m_vGeometryChunks;
 	std::vector<std::vector<tFaceInfo>> m_vAnimatedFaces;
 	AVertexBuffer m_VertexBuffer;
+	std::vector<tCollisionMap> m_vCollisionMap;
 
 public:
 	CMap();
@@ -212,7 +225,7 @@ private:
 	void ReadAnimations();
 	void ReadLights();
 
-	tBlockInfoDetailed ParseBlockInfo(tBlockInfo& block);
+	void ParseBlockInfo(tBlockInfo& block, tBlockInfoDetailed& info, glm::uint32 faceType);
 	void BuildChunks();
 	void AddBlock(glm::uint32 chunkIndex, tBlockInfoDetailed& block, glm::vec3 offset, glm::uint32& index);
 	bool GetVecFromSlopeType(glm::uint32 slopeType, glm::vec3& tl, glm::vec3& tr, glm::vec3& bl, glm::vec3& br);

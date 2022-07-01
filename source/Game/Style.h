@@ -130,7 +130,6 @@ public:
 
 	std::shared_ptr<ATexture2D> m_pTextureAtlas;
 	std::vector<std::shared_ptr<ATexture2D>> m_pSprites;
-	std::vector<std::shared_ptr<ATexture2D>> m_pTextures;
 
 public:
 	CStyle();
@@ -161,14 +160,13 @@ private:
 	void BuildTextureAtlas();
 	void BuildSprites();
 
-	void WriteTiles(glm::uint32 i, glm::uint8& w, glm::uint8& h, std::vector<glm::uint32>& pixels);
-	void WriteSprites(glm::uint32 i, glm::uint8& w, glm::uint8& h, std::vector<glm::uint32>& pixels);
+	void WriteTiles(glm::uint32 id, glm::uint8& w, glm::uint8& h, std::vector<glm::uint32>& pixels);
+	void WriteSprites(glm::uint32 id, glm::uint8& w, glm::uint8& h, std::vector<glm::uint32>& pixels);
 
 public:
 	std::vector<glm::uint8> GetSingleSpriteData(glm::int32 sprite);
 	tPhysicalPalette GetSpritePalette(glm::int32 sprite, glm::int32 type, glm::int32 remap);
 	std::vector<std::shared_ptr<ATexture2D>>& GetSprite() { return m_pSprites; }
-	std::vector<std::shared_ptr<ATexture2D>>& GetTexture() { return m_pTextures; }
 	std::shared_ptr<ATexture2D>& GetTextureAtlas() { return m_pTextureAtlas; }
 	glm::uint32 GetBaseIndex(eBaseIndices b);
 	glm::uint32 GetFontBaseIndex(glm::uint8 fontStyle);

@@ -1,6 +1,7 @@
 #pragma once
 #include "common.h"
 #include "ASpriteObject.h"
+#include "Collision.h"
 
 enum eEntityType {
 	ENTITYTYPE_NONE,
@@ -12,6 +13,8 @@ enum eEntityType {
 class CEntity {
 public:
 	std::shared_ptr<ASpriteObject> m_pSpriteObject;
+
+	std::shared_ptr<physics::RigidBody> m_pRigidBody;
 
 	eEntityType m_eType;
 	glm::vec3 m_vPosition;

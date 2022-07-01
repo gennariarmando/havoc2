@@ -6,12 +6,17 @@
 #include "AConsole.h"
 #include "AScreen.h"
 #include "Collision.h"
+#include "AEngine.h"
+#include "Font.h"
 
 CEntity::CEntity() {
 	{
 		m_pSpriteObject = std::make_shared<ASpriteObject>();
 		m_pSpriteObject->m_pSprite->SetTexture(World.GetStyle()->GetSprite().at(130));
 	}
+
+	physics::Transform t;
+	m_pRigidBody = std::make_shared<physics::RigidBody>(World.GetPhysicsWorld()->createRigidBody(t));
 
 	m_eType = ENTITYTYPE_NONE;
 	m_vPosition = {};
@@ -38,33 +43,27 @@ void CEntity::Render() {
 	m_pSpriteObject->Render();
 }
 
-int is_point_in_rectangle(glm::vec4 r, int x, int y) {
-	if ((r.x <= x && r.z >= x) &&
-		(r.w <= y && r.y >= y))
-		return 1;
-	return 0;
-}
-
-int do_rectangles_intersect(glm::vec4 a, glm::vec4 b) {
-	if (is_point_in_rectangle(a, b.x, b.y) ||
-		is_point_in_rectangle(a, b.z, b.y) ||
-		is_point_in_rectangle(a, b.x, b.w) ||
-		is_point_in_rectangle(a, b.z, b.w))
-		return 1;
-	if (is_point_in_rectangle(b, a.x, a.y) ||
-		is_point_in_rectangle(b, a.z, a.y) ||
-		is_point_in_rectangle(b, a.x, a.w) ||
-		is_point_in_rectangle(b, a.z, a.w))
-		return 1;
-	return 0;
-}
-
 void CEntity::Update() {
 	UpdateEntityVectors();
 
-	m_bInAir = false;
+	m_bInAir = true;
 
-	ApplyGravity();
+	const glm::int32 visibleChunks = 2;
+	glm::int32 j = static_cast<glm::int32>(Camera.GetPosition().x / MAP_NUM_BLOCKS_X);
+	glm::int32 i = static_cast<glm::int32>(Camera.GetPosition().y / MAP_NUM_BLOCKS_Y);
+
+	j = Clamp(j, 0, MAP_NUM_BLOCKS_X);
+	i = Clamp(i, 0, MAP_NUM_BLOCKS_Y);
+
+	for (auto& it : World.GetMap()->m_vCollisionMap.at(i * MAP_NUM_BLOCKS_X + j).pos) {
+		if (CCollision::AABB(it, glm::vec4(m_vPosition.x, m_vPosition.y, m_vPosition.x, m_vPosition.y))) {
+			m_vVelocity.z = 0.0f;
+			m_bInAir = false;
+		}
+	}
+
+	if (m_bInAir)
+		ApplyGravity();
 }
 
 void CEntity::ApplyGravity() {

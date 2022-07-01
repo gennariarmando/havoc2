@@ -1,10 +1,11 @@
+#ifdef _WIN32
+#define WIN32_MEAN_AND_LEAN
+#include <Windows.h>
+#endif
+
 #include "AConsole.h"
 #include "Font.h"
 #include "AScreen.h"
-
-#ifdef _WIN32
-#include <Windows.h>
-#endif
 
 AConsole Console;
 
