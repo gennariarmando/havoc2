@@ -40,12 +40,14 @@ enum eMenuPages {
 	MENUPAGE_VIEWHIGHSCORES,
 	MENUPAGE_STARTPLAYINAREA,
 	MENUPAGE_VIDEO,
+	MENUPAGE_AUDIO,
 	NUM_MENUPAGES
 };
 
 enum eFrontendActions {
 	MENUACTION_NONE,
 	MENUACTION_CHANGEPAGE,
+	MENUACTION_BACK,
 	MENUACTION_SETPLAYERNAME,
 	MENUACTION_STARTGAME,
 	MENUACTION_SCREENRES,
@@ -80,6 +82,7 @@ public:
 	std::vector<std::shared_ptr<ASprite>> m_pFrontendSprites;
 	glm::int32 m_nCurrentPage;
 	glm::int32 m_nCurrentItem;
+	glm::int32 m_nHoverItem;
 	std::vector<tMenuPage> m_vMenuPages;
 	float m_fItemColorPulse;
 	bool m_bItemColorPulseSwap;

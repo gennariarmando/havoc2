@@ -74,11 +74,14 @@ bool CFrontend::Init() {
 		AddItem(page, { MENUACTION_CHANGEPAGE, "RESUME SAVED STATUS", MENUPAGE_RESUMESAVEDSTATUS });
 		AddItem(page, { MENUACTION_CHANGEPAGE, "VIEW HIGH SCORES", MENUPAGE_VIEWHIGHSCORES });
 		AddItem(page, { MENUACTION_CHANGEPAGE, "START PLAY IN AREA", MENUPAGE_STARTPLAYINAREA });
+		AddItem(page, { MENUACTION_BACK, "BACK", MENUPAGE_NONE });
 	}
 
 	// MENUPAGE_OPTIONS
-	if (tMenuPage* page = AddPage(MENUPAGE_OPTIONS, { MENUPAGE_MAIN, 1, { FE_1_OPTIONS, FE_1_OPTIONS }, { } })) {
+	if (tMenuPage* page = AddPage(MENUPAGE_OPTIONS, { MENUPAGE_MAIN, 1, { FE_1_OPTIONS, FE_1_OPTIONS, FE_1_OPTIONS }, { } })) {
 		AddItem(page, { MENUACTION_CHANGEPAGE, "VIDEO", MENUPAGE_VIDEO });
+		AddItem(page, { MENUACTION_CHANGEPAGE, "AUDIO", MENUPAGE_AUDIO });
+		AddItem(page, { MENUACTION_BACK, "BACK", MENUPAGE_NONE });
 	}
 
 	// MENUPAGE_CREDITS
@@ -87,8 +90,16 @@ bool CFrontend::Init() {
 	}
 
 	// MENUPAGE_VIDEO
-	if (tMenuPage* page = AddPage(MENUPAGE_VIDEO, { MENUPAGE_OPTIONS, 0, { FE_1_OPTIONS }, { } })) {
-		AddItem(page, { MENUACTION_SCREENRES, "RESOLUTION", MENUPAGE_VIDEO });
+	if (tMenuPage* page = AddPage(MENUPAGE_VIDEO, { MENUPAGE_OPTIONS, 0, { FE_1_OPTIONS, FE_1_OPTIONS }, { } })) {
+		AddItem(page, { MENUACTION_SCREENRES, "RESOLUTION:", MENUPAGE_NONE });
+		AddItem(page, { MENUACTION_BACK, "BACK", MENUPAGE_NONE });
+
+	}
+
+	// MENUPAGE_AUDIO
+	if (tMenuPage* page = AddPage(MENUPAGE_AUDIO, { MENUPAGE_OPTIONS, 1, { FE_1_OPTIONS, FE_1_OPTIONS }, { } })) {
+		AddItem(page, { MENUACTION_SCREENRES, "SFX:", MENUPAGE_NONE });
+		AddItem(page, { MENUACTION_BACK, "BACK", MENUPAGE_NONE });
 
 	}
 
@@ -106,6 +117,8 @@ void CFrontend::Update() {
 	bool right = Input.GetKeyJustDown(KEY_RIGHT);
 	bool enter = Input.GetKeyJustDown(KEY_ENTER);
 	bool back = Input.GetKeyJustDown(KEY_ESCAPE);
+	bool lmb = Input.m_NewMouse.button[MOUSE_BUTTON_LEFT] && !Input.m_OldMouse.button[MOUSE_BUTTON_LEFT];
+	bool itemMouse = m_nHoverItem == m_nCurrentItem && lmb;
 
 	if (abs(Input.m_NewMouse.delta.x) > 0.0f || abs(Input.m_NewMouse.delta.y) > 0.0f) {
 		GraphicDevice.SetCursorOnOff(true);
@@ -115,6 +128,8 @@ void CFrontend::Update() {
 		GraphicDevice.SetCursorOnOff(false);
 		m_bDrawMouse = false;
 	}
+
+	enter |= itemMouse;
 
 	if (GetCurrentPage()->menuItems.size() > 0) {
 		if (up)
@@ -130,6 +145,9 @@ void CFrontend::Update() {
 
 		if (enter || left || right)
 			ProcessMenuOptions(enter, left ? -1 : right ? 1 : 0);
+
+		if (m_nHoverItem != -1)
+			m_nCurrentItem = m_nHoverItem;
 
 		if (m_fItemColorPulse >= 1.0f)
 			m_bItemColorPulseSwap = true;
@@ -148,6 +166,10 @@ void CFrontend::ProcessMenuOptions(bool enter, glm::int8 arrows) {
 	case MENUACTION_CHANGEPAGE:
 		if (enter)
 			ChangeMenuPage(GetCurrentItem()->targetPage);
+		break;
+	case MENUACTION_BACK:
+		if (enter)
+			GoBack();
 		break;
 	case MENUACTION_STARTGAME:
 		if (enter) {
@@ -179,6 +201,8 @@ void CFrontend::Draw() {
 	if (m_vMenuPages.size() < 1 || GetCurrentPage()->menuItems.size() < 1)
 		return;
 
+	m_nHoverItem = -1;
+
 	glm::uint32 i = 0;
 	for (auto& item : GetCurrentPage()->menuItems) {
 		float spacing = 20.0f * i;
@@ -194,12 +218,8 @@ void CFrontend::Draw() {
 		else
 			Font.SetColor(glm::vec4(1.0f));
 
-		if (m_bDrawMouse && CheckHover(SCREEN_SCALE_X(278.0f + 22.0f), SCREEN_SCALE_X(278.0f + 22.0f) + Font.GetStringWidth(item.name), SCREEN_SCALE_Y(240.0f + 11.0f + spacing), SCREEN_SCALE_Y(240.0f + 11.0f + spacing) + Font.GetCharacterSize(item.name.at(0)).y)) {
-			m_nCurrentItem = i;
-
-			if (Input.m_NewMouse.button[MOUSE_BUTTON_LEFT])
-				ProcessMenuOptions(true, 0);
-		}
+		if (CheckHover(SCREEN_SCALE_X(278.0f + 22.0f), SCREEN_SCALE_X(278.0f + 22.0f) + Font.GetStringWidth(item.name), SCREEN_SCALE_Y(240.0f + 11.0f + spacing), SCREEN_SCALE_Y(240.0f + 11.0f + spacing) + Font.GetCharacterSize(item.name.at(0)).y))
+			m_nHoverItem = i;
 
 		Font.PrintString({ SCREEN_SCALE_X(278.0f + 22.0f), SCREEN_SCALE_Y(240.0f + 11.0f + spacing) }, item.name);
 		i++;
@@ -222,6 +242,7 @@ void CFrontend::Clear() {
 	m_pStyle.reset();
 	m_nCurrentPage = MENUPAGE_NONE;
 	m_nCurrentItem = 0;
+	m_nHoverItem = -1;
 	m_vMenuPages = {};
 	m_fItemColorPulse = 1.0f;
 	m_bItemColorPulseSwap = false;
@@ -325,6 +346,9 @@ void CFrontend::AddItem(tMenuPage* page, tMenuItem item) {
 }
 
 bool CFrontend::CheckHover(float x1, float x2, float y1, float y2) {
-	return Input.m_NewMouse.pos.x > x1 && Input.m_NewMouse.pos.x < x2&&
+	if (!m_bDrawMouse)
+		return false;
+
+	return Input.m_NewMouse.pos.x > x1 && Input.m_NewMouse.pos.x < x2 &&
 		Input.m_NewMouse.pos.y > y1 && Input.m_NewMouse.pos.y < y2;
 }
