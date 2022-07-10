@@ -144,7 +144,6 @@ void AGraphicDevice::SetWindowSize(glm::uint32 width, glm::uint32 height) {
 	UpdateViewport(width, height);
 }
 
-
 void AGraphicDevice::CenterWindowPosition() {
 	if (!m_pMonitor || !m_pWindow)
 		return;

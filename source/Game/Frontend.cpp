@@ -70,11 +70,11 @@ bool CFrontend::Init() {
 	}
 
 	// MENUPAGE_PLAY
-	if (tMenuPage* page = AddPage(MENUPAGE_PLAY, { MENUPAGE_MAIN, 0, { FE_2_NAME, FE_2_RESTART, FE_2_LEAGUE, FE_2_LEVEL1, FE_2_RESTART }, { } } )) {
-		AddItem(page, { MENUACTION_SETPLAYERNAME, "PLAYER NAME", MENUPAGE_NONE });
-		AddItem(page, { MENUACTION_CHANGEPAGE, "RESUME SAVED STATUS", MENUPAGE_RESUMESAVEDSTATUS });
+	if (tMenuPage* page = AddPage(MENUPAGE_PLAY, { MENUPAGE_MAIN, 0, { FE_2_NAME, FE_2_RESTART, FE_2_LEAGUE, FE_2_LEVEL1 }, { } } )) {
+		AddItem(page, { MENUACTION_SETPLAYERNAME, "PLAYER 0", MENUPAGE_NONE });
+		AddItem(page, { MENUACTION_RESUMESAVEDSTATUS, "RESUME SAVED STATUS", MENUPAGE_NONE });
 		AddItem(page, { MENUACTION_CHANGEPAGE, "VIEW HIGH SCORES", MENUPAGE_VIEWHIGHSCORES });
-		AddItem(page, { MENUACTION_CHANGEPAGE, "START PLAY IN AREA", MENUPAGE_STARTPLAYINAREA });
+		AddItem(page, { MENUACTION_STARTPLAYINAREA, "START PLAY IN AREA", MENUPAGE_NONE });
 	}
 
 	// MENUPAGE_OPTIONS
@@ -85,6 +85,11 @@ bool CFrontend::Init() {
 
 	// MENUPAGE_CREDITS
 	if (tMenuPage* page = AddPage(MENUPAGE_CREDITS, { MENUPAGE_NONE, 0, { FE_CREDITS }, { } })) {
+
+	}
+
+	// MENUPAGE_VIEWHIGHSCORES
+	if (tMenuPage* page = AddPage(MENUPAGE_VIEWHIGHSCORES, { MENUPAGE_PLAY, 2, { FE_2_LEAGUE }, { } })) {
 
 	}
 
@@ -130,6 +135,9 @@ void CFrontend::Update() {
 
 	enter |= itemMouse;
 
+	if (back)
+		GoBack();
+
 	if (GetCurrentPage()->menuItems.size() > 0) {
 		if (up)
 			m_nCurrentItem--;
@@ -138,9 +146,6 @@ void CFrontend::Update() {
 			m_nCurrentItem++;
 
 		m_nCurrentItem = ClampInverse(m_nCurrentItem, 0, GetCurrentPage()->menuItems.size() - 1);
-
-		if (back)
-			GoBack();
 
 		if (enter || left || right)
 			ProcessMenuOptions(enter, left ? -1 : right ? 1 : 0);
@@ -170,8 +175,14 @@ void CFrontend::ProcessMenuOptions(bool enter, glm::int8 arrows) {
 		if (enter)
 			GoBack();
 		break;
-	case MENUACTION_STARTGAME:
-		if (enter) {
+	case MENUACTION_STARTPLAYINAREA:
+		if (arrows < 0) {
+
+		}
+		else if (arrows > 0) {
+
+		}
+		else if (enter) {
 			ChangeMenuPage(GetCurrentItem()->targetPage);
 			DoStuffBeforeStartingGame();
 		}
@@ -223,9 +234,9 @@ std::string CFrontend::GetActionRightString(glm::uint8 action) {
 	case MENUACTION_BACK:
 		break;
 	case MENUACTION_SETPLAYERNAME:
-		no = "_";
+		//no = "_";
 		break;
-	case MENUACTION_STARTGAME:
+	case MENUACTION_STARTPLAYINAREA:
 		break;
 	case MENUACTION_SCREENRES:
 		no = GraphicDevice.m_vVideoModes.at(EngineSettings.m_nVideoMode).str;
@@ -300,6 +311,9 @@ void CFrontend::Draw() {
 			break;
 		case MENUACTION_MUSIC:
 			sliderSize = DrawSlider(SCREEN_SCALE_X(x) + Font.GetStringWidth(item.name + ' '), SCREEN_SCALE_Y(y + spacing), SCREEN_SCALE_H(MENU_SLIDER_RECT_W), SCREEN_SCALE_H(MENU_SLIDER_RECT_H), EngineSettings.m_nMusic);
+			break;
+		case MENUACTION_STARTPLAYINAREA:
+			DrawOneChar(SCREEN_SCALE_X(x + MENU_ITEM_AREA_NUMBER), SCREEN_SCALE_Y(y + spacing + 1.0f) + (Font.GetCharacterSize(item.name.at(0)).y), '1');
 			break;
 		}
 
@@ -473,4 +487,19 @@ float CFrontend::DrawSlider(float x, float y, float w, float h, glm::int32& prog
 	}
 
 	return sliderSize;
+}
+
+void CFrontend::DrawOneChar(float x, float y, char c) {
+	static ASprite sprite;
+	sprite.SetTexture(GetStyle()->GetSprite().at(4));
+
+	sprite.Draw(x, y, SCREEN_SCALE_W(MENU_ONE_CHAR_SIZE), SCREEN_SCALE_H(MENU_ONE_CHAR_SIZE), glm::vec4(1.0f));
+
+	Font.Reset();
+	Font.SetFontAlignment(FONT_ALIGN_CENTER);
+	Font.SetFontStyle(FONT_STYLE_MENU);
+	Font.SetWrapX(SCREEN_SCALE_RIGHT(0.0f));
+	Font.SetScale(SCREEN_SCALE_Y(MENU_ITEM_HEIGHT));
+	Font.SetColor(glm::vec4(1.0f));
+	Font.PrintString({ x + SCREEN_SCALE_W(MENU_ONE_CHAR_SIZE * 0.5f), y + (Font.GetCharacterSize(c).y * 0.125f) }, {c});
 }

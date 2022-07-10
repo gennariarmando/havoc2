@@ -15,6 +15,8 @@
 
 #define MENU_ITEM_SPACING (20.0f)
 
+#define MENU_ITEM_AREA_NUMBER (106.0f)
+
 #define MENU_ITEM_HEIGHT (11.0f)
 
 #define MENU_ITEM_COLOR_R (255)
@@ -25,6 +27,8 @@
 #define MENU_SLIDER_RECTANGLE_SPACING (2.0f)
 #define MENU_SLIDER_RECT_W (3.0f)
 #define MENU_SLIDER_RECT_H (19.0f)
+
+#define MENU_ONE_CHAR_SIZE 30.0f
 
 #include "Style.h"
 #include "AEngineSettings.h"
@@ -64,9 +68,7 @@ enum eMenuPages {
 	MENUPAGE_PLAY,
 	MENUPAGE_OPTIONS,
 	MENUPAGE_CREDITS,
-	MENUPAGE_RESUMESAVEDSTATUS,
 	MENUPAGE_VIEWHIGHSCORES,
-	MENUPAGE_STARTPLAYINAREA,
 	MENUPAGE_VIDEO,
 	MENUPAGE_AUDIO,
 	NUM_MENUPAGES
@@ -77,7 +79,8 @@ enum eFrontendActions {
 	MENUACTION_CHANGEPAGE,
 	MENUACTION_BACK,
 	MENUACTION_SETPLAYERNAME,
-	MENUACTION_STARTGAME,
+	MENUACTION_STARTPLAYINAREA,
+	MENUACTION_RESUMESAVEDSTATUS,
 	MENUACTION_SCREENRES,
 	MENUACTION_FULLSCREEN,
 	MENUACTION_VSYNC,
@@ -143,12 +146,13 @@ public:
 	void ChangeMenuPage(glm::int32 page, glm::int32 item = 0);
 	void GoBack();
 	void DoStuffBeforeStartingGame();
-
-public:
-	tMenuPage* AddPage(eMenuPages index, tMenuPage page = { {} });
 	void AddItem(tMenuPage* page, tMenuItem item);
 	glm::uint8 CheckHover(float x1, float x2, float y1, float y2);
 	float DrawSlider(float x, float y, float w, float h, glm::int32& progress);
+	void DrawOneChar(float x, float y, char c);
+
+private:
+	tMenuPage* AddPage(eMenuPages index, tMenuPage page = { {} });
 	tMenuPage* GetCurrentPage() { return &m_vMenuPages.at(m_nCurrentPage); }
 	tMenuItem* GetCurrentItem() { return &m_vMenuPages.at(m_nCurrentPage).menuItems.at(m_nCurrentItem); }
 
