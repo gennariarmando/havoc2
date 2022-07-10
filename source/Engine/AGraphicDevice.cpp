@@ -21,6 +21,7 @@ AGraphicDevice::AGraphicDevice() {
 	m_vShaders.resize(NUM_DEFAULT_SHADERS);
 	m_bPreviousCursorMode = true;
 	m_bCursorMode = true;
+	m_vVideoModes = {};
 }
 
 bool AGraphicDevice::Init() {
@@ -89,12 +90,12 @@ bool AGraphicDevice::Init() {
 
 	gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
-	glfwSwapInterval(EngineSettings.m_bVSync);
-
 	SetCursorOnOff(true);
 
+	MakeListOfVideoModes();
 	SetWindowSize(EngineSettings.m_nScreenWidth, EngineSettings.m_nScreenHeight);
 	SetFullscreen(EngineSettings.m_bFullscreen);
+	SetVSync(EngineSettings.m_bVSync);
 
 	glm::uint32 i = 0;
 	for (auto& shaderName : defaultShadersNames) {
@@ -143,6 +144,7 @@ void AGraphicDevice::SetWindowSize(glm::uint32 width, glm::uint32 height) {
 	UpdateViewport(width, height);
 }
 
+
 void AGraphicDevice::CenterWindowPosition() {
 	if (!m_pMonitor || !m_pWindow)
 		return;
@@ -176,6 +178,10 @@ void AGraphicDevice::SetFullscreen(bool on) {
 	glfwSetWindowMonitor(m_pWindow, on ? m_pMonitor : NULL, 0, 0, Screen.m_nScreenWidth, Screen.m_nScreenHeight, GLFW_DONT_CARE);
 	CenterWindowPosition();
 	Screen.m_bFullscreen = on;
+}
+
+void AGraphicDevice::SetVSync(bool on) {
+	glfwSwapInterval(on);
 }
 
 void AGraphicDevice::BeginFrame() {
@@ -216,6 +222,7 @@ void AGraphicDevice::Update() {
 
 	if (Input.GetKeyDown(KEY_LEFT_ALT) && Input.GetKeyJustDown(KEY_ENTER)) {
 		SetFullscreen(!Screen.m_bFullscreen);
+		EngineSettings.m_bFullscreen = Screen.m_bFullscreen;
 		Input.Clear();
 	}
 
@@ -228,3 +235,55 @@ void AGraphicDevice::Update() {
 		m_bPreviousCursorMode = m_bCursorMode;
 	}
 }
+
+void AGraphicDevice::MakeListOfVideoModes() {
+	glm::int32 count;
+	const GLFWvidmode* modes = glfwGetVideoModes(m_pMonitor, &count);
+
+	for (glm::int32 i = 0; i < count; i++) {
+		GLFWvidmode mode = modes[i];
+
+		bool found = false;
+		for (auto v : m_vVideoModes) {
+			if (v.width == mode.width && v.height == mode.height) {
+				found = true;
+				break;
+			}
+		}
+
+		if (!found && mode.width >= DEFAULT_SCREEN_WIDTH && mode.height >= DEFAULT_SCREEN_HEIGHT) {
+			tVideoModes v;
+
+			v.width = mode.width;
+			v.height = mode.height;
+			v.str = std::format("{}x{}", v.width, v.height);
+			m_vVideoModes.push_back(v);
+		}
+	}
+
+	if (ResToIndex(EngineSettings.m_nScreenWidth, EngineSettings.m_nScreenHeight) == -1) {
+		tVideoModes v;
+
+		v.width = EngineSettings.m_nScreenWidth;
+		v.height = EngineSettings.m_nScreenHeight;
+		v.str = std::format("{}x{}", v.width, v.height);
+		m_vVideoModes.push_back(v);
+		EngineSettings.m_nVideoMode = m_vVideoModes.size() - 1;
+	}
+}
+
+glm::int32 AGraphicDevice::ResToIndex(glm::int32 width, glm::int32 height) {
+	glm::int32 i = 0;
+	for (auto& v : m_vVideoModes) {
+		if (v.width == width && v.height == height) {
+			return i;
+		}
+		i++;
+	}
+	return -1;
+}
+
+void AGraphicDevice::SetVideoMode(glm::uint32 index) {
+	SetWindowSize(m_vVideoModes.at(index).width, m_vVideoModes.at(index).height);
+}
+

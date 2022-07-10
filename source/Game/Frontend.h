@@ -1,5 +1,33 @@
 #pragma once
+#define MENU_LEFT_PERCENTAGE (0.44f)
+#define MENU_RIGHT_PERCENTAGE (0.56f)
+
+#define MENU_BACKGROUND_WIDTH (640.0f)
+#define MENU_BACKGROUND_HEIGHT (480.0f)
+
+#define MENU_BACKGROUND_LEFT_WIDTH (MENU_BACKGROUND_WIDTH * MENU_LEFT_PERCENTAGE)
+#define MENU_BACKGROUND_RIGHT_WIDTH (MENU_BACKGROUND_WIDTH * MENU_RIGHT_PERCENTAGE)
+
+#define MENU_OPTIONS_OFFSET (22.0f)
+
+#define MENU_ITEM_POS_X ((MENU_BACKGROUND_WIDTH * MENU_LEFT_PERCENTAGE) + MENU_OPTIONS_OFFSET)
+#define MENU_ITEM_POS_Y ((MENU_BACKGROUND_HEIGHT * 0.5f) + (MENU_OPTIONS_OFFSET * 0.5f))
+
+#define MENU_ITEM_SPACING (20.0f)
+
+#define MENU_ITEM_HEIGHT (11.0f)
+
+#define MENU_ITEM_COLOR_R (255)
+#define MENU_ITEM_COLOR_G (16)
+#define MENU_ITEM_COLOR_B (0)
+
+#define MENU_SLIDER_RECTANGLES (32)
+#define MENU_SLIDER_RECTANGLE_SPACING (2.0f)
+#define MENU_SLIDER_RECT_W (3.0f)
+#define MENU_SLIDER_RECT_H (19.0f)
+
 #include "Style.h"
+#include "AEngineSettings.h"
 
 enum eFrontendSprites {
 	FE_1,
@@ -51,6 +79,10 @@ enum eFrontendActions {
 	MENUACTION_SETPLAYERNAME,
 	MENUACTION_STARTGAME,
 	MENUACTION_SCREENRES,
+	MENUACTION_FULLSCREEN,
+	MENUACTION_VSYNC,
+	MENUACTION_SFX,
+	MENUACTION_MUSIC,
 };
 
 enum {
@@ -98,6 +130,7 @@ public:
 	bool Init();
 	void Update();
 	void ProcessMenuOptions(bool enter, glm::int8 input);
+	std::string GetActionRightString(glm::uint8 action);
 	void Draw();
 	void Shutdown();
 	void Clear();
@@ -114,7 +147,8 @@ public:
 public:
 	tMenuPage* AddPage(eMenuPages index, tMenuPage page = { {} });
 	void AddItem(tMenuPage* page, tMenuItem item);
-	bool CheckHover(float x1, float x2, float y1, float y2);
+	glm::uint8 CheckHover(float x1, float x2, float y1, float y2);
+	float DrawSlider(float x, float y, float w, float h, glm::int32& progress);
 	tMenuPage* GetCurrentPage() { return &m_vMenuPages.at(m_nCurrentPage); }
 	tMenuItem* GetCurrentItem() { return &m_vMenuPages.at(m_nCurrentPage).menuItems.at(m_nCurrentItem); }
 

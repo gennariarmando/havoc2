@@ -9,6 +9,7 @@
 #include "AEngine.h"
 #include "AGraphicDevice.h"
 #include "AConsole.h"
+#include "AEngineSettings.h"
 
 CFrontend Frontend;
 
@@ -63,25 +64,23 @@ bool CFrontend::Init() {
 	m_vMenuPages.resize(NUM_MENUPAGES);
 	// MENUPAGE_MAIN
 	if (tMenuPage* page = AddPage(MENUPAGE_MAIN, { MENUPAGE_NONE, 0, { FE_1_PLAY, FE_1_OPTIONS, FE_1_QUIT }, { } } )) {
-		AddItem(page, { MENUACTION_STARTGAME, "PLAY", MENUPAGE_NONE });
+		AddItem(page, { MENUACTION_CHANGEPAGE, "PLAY", MENUPAGE_PLAY });
 		AddItem(page, { MENUACTION_CHANGEPAGE, "OPTIONS", MENUPAGE_OPTIONS });
 		AddItem(page, { MENUACTION_CHANGEPAGE, "QUIT", MENUPAGE_CREDITS });
 	}
 
 	// MENUPAGE_PLAY
-	if (tMenuPage* page = AddPage(MENUPAGE_PLAY, { MENUPAGE_MAIN, 0, { FE_2_NAME, FE_2_RESTART, FE_2_LEAGUE, FE_2_LEVEL1 }, { } } )) {
+	if (tMenuPage* page = AddPage(MENUPAGE_PLAY, { MENUPAGE_MAIN, 0, { FE_2_NAME, FE_2_RESTART, FE_2_LEAGUE, FE_2_LEVEL1, FE_2_RESTART }, { } } )) {
 		AddItem(page, { MENUACTION_SETPLAYERNAME, "PLAYER NAME", MENUPAGE_NONE });
 		AddItem(page, { MENUACTION_CHANGEPAGE, "RESUME SAVED STATUS", MENUPAGE_RESUMESAVEDSTATUS });
 		AddItem(page, { MENUACTION_CHANGEPAGE, "VIEW HIGH SCORES", MENUPAGE_VIEWHIGHSCORES });
 		AddItem(page, { MENUACTION_CHANGEPAGE, "START PLAY IN AREA", MENUPAGE_STARTPLAYINAREA });
-		AddItem(page, { MENUACTION_BACK, "BACK", MENUPAGE_NONE });
 	}
 
 	// MENUPAGE_OPTIONS
 	if (tMenuPage* page = AddPage(MENUPAGE_OPTIONS, { MENUPAGE_MAIN, 1, { FE_1_OPTIONS, FE_1_OPTIONS, FE_1_OPTIONS }, { } })) {
 		AddItem(page, { MENUACTION_CHANGEPAGE, "VIDEO", MENUPAGE_VIDEO });
 		AddItem(page, { MENUACTION_CHANGEPAGE, "AUDIO", MENUPAGE_AUDIO });
-		AddItem(page, { MENUACTION_BACK, "BACK", MENUPAGE_NONE });
 	}
 
 	// MENUPAGE_CREDITS
@@ -90,16 +89,16 @@ bool CFrontend::Init() {
 	}
 
 	// MENUPAGE_VIDEO
-	if (tMenuPage* page = AddPage(MENUPAGE_VIDEO, { MENUPAGE_OPTIONS, 0, { FE_1_OPTIONS, FE_1_OPTIONS }, { } })) {
+	if (tMenuPage* page = AddPage(MENUPAGE_VIDEO, { MENUPAGE_OPTIONS, 0, { FE_1_OPTIONS, FE_1_OPTIONS, FE_1_OPTIONS }, { } })) {
 		AddItem(page, { MENUACTION_SCREENRES, "RESOLUTION:", MENUPAGE_NONE });
-		AddItem(page, { MENUACTION_BACK, "BACK", MENUPAGE_NONE });
-
+		AddItem(page, { MENUACTION_FULLSCREEN, "FULLSCREEN:", MENUPAGE_NONE });
+		AddItem(page, { MENUACTION_VSYNC, "VSYNC:", MENUPAGE_NONE });
 	}
 
 	// MENUPAGE_AUDIO
-	if (tMenuPage* page = AddPage(MENUPAGE_AUDIO, { MENUPAGE_OPTIONS, 1, { FE_1_OPTIONS, FE_1_OPTIONS }, { } })) {
-		AddItem(page, { MENUACTION_SCREENRES, "SFX:", MENUPAGE_NONE });
-		AddItem(page, { MENUACTION_BACK, "BACK", MENUPAGE_NONE });
+	if (tMenuPage* page = AddPage(MENUPAGE_AUDIO, { MENUPAGE_OPTIONS, 1, { FE_1_OPTIONS, FE_1_OPTIONS	 }, { } })) {
+		AddItem(page, { MENUACTION_SFX, "SFX:", MENUPAGE_NONE });
+		AddItem(page, { MENUACTION_MUSIC, "VOLUME:", MENUPAGE_NONE });
 
 	}
 
@@ -178,10 +177,68 @@ void CFrontend::ProcessMenuOptions(bool enter, glm::int8 arrows) {
 		}
 		break;
 	case MENUACTION_SCREENRES:
+		if (arrows < 0)
+			EngineSettings.m_nVideoMode--;
+		else if (arrows > 0)
+			EngineSettings.m_nVideoMode++;
+
+		EngineSettings.m_nVideoMode = ClampInverse(EngineSettings.m_nVideoMode, 0, GraphicDevice.m_vVideoModes.size() - 1);
+		EngineSettings.m_nScreenWidth = GraphicDevice.m_vVideoModes.at(EngineSettings.m_nVideoMode).width;
+		EngineSettings.m_nScreenHeight = GraphicDevice.m_vVideoModes.at(EngineSettings.m_nVideoMode).height;
+
+		GraphicDevice.SetVideoMode(EngineSettings.m_nVideoMode);
+		EngineSettings.Save();
 		break;
-	default:
+	case MENUACTION_FULLSCREEN:
+		if (arrows) {
+			EngineSettings.m_bFullscreen = !EngineSettings.m_bFullscreen;
+			GraphicDevice.SetFullscreen(EngineSettings.m_bFullscreen);
+			EngineSettings.Save();
+		}
+		break;
+	case MENUACTION_VSYNC:
+		if (arrows) {
+			EngineSettings.m_bVSync = !EngineSettings.m_bVSync;
+			GraphicDevice.SetVSync(EngineSettings.m_bVSync);
+			EngineSettings.Save();
+		}
+		break;
+	case MENUACTION_SFX:
+		EngineSettings.m_nSfx += arrows;
+		EngineSettings.m_nSfx = Clamp(EngineSettings.m_nSfx, 0, 32);
+		break;
+	case MENUACTION_MUSIC:
+		EngineSettings.m_nMusic += arrows;
+		EngineSettings.m_nMusic = Clamp(EngineSettings.m_nMusic, 0, 32);
 		break;
 	}
+}
+
+std::string CFrontend::GetActionRightString(glm::uint8 action) {
+	std::string no = {};
+
+	switch (action) {
+	case MENUACTION_CHANGEPAGE:
+		break;
+	case MENUACTION_BACK:
+		break;
+	case MENUACTION_SETPLAYERNAME:
+		no = "_";
+		break;
+	case MENUACTION_STARTGAME:
+		break;
+	case MENUACTION_SCREENRES:
+		no = GraphicDevice.m_vVideoModes.at(EngineSettings.m_nVideoMode).str;
+		break;
+	case MENUACTION_FULLSCREEN:
+		no = std::format("{}", EngineSettings.m_bFullscreen);
+		break;
+	case MENUACTION_VSYNC:
+		no = std::format("{}", EngineSettings.m_bVSync);
+		break;
+	}
+
+	return no;
 }
 
 void CFrontend::Draw() {
@@ -203,25 +260,52 @@ void CFrontend::Draw() {
 
 	m_nHoverItem = -1;
 
+	const glm::int32 menuItems = static_cast<glm::int32>(GetCurrentPage()->menuItems.size());
 	glm::uint32 i = 0;
 	for (auto& item : GetCurrentPage()->menuItems) {
-		float spacing = 20.0f * i;
+		float centerOffset = 0.0f;
+		if (menuItems > MENU_ITEM_MAX / 2)
+			centerOffset = (((MENU_ITEM_SPACING) * (menuItems)) * 0.5f);
+
+		float spacing = (MENU_ITEM_SPACING * i);
+		float x = MENU_ITEM_POS_X;
+		float y = MENU_ITEM_POS_Y - centerOffset;
+		const std::string rightText = GetActionRightString(m_vMenuPages.at(m_nCurrentPage).menuItems.at(i).action);
+		bool hasRightString = rightText.empty();
 
 		Font.Reset();
 		Font.SetFontAlignment(FONT_ALIGN_LEFT);
 		Font.SetFontStyle(FONT_STYLE_MENU);
 		Font.SetWrapX(SCREEN_SCALE_RIGHT(0.0f));
-		Font.SetScale(SCREEN_SCALE_Y(11.0f));
+
+		if (hasRightString)
+			Font.SetScale(SCREEN_SCALE_Y(MENU_ITEM_HEIGHT));
+		else
+			Font.SetScale(SCREEN_SCALE_Y(MENU_ITEM_HEIGHT * 0.9f));
 
 		if (m_nCurrentItem == i)
-			Font.SetColor(glm::vec4(ToVec4(static_cast<glm::uint8>(m_fItemColorPulse * 255), 16, 0, 255)));
+			Font.SetColor(glm::vec4(ToVec4(static_cast<glm::uint8>(m_fItemColorPulse * MENU_ITEM_COLOR_R), MENU_ITEM_COLOR_G, MENU_ITEM_COLOR_B, 255)));
 		else
 			Font.SetColor(glm::vec4(1.0f));
 
-		if (CheckHover(SCREEN_SCALE_X(278.0f + 22.0f), SCREEN_SCALE_X(278.0f + 22.0f) + Font.GetStringWidth(item.name), SCREEN_SCALE_Y(240.0f + 11.0f + spacing), SCREEN_SCALE_Y(240.0f + 11.0f + spacing) + Font.GetCharacterSize(item.name.at(0)).y))
+		Font.PrintString({ SCREEN_SCALE_X(x), SCREEN_SCALE_Y(y + spacing) }, item.name);
+
+		if (!hasRightString)
+			Font.PrintString({ SCREEN_SCALE_X(x) + Font.GetStringWidth(item.name + ' '), SCREEN_SCALE_Y(y + spacing) }, rightText);
+
+		float sliderSize = 0.0f;
+		switch (item.action) {
+		case MENUACTION_SFX:
+			sliderSize = DrawSlider(SCREEN_SCALE_X(x) + Font.GetStringWidth(item.name + ' '), SCREEN_SCALE_Y(y + spacing), SCREEN_SCALE_H(MENU_SLIDER_RECT_W), SCREEN_SCALE_H(MENU_SLIDER_RECT_H), EngineSettings.m_nSfx);
+			break;
+		case MENUACTION_MUSIC:
+			sliderSize = DrawSlider(SCREEN_SCALE_X(x) + Font.GetStringWidth(item.name + ' '), SCREEN_SCALE_Y(y + spacing), SCREEN_SCALE_H(MENU_SLIDER_RECT_W), SCREEN_SCALE_H(MENU_SLIDER_RECT_H), EngineSettings.m_nMusic);
+			break;
+		}
+
+		if (CheckHover(SCREEN_SCALE_X(x), SCREEN_SCALE_X(x) + Font.GetStringWidth(item.name + rightText) + sliderSize, SCREEN_SCALE_Y(y + spacing), SCREEN_SCALE_Y(y + spacing) + Font.GetCharacterSize(item.name.at(0)).y))
 			m_nHoverItem = i;
 
-		Font.PrintString({ SCREEN_SCALE_X(278.0f + 22.0f), SCREEN_SCALE_Y(240.0f + 11.0f + spacing) }, item.name);
 		i++;
 	}
 }
@@ -275,6 +359,9 @@ void CFrontend::DrawCredits() {
 }
 
 void CFrontend::DrawBackground() {
+	if (GetCurrentPage()->background.empty())
+		return;
+
 	const glm::int8 background = GetCurrentPage()->background.at(m_nCurrentItem);
 	bool fullBackground = false;
 	glm::uint8 left = -1;
@@ -311,11 +398,11 @@ void CFrontend::DrawBackground() {
 	}
 
 	if (fullBackground) {
-		m_pFrontendSprites.at(background)->Draw(SCREEN_SCALE_X(0.0f), SCREEN_SCALE_Y(0.0f), SCREEN_SCALE_W(640.0f), SCREEN_SCALE_H(480.0f), glm::vec4(1.0f));
+		m_pFrontendSprites.at(background)->Draw(SCREEN_SCALE_X(0.0f), SCREEN_SCALE_Y(0.0f), SCREEN_SCALE_RIGHT(0.0f), SCREEN_SCALE_BOTTOM(0.0f), glm::vec4(1.0f));
 	}
 	else {
-		m_pFrontendSprites.at(left)->Draw(SCREEN_SCALE_X(0.0f), SCREEN_SCALE_Y(0.0f), SCREEN_SCALE_W(278.0f), SCREEN_SCALE_H(480.0f), glm::vec4(1.0f));
-		m_pFrontendSprites.at(right)->Draw(SCREEN_SCALE_X(278.0f), SCREEN_SCALE_Y(0.0f), SCREEN_SCALE_W(362.0f), SCREEN_SCALE_H(480.0f), glm::vec4(1.0f));
+		m_pFrontendSprites.at(left)->Draw(SCREEN_SCALE_X(0.0f), SCREEN_SCALE_Y(0.0f), SCREEN_SCALE_W(MENU_BACKGROUND_LEFT_WIDTH), SCREEN_SCALE_H(MENU_BACKGROUND_HEIGHT), glm::vec4(1.0f));
+		m_pFrontendSprites.at(right)->Draw(SCREEN_SCALE_X(MENU_BACKGROUND_LEFT_WIDTH), SCREEN_SCALE_Y(0.0f), SCREEN_SCALE_W(MENU_BACKGROUND_RIGHT_WIDTH), SCREEN_SCALE_H(MENU_BACKGROUND_HEIGHT), glm::vec4(1.0f));
 	}
 }
 
@@ -325,6 +412,7 @@ void CFrontend::ChangeMenuPage(glm::int32 page, glm::int32 item) {
 
 	m_nCurrentPage = page;
 	m_nCurrentItem = item;
+	m_nHoverItem = -1;
 }
 
 void CFrontend::GoBack() {
@@ -345,10 +433,44 @@ void CFrontend::AddItem(tMenuPage* page, tMenuItem item) {
 	page->menuItems.push_back(item);
 }
 
-bool CFrontend::CheckHover(float x1, float x2, float y1, float y2) {
-	if (!m_bDrawMouse)
-		return false;
+glm::uint8 CFrontend::CheckHover(float x1, float x2, float y1, float y2) {
+	glm::uint8 result = 0;
 
-	return Input.m_NewMouse.pos.x > x1 && Input.m_NewMouse.pos.x < x2 &&
-		Input.m_NewMouse.pos.y > y1 && Input.m_NewMouse.pos.y < y2;
+	if (m_bDrawMouse) {
+		bool pos = (Input.m_NewMouse.pos.x > x1 && Input.m_NewMouse.pos.x < x2) && (Input.m_NewMouse.pos.y > y1 && Input.m_NewMouse.pos.y < y2);
+		bool lmb = Input.m_NewMouse.button[MOUSE_BUTTON_LEFT] && !Input.m_OldMouse.button[MOUSE_BUTTON_LEFT];
+
+		if (pos)
+			result = 1;
+
+		if (pos && lmb)
+			result = 2;
+	}
+
+	return result;
+}
+
+float CFrontend::DrawSlider(float x, float y, float w, float h, glm::int32& progress) {
+	const float spacing = SCREEN_SCALE_Y(MENU_SLIDER_RECTANGLE_SPACING) + w;
+	const float numRectsF = static_cast<float>(MENU_SLIDER_RECTANGLES);
+	glm::vec4 col;
+	float p = progress / static_cast<float>(MENU_SLIDER_RECTANGLES);
+
+	float sliderSize = 0.0f;
+	for (glm::int32 i = 0; i < MENU_SLIDER_RECTANGLES; i++) {
+		if ((i / numRectsF) < p)
+			col = { i / numRectsF, 1.0f - (i / numRectsF), 0.1f, 1.0f };
+		else
+			col = glm::vec4(0.1f);
+
+		ASprite::DrawRect({ x, y, x + w, y + h }, col);
+
+		if (CheckHover(x, x + w, y, y + h) == 2)
+			progress = i + 1;
+
+		x += spacing;
+		sliderSize += spacing;
+	}
+
+	return sliderSize;
 }

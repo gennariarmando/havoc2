@@ -45,6 +45,12 @@ enum eCullMode {
 	CULLMODE_FRONT_AND_BACK = 0x0408,
 };
 
+struct tVideoModes {
+	glm::int32 width;
+	glm::int32 height;
+	std::string str;
+};
+
 class AGraphicDevice {
 public:
 	GLFWwindow* m_pWindow;
@@ -52,6 +58,7 @@ public:
 	std::vector<AShader*> m_vShaders;
 	bool m_bPreviousCursorMode;
 	bool m_bCursorMode;
+	std::vector<tVideoModes> m_vVideoModes;
 
 public:
 	AGraphicDevice();
@@ -62,6 +69,7 @@ public:
 	void CenterWindowPosition();
 	void CenterMousePosition();
 	void SetFullscreen(bool on);
+	void SetVSync(bool on);
 	void BeginFrame();
 	void EndFrame();
 	void SwapBuffers();
@@ -69,6 +77,9 @@ public:
 	void SetRefreshRate(glm::int32 frameRate);
 	void SetWindowTitleBarCounter();
 	void Update();
+	void MakeListOfVideoModes();
+	glm::int32 ResToIndex(glm::int32 width, glm::int32 height);
+	void SetVideoMode(glm::uint32 index);
 
 public:
 	static void UpdateViewport(glm::uint32 width, glm::uint32 height);

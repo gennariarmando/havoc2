@@ -11,8 +11,11 @@ std::string settingsFileName = "settings.xml";
 AEngineSettings::AEngineSettings() {
     m_nScreenWidth = 640;
     m_nScreenHeight = 480;
+    m_nVideoMode = 0;
     m_bFullscreen = false;
     m_bVSync = false;
+    m_nSfx = 24;
+    m_nMusic = 24;
 }
 
 void AEngineSettings::Load() {
@@ -31,8 +34,14 @@ void AEngineSettings::Load() {
             if (auto display = settings.child("display")) {
                 m_nScreenWidth = display.child("ScreenWidth").attribute("value").as_int(m_nScreenWidth);
                 m_nScreenHeight = display.child("ScreenHeight").attribute("value").as_int(m_nScreenHeight);
+                m_nVideoMode = display.child("VideoMode").attribute("value").as_int(m_nVideoMode);
                 m_bFullscreen = display.child("Fullscreen").attribute("value").as_bool(m_bFullscreen);
                 m_bVSync = display.child("VSync").attribute("value").as_int(m_bVSync);
+            }
+
+            if (auto audio = settings.child("audio")) {
+                m_nSfx = audio.child("EffectsVolume").attribute("value").as_int(m_nSfx);
+                m_nMusic = audio.child("MusicVolume").attribute("value").as_int(m_nMusic);
             }
         }
     }
@@ -50,8 +59,14 @@ void AEngineSettings::Save() {
     if (auto display = settings.append_child("display")) {
         display.append_child("ScreenWidth").append_attribute("value").set_value(m_nScreenWidth);
         display.append_child("ScreenHeight").append_attribute("value").set_value(m_nScreenHeight);
+        display.append_child("VideoMode").append_attribute("value").set_value(m_nVideoMode);
         display.append_child("Fullscreen").append_attribute("value").set_value(m_bFullscreen);
         display.append_child("VSync").append_attribute("value").set_value(m_bVSync);
+    }
+
+    if (auto audio = settings.append_child("audio")) {
+        audio.append_child("EffectsVolume").append_attribute("value").set_value(m_nSfx);
+        audio.append_child("MusicVolume").append_attribute("value").set_value(m_nMusic);
     }
 
     std::error_code err = {};
