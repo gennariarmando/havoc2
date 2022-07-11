@@ -212,6 +212,7 @@ public:
 	std::unique_ptr<std::vector<tMapLight>> m_vLights;
 	std::vector<AVertexBuffer> m_vGeometryChunks;
 	std::vector<std::vector<tFaceInfo>> m_vAnimatedFaces;
+	std::vector<tCachedAnims> m_vCachedAnims;
 	AVertexBuffer m_VertexBuffer;
 	std::vector<tCollisionMap> m_vCollisionMap;
 

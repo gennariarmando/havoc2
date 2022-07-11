@@ -365,6 +365,7 @@ void CMap::BuildChunks() {
 			index = 0;
 		}
 	}
+	m_vCachedAnims = cachedAnims;
 }
 
 void CMap::Render(std::shared_ptr<CStyle> style) {
@@ -379,13 +380,17 @@ void CMap::Render(std::shared_ptr<CStyle> style) {
 	starty = Clamp(starty, 0, MAP_NUM_BLOCKS_Y);
 	endy = Clamp(endy, 0, MAP_NUM_BLOCKS_Y);
 
+	for (auto& it : m_vCachedAnims) {
+		if (it.flipBook)
+			it.flipBook->Update();
+	}
+
 	for (glm::int32 i = starty; i < endy; i++) {
 		for (glm::int32 j = startx; j < endx; j++) {
 			AVertexBuffer* chunk = &m_vGeometryChunks.at(i * MAP_NUM_BLOCKS_X + j);
 			std::vector<tFaceInfo>& animatedFaces = m_vAnimatedFaces.at(i * MAP_NUM_BLOCKS_X + j);
 			
 			for (auto& it : animatedFaces) {
-				it.flipBook->Update();
 				EditFace(chunk, &it);
 			}
 
