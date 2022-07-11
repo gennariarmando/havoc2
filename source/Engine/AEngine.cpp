@@ -11,6 +11,7 @@
 #include "Game.h"
 #include "Frontend.h"
 #include "LoadingScreen.h"
+#include "Text.h"
 #include "version.h"
 
 AEngine Engine;
@@ -129,6 +130,11 @@ bool AEngine::Init(glm::int32 argc, char* argv[]) {
         return false;
     }
 
+    if (!TheText.Load()) {
+        Console.WriteLine("Error initializing text");
+        return false;
+    }
+
     return true;
 }
 
@@ -143,6 +149,7 @@ void AEngine::Shutdown(glm::uint32 code) {
     Console.Shutdown();
     GraphicDevice.Shutdown();
     Camera.Shutdown();
+    TheText.UnLoad();
 
     exit(code);
 }

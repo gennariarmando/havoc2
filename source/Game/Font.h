@@ -49,6 +49,7 @@ public:
 	void SetWrapX(float x);
 	void SetFontAlignment(eFontAlignment align);
 	void SetColor(glm::vec4 col);
+	void ParseToken(std::string& str);
 	void PrintString(glm::vec2 pos, std::string str);
 };
 

@@ -5,6 +5,7 @@
 #include "ATime.h"
 #include "Hud.h"
 #include "AGraphicDevice.h"
+#include "Text.h"
 
 CLoadingScreen LoadingScreen;
 
@@ -22,7 +23,7 @@ void CLoadingScreen::Draw() {
 	Font.SetFontStyle(FONT_STYLE_MENU);
 	Font.SetWrapX(SCREEN_WIDTH);
 	Font.SetScale(SCREEN_SCALE_Y(11.0f));
-	Font.PrintString({ SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 }, "GET READY...");
+	Font.PrintString({ SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 }, TheText.Get("loading"));
 	IncreaseLoadingProgress();
 }
 

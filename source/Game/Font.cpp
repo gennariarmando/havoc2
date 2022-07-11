@@ -98,9 +98,16 @@ void CFont::SetColor(glm::vec4 col) {
 	m_vColor = col;
 }
 
+void CFont::ParseToken(std::string& str) {
+
+}
+
 void CFont::PrintString(glm::vec2 pos, std::string str) {
 	auto style = GetStyleForThisFont(m_eFontStyle);
 	if (!style)
+		return;
+
+	if (pos.x < 0.0f || pos.x > SCREEN_WIDTH || pos.y < 0.0f || pos.y > SCREEN_HEIGHT)
 		return;
 
 	switch (m_eFontAlignment) {

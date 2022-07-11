@@ -19,6 +19,7 @@ AVertexBuffer::AVertexBuffer() {
     m_nTexture = 0;
     m_bHasRenderData = false;
     m_pShader = nullptr;
+    m_bUpdateRenderData = false;
 }
 
 void AVertexBuffer::SetPrimitive(glm::uint8 p) {
@@ -111,6 +112,10 @@ void AVertexBuffer::SetShader(AShader* shader) {
     m_pShader = shader;
 }
 
+void AVertexBuffer::SetUpdateData(bool on) {
+    m_bUpdateRenderData = on;
+}
+
 void AVertexBuffer::Setup() {
     if (m_bHasRenderData)
         return;
@@ -131,6 +136,9 @@ void AVertexBuffer::Setup() {
 }
 
 void AVertexBuffer::Update() {
+    if (!m_bUpdateRenderData)
+        return;
+
     if (m_nVbo[VBO_UV] && m_vTexCoords.size() > 0) {
         glBindBuffer(GL_ARRAY_BUFFER, m_nVbo[VBO_UV]);
         glBufferSubData(GL_ARRAY_BUFFER, 0, m_vTexCoords.size() * sizeof(glm::vec2), &m_vTexCoords.at(0));

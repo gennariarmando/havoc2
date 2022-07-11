@@ -375,6 +375,7 @@ void CMap::Render(std::shared_ptr<CStyle> style) {
 
 			glm::vec3 pos = { static_cast<float>(j * MAP_NUM_BLOCKS_X), static_cast<float>(i * MAP_NUM_BLOCKS_Y), 0.0f };
 
+			chunk->SetUpdateData(true);
 			chunk->SetPrimitive(GL_TRIANGLES);
 			chunk->SetProjection(Camera.GetProjection());
 			chunk->SetView(Camera.GetView());

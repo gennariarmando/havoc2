@@ -10,6 +10,7 @@
 #include "AGraphicDevice.h"
 #include "AConsole.h"
 #include "AEngineSettings.h"
+#include "Text.h"
 
 CFrontend Frontend;
 
@@ -64,23 +65,23 @@ bool CFrontend::Init() {
 	m_vMenuPages.resize(NUM_MENUPAGES);
 	// MENUPAGE_MAIN
 	if (tMenuPage* page = AddPage(MENUPAGE_MAIN, { MENUPAGE_NONE, 0, { FE_1_PLAY, FE_1_OPTIONS, FE_1_QUIT }, { } } )) {
-		AddItem(page, { MENUACTION_CHANGEPAGE, "PLAY", MENUPAGE_PLAY });
-		AddItem(page, { MENUACTION_CHANGEPAGE, "OPTIONS", MENUPAGE_OPTIONS });
-		AddItem(page, { MENUACTION_CHANGEPAGE, "QUIT", MENUPAGE_CREDITS });
+		AddItem(page, { MENUACTION_CHANGEPAGE, "play", MENUPAGE_PLAY });
+		AddItem(page, { MENUACTION_CHANGEPAGE, "options", MENUPAGE_OPTIONS });
+		AddItem(page, { MENUACTION_CHANGEPAGE, "quit", MENUPAGE_CREDITS });
 	}
 
 	// MENUPAGE_PLAY
 	if (tMenuPage* page = AddPage(MENUPAGE_PLAY, { MENUPAGE_MAIN, 0, { FE_2_NAME, FE_2_RESTART, FE_2_LEAGUE, FE_2_LEVEL1 }, { } } )) {
-		AddItem(page, { MENUACTION_SETPLAYERNAME, "PLAYER 0", MENUPAGE_NONE });
-		AddItem(page, { MENUACTION_RESUMESAVEDSTATUS, "RESUME SAVED STATUS", MENUPAGE_NONE });
-		AddItem(page, { MENUACTION_CHANGEPAGE, "VIEW HIGH SCORES", MENUPAGE_VIEWHIGHSCORES });
-		AddItem(page, { MENUACTION_STARTPLAYINAREA, "START PLAY IN AREA", MENUPAGE_NONE });
+		AddItem(page, { MENUACTION_SETPLAYERNAME, "blank", MENUPAGE_NONE });
+		AddItem(page, { MENUACTION_RESUMESAVEDSTATUS, "savepos", MENUPAGE_NONE });
+		AddItem(page, { MENUACTION_CHANGEPAGE, "hi_scre", MENUPAGE_VIEWHIGHSCORES });
+		AddItem(page, { MENUACTION_STARTPLAYINAREA, "strtlev", MENUPAGE_NONE });
 	}
 
 	// MENUPAGE_OPTIONS
 	if (tMenuPage* page = AddPage(MENUPAGE_OPTIONS, { MENUPAGE_MAIN, 1, { FE_1_OPTIONS, FE_1_OPTIONS, FE_1_OPTIONS }, { } })) {
-		AddItem(page, { MENUACTION_CHANGEPAGE, "VIDEO", MENUPAGE_VIDEO });
-		AddItem(page, { MENUACTION_CHANGEPAGE, "AUDIO", MENUPAGE_AUDIO });
+		AddItem(page, { MENUACTION_CHANGEPAGE, "blank", MENUPAGE_VIDEO });
+		AddItem(page, { MENUACTION_CHANGEPAGE, "blank", MENUPAGE_AUDIO });
 	}
 
 	// MENUPAGE_CREDITS
@@ -95,15 +96,15 @@ bool CFrontend::Init() {
 
 	// MENUPAGE_VIDEO
 	if (tMenuPage* page = AddPage(MENUPAGE_VIDEO, { MENUPAGE_OPTIONS, 0, { FE_1_OPTIONS, FE_1_OPTIONS, FE_1_OPTIONS }, { } })) {
-		AddItem(page, { MENUACTION_SCREENRES, "RESOLUTION:", MENUPAGE_NONE });
-		AddItem(page, { MENUACTION_FULLSCREEN, "FULLSCREEN:", MENUPAGE_NONE });
-		AddItem(page, { MENUACTION_VSYNC, "VSYNC:", MENUPAGE_NONE });
+		AddItem(page, { MENUACTION_SCREENRES, "blank", MENUPAGE_NONE });
+		AddItem(page, { MENUACTION_FULLSCREEN, "blank", MENUPAGE_NONE });
+		AddItem(page, { MENUACTION_VSYNC, "blank", MENUPAGE_NONE });
 	}
 
 	// MENUPAGE_AUDIO
 	if (tMenuPage* page = AddPage(MENUPAGE_AUDIO, { MENUPAGE_OPTIONS, 1, { FE_1_OPTIONS, FE_1_OPTIONS	 }, { } })) {
-		AddItem(page, { MENUACTION_SFX, "SFX:", MENUPAGE_NONE });
-		AddItem(page, { MENUACTION_MUSIC, "VOLUME:", MENUPAGE_NONE });
+		AddItem(page, { MENUACTION_SFX, "psxeff", MENUPAGE_NONE });
+		AddItem(page, { MENUACTION_MUSIC, "psxmus", MENUPAGE_NONE });
 
 	}
 
@@ -281,43 +282,53 @@ void CFrontend::Draw() {
 		float spacing = (MENU_ITEM_SPACING * i);
 		float x = MENU_ITEM_POS_X;
 		float y = MENU_ITEM_POS_Y - centerOffset;
-		const std::string rightText = GetActionRightString(m_vMenuPages.at(m_nCurrentPage).menuItems.at(i).action);
-		bool hasRightString = rightText.empty();
+
+		const std::string leftString = TheText.Get(item.name.c_str());
+		const std::string rightString = GetActionRightString(m_vMenuPages.at(m_nCurrentPage).menuItems.at(i).action);
 
 		Font.Reset();
 		Font.SetFontAlignment(FONT_ALIGN_LEFT);
 		Font.SetFontStyle(FONT_STYLE_MENU);
 		Font.SetWrapX(SCREEN_SCALE_RIGHT(0.0f));
 
+		bool hasRightString = rightString.empty();
+
 		if (hasRightString)
 			Font.SetScale(SCREEN_SCALE_Y(MENU_ITEM_HEIGHT));
 		else
 			Font.SetScale(SCREEN_SCALE_Y(MENU_ITEM_HEIGHT * 0.9f));
+
+		float leftStringWidth = Font.GetStringWidth(leftString + ' ');
+		float rightStringWidth = 0.0f;
+		float charHeight = Font.GetCharacterSize(leftString.at(0)).y;
+
+		if (hasRightString)
+			rightStringWidth = Font.GetStringWidth(rightString + ' ');
 
 		if (m_nCurrentItem == i)
 			Font.SetColor(glm::vec4(ToVec4(static_cast<glm::uint8>(m_fItemColorPulse * MENU_ITEM_COLOR_R), MENU_ITEM_COLOR_G, MENU_ITEM_COLOR_B, 255)));
 		else
 			Font.SetColor(glm::vec4(1.0f));
 
-		Font.PrintString({ SCREEN_SCALE_X(x), SCREEN_SCALE_Y(y + spacing) }, item.name);
+		Font.PrintString({ SCREEN_SCALE_X(x), SCREEN_SCALE_Y(y + spacing) }, leftString);
 
 		if (!hasRightString)
-			Font.PrintString({ SCREEN_SCALE_X(x) + Font.GetStringWidth(item.name + ' '), SCREEN_SCALE_Y(y + spacing) }, rightText);
+			Font.PrintString({ SCREEN_SCALE_X(x) + leftStringWidth, SCREEN_SCALE_Y(y + spacing) }, rightString);
 
 		float sliderSize = 0.0f;
 		switch (item.action) {
 		case MENUACTION_SFX:
-			sliderSize = DrawSlider(SCREEN_SCALE_X(x) + Font.GetStringWidth(item.name + ' '), SCREEN_SCALE_Y(y + spacing), SCREEN_SCALE_H(MENU_SLIDER_RECT_W), SCREEN_SCALE_H(MENU_SLIDER_RECT_H), EngineSettings.m_nSfx);
+			sliderSize = DrawSlider(SCREEN_SCALE_X(x) + leftStringWidth, SCREEN_SCALE_Y(y + spacing), SCREEN_SCALE_H(MENU_SLIDER_RECT_W), SCREEN_SCALE_H(MENU_SLIDER_RECT_H), EngineSettings.m_nSfx);
 			break;
 		case MENUACTION_MUSIC:
-			sliderSize = DrawSlider(SCREEN_SCALE_X(x) + Font.GetStringWidth(item.name + ' '), SCREEN_SCALE_Y(y + spacing), SCREEN_SCALE_H(MENU_SLIDER_RECT_W), SCREEN_SCALE_H(MENU_SLIDER_RECT_H), EngineSettings.m_nMusic);
+			sliderSize = DrawSlider(SCREEN_SCALE_X(x) + leftStringWidth, SCREEN_SCALE_Y(y + spacing), SCREEN_SCALE_H(MENU_SLIDER_RECT_W), SCREEN_SCALE_H(MENU_SLIDER_RECT_H), EngineSettings.m_nMusic);
 			break;
 		case MENUACTION_STARTPLAYINAREA:
-			DrawOneChar(SCREEN_SCALE_X(x + MENU_ITEM_AREA_NUMBER), SCREEN_SCALE_Y(y + spacing + 1.0f) + (Font.GetCharacterSize(item.name.at(0)).y), '1');
+			DrawOneChar(SCREEN_SCALE_X(x + MENU_ITEM_AREA_NUMBER), SCREEN_SCALE_Y(y + spacing + 1.0f) + charHeight, '1');
 			break;
 		}
 
-		if (CheckHover(SCREEN_SCALE_X(x), SCREEN_SCALE_X(x) + Font.GetStringWidth(item.name + rightText) + sliderSize, SCREEN_SCALE_Y(y + spacing), SCREEN_SCALE_Y(y + spacing) + Font.GetCharacterSize(item.name.at(0)).y))
+		if (CheckHover(SCREEN_SCALE_X(x), SCREEN_SCALE_X(x) + leftStringWidth + rightStringWidth + sliderSize, SCREEN_SCALE_Y(y + spacing), SCREEN_SCALE_Y(y + spacing) + charHeight))
 			m_nHoverItem = i;
 
 		i++;
@@ -412,7 +423,7 @@ void CFrontend::DrawBackground() {
 	}
 
 	if (fullBackground) {
-		m_pFrontendSprites.at(background)->Draw(SCREEN_SCALE_X(0.0f), SCREEN_SCALE_Y(0.0f), SCREEN_SCALE_RIGHT(0.0f), SCREEN_SCALE_BOTTOM(0.0f), glm::vec4(1.0f));
+		m_pFrontendSprites.at(background)->Draw(SCREEN_SCALE_X(0.0f), SCREEN_SCALE_Y(0.0f), SCREEN_SCALE_W(MENU_BACKGROUND_WIDTH), SCREEN_SCALE_H(MENU_BACKGROUND_HEIGHT), glm::vec4(1.0f));
 	}
 	else {
 		m_pFrontendSprites.at(left)->Draw(SCREEN_SCALE_X(0.0f), SCREEN_SCALE_Y(0.0f), SCREEN_SCALE_W(MENU_BACKGROUND_LEFT_WIDTH), SCREEN_SCALE_H(MENU_BACKGROUND_HEIGHT), glm::vec4(1.0f));

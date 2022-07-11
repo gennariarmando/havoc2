@@ -14,6 +14,7 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include <codecvt>
 
 // GLM - OpenGL Mathematics: https://github.com/g-truc/glm
 #define GLM_FORCE_LEFT_HANDED

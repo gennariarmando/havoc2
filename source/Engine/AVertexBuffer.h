@@ -24,6 +24,8 @@ public:
 
     AShader* m_pShader;
 
+    bool m_bUpdateRenderData;
+
 public:
 	AVertexBuffer();
 
@@ -48,6 +50,8 @@ public:
 
     void SetTexture(glm::uint32 tex);
     void SetShader(AShader* shader);
+
+    void SetUpdateData(bool on);
 
     void RenderPrimitives();
 
