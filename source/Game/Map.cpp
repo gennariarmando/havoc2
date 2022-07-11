@@ -18,7 +18,7 @@ CMap::CMap() {
 
 CMap::CMap(std::string const& fileName) {
 	Clear();
-	Read(fileName);
+	Load(fileName);
 }
 
 CMap::~CMap() {
@@ -39,12 +39,22 @@ void CMap::Clear() {
 	m_vCollisionMap = {};
 }
 
-void CMap::Read(std::string const& fileName) {
+bool CMap::Load(std::string const& fileName) {
 	if (m_bFileParsed)
-		return;
+		return true;
 
-	if (!Init(fileName, GMP_FILE_VERSION)) {
-		return;
+	AFileMgr file;
+	if (!file.Open(fileName)) {
+		return false;
+	}
+
+	char header[4] = {};
+	file.ReadCustom(header, 4);
+
+	glm::uint16 version = file.ReadUInt16();
+
+	if (strncmp(header, "GBMP", 4) || version != GMP_VERSION) {
+		return false;
 	}
 
 	m_vGeometryChunks.reserve(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y);
@@ -57,53 +67,59 @@ void CMap::Read(std::string const& fileName) {
 	m_vLights = std::make_unique<std::vector<tMapLight>>();
 	m_vCollisionMap.resize(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y);
 
-	while (LoopThroughChunks()) {
-		switch (GetChunkType()) {
-		case DMAP:
-			Read32BitMap();
-			break;
-		case ZONE:
-			ReadZones();
-			break;
-		case MOBJ:
-			ReadObjects();
-			break;
-		case ANIM:
-			ReadAnimations();
-			break;
-		case LGHT:
-			ReadLights();
-			break;
-		default:
-			SkipChunk();
-			break;
+	while (file.GetPosition() < file.GetSize()) {
+		char chunk[4] = {};
+		chunk[0] = file.ReadUInt8();
+		chunk[1] = file.ReadUInt8();
+		chunk[2] = file.ReadUInt8();
+		chunk[3] = file.ReadUInt8();
+
+		glm::uint64 chunkSize = file.ReadUInt32();
+
+		if (chunkSize != 0) {
+			if (!strncmp(chunk, "DMAP", 4))
+				LoadDMAP(chunkSize, file);
+			else if (!strncmp(chunk, "ZONE", 4))
+				LoadZONE(chunkSize, file);
+			else if (!strncmp(chunk, "MOBJ", 4))
+				LoadMOBJ(chunkSize, file);
+			else if (!strncmp(chunk, "ANIM", 4))
+				LoadANIM(chunkSize, file);
+			else if (!strncmp(chunk, "LGHT", 4))
+				LoadLGHT(chunkSize, file);
+			else
+				file.Seek(chunkSize);
 		}
 	}
 
+	file.Close();
+
 	m_bFileParsed = true;
 	BuildEverything();
+
+	return true;
 }
 
-void CMap::Read32BitMap() {
+void CMap::LoadDMAP(glm::uint64 length, AFileMgr& file) {
 	std::vector<glm::uint32> base(MAP_SCALE_X * MAP_SCALE_Y);
-	GetFile()->ReadCustom(base.data(), sizeof(glm::uint32) * base.size());
+	file.ReadCustom(base.data(), sizeof(glm::uint32) * base.size());
 
-	glm::uint32 columnWords = GetFile()->ReadUInt32();
+	glm::uint32 columnWords = file.ReadUInt32();
 	std::vector<glm::uint32> column(columnWords);
-	GetFile()->ReadCustom(column.data(), sizeof(glm::uint32) * column.size());
+	file.ReadCustom(column.data(), sizeof(glm::uint32) * column.size());
 
-	glm::uint32 numBlocks = GetFile()->ReadUInt32();
+	glm::uint32 numBlocks = file.ReadUInt32();
 	std::vector<tBlockInfoDetailed> blocks(numBlocks);
 
 	for (auto& blockInfo : blocks) {
 		tBlockInfo block = {};
-		block.face[FACETYPE_LEFT] = GetFile()->ReadUInt16();
-		block.face[FACETYPE_RIGHT] = GetFile()->ReadUInt16();
-		block.face[FACETYPE_TOP] = GetFile()->ReadUInt16();
-		block.face[FACETYPE_BOTTOM] = GetFile()->ReadUInt16();
-		block.face[FACETYPE_LID] = GetFile()->ReadUInt16();
-		block.arrows = GetFile()->ReadUInt8();
-		block.slopeType = GetFile()->ReadUInt8();
+		block.face[FACETYPE_LEFT] = file.ReadUInt16();
+		block.face[FACETYPE_RIGHT] = file.ReadUInt16();
+		block.face[FACETYPE_TOP] = file.ReadUInt16();
+		block.face[FACETYPE_BOTTOM] = file.ReadUInt16();
+		block.face[FACETYPE_LID] = file.ReadUInt16();
+		block.arrows = file.ReadUInt8();
+		block.slopeType = file.ReadUInt8();
 
 		ParseBlockInfo(block, blockInfo, FACETYPE_LEFT);
 		ParseBlockInfo(block, blockInfo, FACETYPE_RIGHT);
@@ -118,75 +134,75 @@ void CMap::Read32BitMap() {
 	m_pCompressedMap->blocks = blocks;
 }
 
-void CMap::ReadZones() {
+void CMap::LoadZONE(glm::uint64 length, AFileMgr& file) {
 	glm::uint64 pos = 0;
-	while (pos < GetChunkSize()) {
+	while (pos < length) {
 		tMapZone zone = {};
-		zone.zoneType = static_cast<eZoneType>(GetFile()->ReadInt8());
-		zone.x = static_cast<float>(GetFile()->ReadInt8());
-		zone.y = static_cast<float>(GetFile()->ReadInt8());
-		zone.w = static_cast<float>(GetFile()->ReadInt8());
-		zone.h = static_cast<float>(GetFile()->ReadInt8());
-		glm::int8 nameLength = GetFile()->ReadUInt8();
+		zone.zoneType = static_cast<eZoneType>(file.ReadInt8());
+		zone.x = static_cast<float>(file.ReadInt8());
+		zone.y = static_cast<float>(file.ReadInt8());
+		zone.w = static_cast<float>(file.ReadInt8());
+		zone.h = static_cast<float>(file.ReadInt8());
+		glm::int8 nameLength = file.ReadUInt8();
 
 		for (int i = 0; i < nameLength; i++)
-			zone.name += GetFile()->ReadUInt8();
+			zone.name += file.ReadUInt8();
 
 		m_vZones->push_back(zone);
 		pos += 6 + nameLength;
 	}
 }
 
-void CMap::ReadObjects() {
-	glm::uint64 startOffset = GetFile()->GetPosition();
-	while (GetFile()->GetPosition() < startOffset + GetChunkSize()) {
+void CMap::LoadMOBJ(glm::uint64 length, AFileMgr& file) {
+	glm::uint64 startOffset = file.GetPosition();
+	while (file.GetPosition() < startOffset + length) {
 		tMapObject object = {};
 
-		object.x = GetFile()->ReadInt16();
-		object.y = GetFile()->ReadInt16();
-		object.rot = GetFile()->ReadInt8();
-		object.objectType = GetFile()->ReadUInt8();
+		object.x = file.ReadInt16();
+		object.y = file.ReadInt16();
+		object.rot = file.ReadInt8();
+		object.objectType = file.ReadUInt8();
 	}
 }
 
-void CMap::ReadAnimations() {
-	glm::uint64 startOffset = GetFile()->GetPosition();
-	while (GetFile()->GetPosition() < startOffset + GetChunkSize()) {
+void CMap::LoadANIM(glm::uint64 length, AFileMgr& file) {
+	glm::uint64 startOffset = file.GetPosition();
+	while (file.GetPosition() < startOffset + length) {
 		tTileAnimation anim = {};
-		anim.base = GetFile()->ReadUInt16();
-		anim.frameRate = GetFile()->ReadUInt8();
-		anim.repeat = GetFile()->ReadUInt8();
+		anim.base = file.ReadUInt16();
+		anim.frameRate = file.ReadUInt8();
+		anim.repeat = file.ReadUInt8();
 
-		glm::uint8 animLength = GetFile()->ReadUInt8();
-		GetFile()->ReadUInt8();
+		glm::uint8 animLength = file.ReadUInt8();
+		file.ReadUInt8();
 
 		for (glm::int32 i = 0; i < animLength; i++)
-			anim.tiles.push_back(GetFile()->ReadUInt16());
+			anim.tiles.push_back(file.ReadUInt16());
 
 		m_vAnimations->push_back(anim);
 	}
 }
 
-void CMap::ReadLights() {
-	glm::uint64 startOffset = GetFile()->GetPosition();
-	while (GetFile()->GetPosition() < startOffset + GetChunkSize()) {
+void CMap::LoadLGHT(glm::uint64 length, AFileMgr& file) {
+	glm::uint64 startOffset = file.GetPosition();
+	while (file.GetPosition() < startOffset + length) {
 		tMapLight light = {};
 
-		light.color.a = GetFile()->ReadUInt8() / 255.0f;
-		light.color.r = GetFile()->ReadUInt8() / 255.0f;
-		light.color.g = GetFile()->ReadUInt8() / 255.0f;
-		light.color.b = GetFile()->ReadUInt8() / 255.0f;
+		light.color.a = file.ReadUInt8() / 255.0f;
+		light.color.r = file.ReadUInt8() / 255.0f;
+		light.color.g = file.ReadUInt8() / 255.0f;
+		light.color.b = file.ReadUInt8() / 255.0f;
 
-		light.pos.x = static_cast<float>(GetFile()->ReadUInt16());
-		light.pos.y = static_cast<float>(GetFile()->ReadUInt16());
-		light.pos.z = static_cast<float>(GetFile()->ReadUInt16());
+		light.pos.x = static_cast<float>(file.ReadUInt16());
+		light.pos.y = static_cast<float>(file.ReadUInt16());
+		light.pos.z = static_cast<float>(file.ReadUInt16());
 
-		light.radius = static_cast<float>(GetFile()->ReadUInt16());
+		light.radius = static_cast<float>(file.ReadUInt16());
 
-		light.intensity = GetFile()->ReadUInt8();
-		light.shape = GetFile()->ReadUInt8();
-		light.timeOn = GetFile()->ReadUInt8();
-		light.timeOff = GetFile()->ReadUInt8();
+		light.intensity = file.ReadUInt8();
+		light.shape = file.ReadUInt8();
+		light.timeOn = file.ReadUInt8();
+		light.timeOff = file.ReadUInt8();
 
 		m_vLights->push_back(light);
 	}

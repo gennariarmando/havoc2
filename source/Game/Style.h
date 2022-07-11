@@ -1,6 +1,10 @@
 #pragma once
-#include "GBH.h"
+#include "AFileMgr.h"
 #include "ASprite.h"		
+
+enum {
+	STY_VERSION = 0x2BC
+};
 
 enum eBaseIndices {
 	BASEINDEX_CARS,
@@ -122,7 +126,7 @@ struct tStyGraphics {
 	tFontBase fontBase;
 };
 
-class CStyle : CGBH {
+class CStyle {
 public:
 	bool m_bFileParsed;
 	bool m_bBuildComplete;
@@ -139,22 +143,22 @@ public:
 	void Clear();
 
 private:
-	void Read(std::string const& fileName);
-	void ReadPALX();
-	void ReadPPAL();
-	void ReadPALB();
-	void ReadTILE();
-	void ReadSPRG();
-	void ReadSPRX();
-	void ReadSPRB();
-	void ReadDELS();
-	void ReadDELX();
-	void ReadFONB();
-	void ReadCARI();
-	void ReadOBJI();
-	void ReadPSXT();
-	void ReadRECY();
-	void ReadSPEC();
+	bool Load(std::string const& fileName);
+	void LoadPALX(glm::uint64 length, AFileMgr& file);
+	void LoadPPAL(glm::uint64 length, AFileMgr& file);
+	void LoadPALB(glm::uint64 length, AFileMgr& file);
+	void LoadTILE(glm::uint64 length, AFileMgr& file);
+	void LoadSPRG(glm::uint64 length, AFileMgr& file);
+	void LoadSPRX(glm::uint64 length, AFileMgr& file);
+	void LoadSPRB(glm::uint64 length, AFileMgr& file);
+	void LoadDELS(glm::uint64 length, AFileMgr& file);
+	void LoadDELX(glm::uint64 length, AFileMgr& file);
+	void LoadFONB(glm::uint64 length, AFileMgr& file);
+	void LoadCARI(glm::uint64 length, AFileMgr& file);
+	void LoadOBJI(glm::uint64 length, AFileMgr& file);
+	void LoadPSXT(glm::uint64 length, AFileMgr& file);
+	void LoadRECY(glm::uint64 length, AFileMgr& file);
+	void LoadSPEC(glm::uint64 length, AFileMgr& file);
 
 	void BuildTextures();
 	void BuildTextureAtlas();

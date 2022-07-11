@@ -16,7 +16,7 @@
 CGame Game;
 
 CGame::CGame() {
-	m_eGameState = GS_INIT_FRONTEND;
+	m_eGameState = GS_BEGIN;
 }
 
 void CGame::Run() {

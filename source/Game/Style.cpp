@@ -9,7 +9,7 @@ CStyle::CStyle() {
 
 CStyle::CStyle(std::string const& fileName) {	
 	Clear();
-	Read(fileName);
+	Load(fileName);
 }
 
 CStyle::~CStyle() {
@@ -24,95 +24,101 @@ void CStyle::Clear() {
 	m_pSprites = {};
 }
 
-void CStyle::Read(std::string const& fileName) {
+bool CStyle::Load(std::string const& fileName) {
 	if (m_bFileParsed)
-		return;
+		return true;
 
-	if (!Init(fileName, STY_FILE_VERSION)) {
-		return;
+	AFileMgr file;
+	if (!file.Open(fileName)) {
+		return false;
+	}
+
+	char header[4] = {};
+	file.ReadCustom(header, 4);
+
+	glm::uint16 version = file.ReadUInt16();
+
+	if (strncmp(header, "GBST", 4) || version != STY_VERSION) {
+		return false;
 	}
 
 	m_pGraphics = std::make_shared<tStyGraphics>();
 
-	while (LoopThroughChunks()) {
-		switch (GetChunkType()) {
-		case PALX:
-			ReadPALX();
-			break;
-		case PPAL:
-			ReadPPAL();
-			break;
-		case PALB:
-			ReadPALB();
-			break;
-		case TILE:
-			ReadTILE();
-			break;
-		case SPRB:
-			ReadSPRB();
-			break;
-		case SPRX:
-			ReadSPRX();
-			break;
-		case SPRG:
-			ReadSPRG();
-			break;
-		case DELS:
-			ReadDELS();
-			break;
-		case DELX:
-			ReadDELX();
-			break;
-		case FONB:
-			ReadFONB();
-			break;
-		case CARI:
-			ReadCARI();
-			break;
-		case OBJI:
-			ReadOBJI();
-			break;
-		case PSXT:
-			ReadPSXT();
-			break;
-		case RECY:
-			ReadRECY();
-			break;
-		case SPEC:
-			ReadSPEC();
-			break;
-		default:
-			SkipChunk();
-			break;
+	while (file.GetPosition() < file.GetSize()) {
+		char chunk[4] = {};
+		chunk[0] = file.ReadUInt8();
+		chunk[1] = file.ReadUInt8();
+		chunk[2] = file.ReadUInt8();
+		chunk[3] = file.ReadUInt8();
+
+		glm::uint64 chunkSize = file.ReadUInt32();
+		
+		if (chunkSize != 0) {
+			if (!strncmp(chunk, "PALX", 4))
+				LoadPALX(chunkSize, file);
+			else if (!strncmp(chunk, "PPAL", 4))
+				LoadPPAL(chunkSize, file);
+			else if (!strncmp(chunk, "PALB", 4))
+				LoadPALB(chunkSize, file);
+			else if (!strncmp(chunk, "TILE", 4))
+				LoadTILE(chunkSize, file);
+			else if (!strncmp(chunk, "SPRB", 4))
+				LoadSPRB(chunkSize, file);
+			else if (!strncmp(chunk, "SPRX", 4))
+				LoadSPRX(chunkSize, file);
+			else if (!strncmp(chunk, "SPRG", 4))
+				LoadSPRG(chunkSize, file);
+			else if (!strncmp(chunk, "DELS", 4))
+				LoadDELS(chunkSize, file);
+			else if (!strncmp(chunk, "DELX", 4))
+				LoadDELX(chunkSize, file);
+			else if (!strncmp(chunk, "FONB", 4))
+				LoadFONB(chunkSize, file);
+			else if (!strncmp(chunk, "CARI", 4))
+				LoadCARI(chunkSize, file);
+			else if (!strncmp(chunk, "OBJI", 4))
+				LoadOBJI(chunkSize, file);
+			else if (!strncmp(chunk, "PSXT", 4))
+				LoadPSXT(chunkSize, file);
+			else if (!strncmp(chunk, "RECY", 4))
+				LoadRECY(chunkSize, file);
+			else if (!strncmp(chunk, "SPEC", 4))
+				LoadSPEC(chunkSize, file);
+			else
+				file.Seek(chunkSize);
 		}
 	}
 
+	file.Close();
+
 	m_bFileParsed = true;
 	BuildEverything();
+
+	return true;
 }
 
-void CStyle::ReadPALX() {
+void CStyle::LoadPALX(glm::uint64 length, AFileMgr& file) {
 	tPaletteIndex palx;
 
 	palx.physPalette.resize(16384);
-	GetFile()->ReadCustom(palx.physPalette.data(), static_cast<glm::uint64>(16384) * sizeof(glm::uint16));
+	file.ReadCustom(palx.physPalette.data(), static_cast<glm::uint64>(16384) * sizeof(glm::uint16));
 
 	m_pGraphics->paletteIndex = palx;
 }
 
-void CStyle::ReadPPAL() {
+void CStyle::LoadPPAL(glm::uint64 length, AFileMgr& file) {
 	const glm::uint32 size = 64 * 256;
 	std::unique_ptr<std::unique_ptr<glm::uint8[]>[]> page = std::make_unique<std::unique_ptr<glm::uint8[]>[]>(size);
 
-	glm::uint64 pageCount = GetChunkSize() / (size * 4);
+	glm::uint64 pageCount = length / (size * 4);
 	std::vector<tPhysicalPalette> palettes;
 	for (glm::int32 p = 0; p < pageCount; p++) {
 		for (glm::int32 i = 0; i < size; i++) {
 			page[i] = std::make_unique<glm::uint8[]>(4);
-			page[i][0] = GetFile()->ReadUInt8();
-			page[i][1] = GetFile()->ReadUInt8();
-			page[i][2] = GetFile()->ReadUInt8();
-			page[i][3] = GetFile()->ReadUInt8();
+			page[i][0] = file.ReadUInt8();
+			page[i][1] = file.ReadUInt8();
+			page[i][2] = file.ReadUInt8();
+			page[i][3] = file.ReadUInt8();
 		}
 
 		tPhysicalPalette palette;
@@ -129,23 +135,23 @@ void CStyle::ReadPPAL() {
 	m_pGraphics->physicalPalette = palettes;
 }
 
-void CStyle::ReadPALB() {
+void CStyle::LoadPALB(glm::uint64 length, AFileMgr& file) {
 	tPaletteBase palb;
-	GetFile()->ReadCustom(&palb, sizeof(palb));
+	file.ReadCustom(&palb, sizeof(palb));
 
 	m_pGraphics->paletteBase = palb;
 }
 
-void CStyle::ReadTILE() {
+void CStyle::LoadTILE(glm::uint64 length, AFileMgr& file) {
 	std::vector<tTileData> tiles;
 	std::unique_ptr<tTileData[]> tile = std::make_unique<tTileData[]>(4);
-	glm::uint64 halfPageCount = GetChunkSize() / (sizeof(tTileData) * 4);
+	glm::uint64 halfPageCount = length / (sizeof(tTileData) * 4);
 	for (glm::uint32 i = 0; i < halfPageCount; i++) {
 		for (glm::uint32 row = 0; row < 64; row++) {
-			GetFile()->ReadCustom(&tile[0].pixels[row], sizeof(tile[0].pixels[row]));
-			GetFile()->ReadCustom(&tile[1].pixels[row], sizeof(tile[1].pixels[row]));
-			GetFile()->ReadCustom(&tile[2].pixels[row], sizeof(tile[2].pixels[row]));
-			GetFile()->ReadCustom(&tile[3].pixels[row], sizeof(tile[3].pixels[row]));
+			file.ReadCustom(&tile[0].pixels[row], sizeof(tile[0].pixels[row]));
+			file.ReadCustom(&tile[1].pixels[row], sizeof(tile[1].pixels[row]));
+			file.ReadCustom(&tile[2].pixels[row], sizeof(tile[2].pixels[row]));
+			file.ReadCustom(&tile[3].pixels[row], sizeof(tile[3].pixels[row]));
 		}
 		tiles.push_back(tile[0]);
 		tiles.push_back(tile[1]);
@@ -156,9 +162,9 @@ void CStyle::ReadTILE() {
 	m_pGraphics->tileData = tiles;
 }
 
-void CStyle::ReadSPRG() {
-	std::vector<glm::uint8> sprg(static_cast<glm::uint32>(GetChunkSize()));
-	GetFile()->ReadCustom(sprg.data(), sizeof(glm::uint8) * sprg.size());
+void CStyle::LoadSPRG(glm::uint64 length, AFileMgr& file) {
+	std::vector<glm::uint8> sprg(static_cast<glm::uint32>(length));
+	file.ReadCustom(sprg.data(), sizeof(glm::uint8) * sprg.size());
 
 	m_pGraphics->spriteGraphics = sprg;
 
@@ -177,36 +183,36 @@ void CStyle::ReadSPRG() {
 	m_pGraphics->spriteData = sprites;
 }
 
-void CStyle::ReadSPRX() {
-	std::vector<tSpriteEntry> sprx(static_cast<glm::uint32>(GetChunkSize()));
+void CStyle::LoadSPRX(glm::uint64 length, AFileMgr& file) {
+	std::vector<tSpriteEntry> sprx(static_cast<glm::uint32>(length));
 
-	GetFile()->ReadCustom(sprx.data(), GetChunkSize());
+	file.ReadCustom(sprx.data(), length);
 	m_pGraphics->spriteIndex = sprx;
 }
 
-void CStyle::ReadSPRB() {
+void CStyle::LoadSPRB(glm::uint64 length, AFileMgr& file) {
 	tSpriteBase sprb;
-	GetFile()->ReadCustom(&sprb, sizeof(sprb));
+	file.ReadCustom(&sprb, sizeof(sprb));
 	m_pGraphics->spriteBase = sprb;
 }
 
-void CStyle::ReadDELS() {
-	SkipChunk();
+void CStyle::LoadDELS(glm::uint64 length, AFileMgr& file) {
+	file.Seek(length);
 }
 
-void CStyle::ReadDELX() {
-	SkipChunk();
+void CStyle::LoadDELX(glm::uint64 length, AFileMgr& file) {
+	file.Seek(length);
 }
 
-void CStyle::ReadFONB() {
+void CStyle::LoadFONB(glm::uint64 length, AFileMgr& file) {
 	tFontBase fonb;
 
-	fonb.fontCount = GetFile()->ReadUInt16();
+	fonb.fontCount = file.ReadUInt16();
 
 	glm::uint16 lastBase = 0;
 	for (glm::uint32 i = 0; i < fonb.fontCount; i++) {
 		uint16_t base;
-		base = GetFile()->ReadUInt16();
+		base = file.ReadUInt16();
 		fonb.base.push_back(lastBase);
 		lastBase += base;
 	}
@@ -214,39 +220,39 @@ void CStyle::ReadFONB() {
 	m_pGraphics->fontBase = fonb;
 }
 
-void CStyle::ReadCARI() {
-	glm::int64 startOffset = GetFile()->GetPosition();
+void CStyle::LoadCARI(glm::uint64 length, AFileMgr& file) {
+	glm::int64 startOffset = file.GetPosition();
 	std::vector<tCarInfo> cari_vec;
-	while (GetFile()->GetPosition() < startOffset + GetChunkSize()) {
+	while (file.GetPosition() < startOffset + length) {
 		tCarInfo cari;
 
-		cari.model = GetFile()->ReadUInt8();
-		cari.sprite = GetFile()->ReadUInt8();
-		cari.w = GetFile()->ReadUInt8();
-		cari.h = GetFile()->ReadUInt8();
-		cari.numRemaps = GetFile()->ReadUInt8();
-		cari.passengers = GetFile()->ReadUInt8();
-		cari.wreck = GetFile()->ReadUInt8();
-		cari.rating = GetFile()->ReadUInt8();
-		cari.frontWheelOffset = GetFile()->ReadInt8();
-		cari.rearWheelOffset = GetFile()->ReadInt8();
-		cari.frontWindowOffset = GetFile()->ReadInt8();
-		cari.rearWindowOffset = GetFile()->ReadInt8();
-		cari.infoFlags = GetFile()->ReadUInt8();
-		cari.infoFlags2 = GetFile()->ReadUInt8();
+		cari.model = file.ReadUInt8();
+		cari.sprite = file.ReadUInt8();
+		cari.w = file.ReadUInt8();
+		cari.h = file.ReadUInt8();
+		cari.numRemaps = file.ReadUInt8();
+		cari.passengers = file.ReadUInt8();
+		cari.wreck = file.ReadUInt8();
+		cari.rating = file.ReadUInt8();
+		cari.frontWheelOffset = file.ReadInt8();
+		cari.rearWheelOffset = file.ReadInt8();
+		cari.frontWindowOffset = file.ReadInt8();
+		cari.rearWindowOffset = file.ReadInt8();
+		cari.infoFlags = file.ReadUInt8();
+		cari.infoFlags2 = file.ReadUInt8();
 
 		for (glm::int32 i = 0; i < cari.numRemaps; i++) {
 			glm::uint8 remap;
-			remap = GetFile()->ReadUInt8();
+			remap = file.ReadUInt8();
 			cari.remap.push_back(remap);
 		}
 
-		cari.numDoors = GetFile()->ReadUInt8();
+		cari.numDoors = file.ReadUInt8();
 
 		for (glm::int32 i = 0; i < cari.numDoors; i++) {
 			tDoorInfo door;
-			door.rx = GetFile()->ReadInt8();
-			door.ry = GetFile()->ReadInt8();
+			door.rx = file.ReadInt8();
+			door.ry = file.ReadInt8();
 			cari.doors.push_back(door);
 		}
 		cari_vec.push_back(cari);
@@ -255,20 +261,20 @@ void CStyle::ReadCARI() {
 	m_pGraphics->carInfo = cari_vec;
 }
 
-void CStyle::ReadOBJI() {
-	SkipChunk();
+void CStyle::LoadOBJI(glm::uint64 length, AFileMgr& file) {
+	file.Seek(length);
 }
 
-void CStyle::ReadPSXT() {
-	SkipChunk();
+void CStyle::LoadPSXT(glm::uint64 length, AFileMgr& file) {
+	file.Seek(length);
 }
 
-void CStyle::ReadRECY() {
-	SkipChunk();
+void CStyle::LoadRECY(glm::uint64 length, AFileMgr& file) {
+	file.Seek(length);
 }
 
-void CStyle::ReadSPEC() {
-	SkipChunk();
+void CStyle::LoadSPEC(glm::uint64 length, AFileMgr& file) {
+	file.Seek(length);
 }
 
 std::vector<glm::uint8> CStyle::GetSingleSpriteData(glm::int32 sprite) {

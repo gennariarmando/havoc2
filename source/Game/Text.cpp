@@ -27,14 +27,13 @@ bool CText::Load() {
 		return false;
 	}
 
-	char header[4];
+	char header[3] = {};
 	file.ReadCustom(header, 3);
-	header[3] = '\0';
 
 	m_cEncoding = file.ReadUInt8();
 	glm::uint16 version = file.ReadUInt16();
 
-	if (strcmp(header, "GBL") || version != GXT_VERSION) {
+	if (strncmp(header, "GBL", 3) || version != GXT_VERSION) {
 		return false;
 	}
 
@@ -45,17 +44,19 @@ bool CText::Load() {
 		block[2] = file.ReadUInt8();
 		block[3] = file.ReadUInt8();
 
-		glm::uint32 sectlen = file.ReadUInt32();
+		glm::uint32 blockSize = file.ReadUInt32();
 		
-		if (sectlen != 0) {
+		if (blockSize != 0) {
 			if (!strncmp(block, "TKEY", 4))
-				m_KeyArray.Load(sectlen, file);
+				m_KeyArray.Load(blockSize, file);
 			else if (!strncmp(block, "TDAT", 4))
-				m_Data.Load(sectlen, file);
+				m_Data.Load(blockSize, file);
 			else
-				file.Seek(sectlen);
+				file.Seek(blockSize);
 		}
 	}
+
+	file.Close();
 
 	return true;
 }

@@ -1,8 +1,12 @@
 #pragma once
-#include "GBH.h"
 #include "AVertexBuffer.h"
+#include "AFileMgr.h"
 #include "Style.h"
 #include "Flipbook.h"
+
+enum {
+	GMP_VERSION = 0x1F4
+};
 
 enum eFaceType {
 	FACETYPE_LEFT,
@@ -197,7 +201,7 @@ struct tCollisionMap {
 	std::vector<glm::vec4> pos;
 };
 
-class CMap : CGBH {
+class CMap {
 public:
 	bool m_bFileParsed;
 	bool m_bBuildComplete;
@@ -218,12 +222,12 @@ public:
 
 private:
 	void Clear();
-	void Read(std::string const& fileName);
-	void Read32BitMap();
-	void ReadZones();
-	void ReadObjects();
-	void ReadAnimations();
-	void ReadLights();
+	bool Load(std::string const& fileName);
+	void LoadDMAP(glm::uint64 length, AFileMgr& file);
+	void LoadZONE(glm::uint64 length, AFileMgr& file);
+	void LoadMOBJ(glm::uint64 length, AFileMgr& file);
+	void LoadANIM(glm::uint64 length, AFileMgr& file);
+	void LoadLGHT(glm::uint64 length, AFileMgr& file);
 
 	void ParseBlockInfo(tBlockInfo& block, tBlockInfoDetailed& info, glm::uint32 faceType);
 	void BuildChunks();
