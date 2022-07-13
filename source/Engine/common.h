@@ -33,7 +33,7 @@
 #include "include\GLFW\glfw3.h"
 
 // Pugixml - XML parser: https://github.com/zeux/pugixml
-#include "..\..\vendor\pugixml\src\pugixml.hpp"
+#include "pugixml.hpp"
 
 // Engine
 #include "config.h"

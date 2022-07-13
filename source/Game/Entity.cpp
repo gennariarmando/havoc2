@@ -45,22 +45,22 @@ void CEntity::Update() {
 
 	m_bInAir = true;
 
-	const glm::int32 visibleChunks = 2;
-	glm::int32 j = static_cast<glm::int32>(Camera.GetPosition().x / MAP_NUM_BLOCKS_X);
-	glm::int32 i = static_cast<glm::int32>(Camera.GetPosition().y / MAP_NUM_BLOCKS_Y);
-
-	j = Clamp(j, 0, MAP_NUM_BLOCKS_X);
-	i = Clamp(i, 0, MAP_NUM_BLOCKS_Y);
-
-	for (auto& it : World.GetMap()->m_vCollisionMap.at(i * MAP_NUM_BLOCKS_X + j).pos) {
-		if (CCollision::AABB(it, glm::vec4(m_vPosition.x, m_vPosition.y, m_vPosition.x, m_vPosition.y))) {
-			m_vVelocity.z = 0.0f;
-			m_bInAir = false;
-		}
-	}
-
-	if (m_bInAir)
-		ApplyGravity();
+	//const glm::int32 visibleChunks = 2;
+	//glm::int32 j = static_cast<glm::int32>(Camera.GetPosition().x / MAP_NUM_BLOCKS_X);
+	//glm::int32 i = static_cast<glm::int32>(Camera.GetPosition().y / MAP_NUM_BLOCKS_Y);
+	//
+	//j = Clamp(j, 0, MAP_NUM_BLOCKS_X);
+	//i = Clamp(i, 0, MAP_NUM_BLOCKS_Y);
+	//
+	//for (auto& it : World.GetMap()->m_vCollisionMap.at(i * MAP_NUM_BLOCKS_X + j).pos) {
+	//	if (CCollision::AABB(it, glm::vec4(m_vPosition.x, m_vPosition.y, m_vPosition.x, m_vPosition.y))) {
+	//		m_vVelocity.z = 0.0f;
+	//		m_bInAir = false;
+	//	}
+	//}
+	//
+	//if (m_bInAir)
+	//	ApplyGravity();
 }
 
 void CEntity::ApplyGravity() {

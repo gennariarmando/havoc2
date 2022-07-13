@@ -10,7 +10,6 @@
 #include "Font.h"
 #include "LoadingScreen.h"
 #include "World.h"
-#include "Collision.h"
 
 CMap::CMap() {
 	Clear();
@@ -355,7 +354,13 @@ void CMap::BuildChunks() {
 						}
 
 						glm::uint32 chunkIndex = i * MAP_NUM_BLOCKS_X + j;
-						AddBlock(chunkIndex, block, glm::vec3(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)), index);
+						glm::vec3 offset = glm::vec3(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
+						AddBlock(chunkIndex, block, offset, index);
+
+						tBoundingBox b;
+						b.min = glm::vec3(0.0f, 0.0f, 0.0f) + offset;
+						b.max = glm::vec3(1.0f, 1.0f, 1.0f) + offset;
+						m_vCollisionMap.at(chunkIndex).blocks.push_back(b);
 					}
 				}
 			}
@@ -412,9 +417,7 @@ void CMap::Render(std::shared_ptr<CStyle> style) {
 	}
 }
 
-glm::int32 ci = 0;
 void CMap::AddBlock(glm::uint32 chunkIndex, tBlockInfoDetailed& block, glm::vec3 offset, glm::uint32& index) {
-	ci = chunkIndex;
 	for (glm::int32 faceType = 0; faceType < NUM_FACETYPES; faceType++) {
 		tFaceInfo* oppositeFace = NULL;
 		tFaceInfo& detail = block.details[faceType];
@@ -764,6 +767,12 @@ bool CMap::GetVecFromSlopeType(glm::uint32 slopeType, glm::vec3& tl, glm::vec3& 
 	return reverse;
 }
 
+glm::vec3 CalculateNormal(glm::vec3 a, glm::vec3 b, glm::vec3 c) {
+	glm::vec3 x = { b.x - a.x, b.y - a.y, b.z - a.z };
+	glm::vec3 y = { c.x - a.x, c.y - a.y, c.z - a.z };
+	return glm::normalize(glm::cross(x, y));
+}
+
 void CMap::AddFace(glm::uint32 slopeType, glm::uint8 faceType, glm::uint32 tile, glm::uint32 rot, bool flip, bool flat, bool oppositeFlat, glm::vec3 offset, glm::uint32& index) {
 	if (oppositeFlat && slopeType == SLOPETYPE_NONE) {
 		glm::vec3 f[4] = {
@@ -846,20 +855,18 @@ void CMap::AddFace(glm::uint32 slopeType, glm::uint8 faceType, glm::uint32 tile,
 		texCoords[i] = RotateUV(texCoords[i], glm::radians(rot * 90.0f), glm::vec2(x + (cxy * 0.5f), y + (cxy * 0.5f)));
 	}
 
+	glm::uint8 defIndices[] = { 0, 2, 1, 0, 3, 2 };
+	glm::uint8 revIndices[] = { 0, 3, 1, 1, 3, 2 };
+	glm::uint8* indices;
+
 	if ((oppositeFlat && flat && faceType != FACETYPE_LID)) {
 		for (glm::int32 i = 0; i < 6; i++) {
-			glm::uint8 defIndices[] = { 0, 2, 1, 0, 3, 2 };
-			glm::uint8 revIndices[] = { 0, 3, 1, 1, 3, 2 };
-
-			glm::uint8* indices;
-
 			if (reverse)
 				indices = revIndices;
 			else
 				indices = defIndices;
 
 			glm::uint8 flippedIndex = indices[5 - i];
-
 			m_VertexBuffer.SetVertex(pos[flippedIndex] + offset);
 			m_VertexBuffer.SetTexCoords(texCoords[flippedIndex]);
 			index++;
@@ -867,11 +874,6 @@ void CMap::AddFace(glm::uint32 slopeType, glm::uint8 faceType, glm::uint32 tile,
 	}
 
 	for (glm::int32 i = 0; i < 6; i++) {
-		glm::uint8 defIndices[] = { 0, 2, 1, 0, 3, 2 };
-		glm::uint8 revIndices[] = { 0, 3, 1, 1, 3, 2 };
-
-		glm::uint8* indices;
-
 		if (reverse)
 			indices = revIndices;
 		else
@@ -882,8 +884,6 @@ void CMap::AddFace(glm::uint32 slopeType, glm::uint8 faceType, glm::uint32 tile,
 
 		index++;
 	}
-
-	m_vCollisionMap.at(ci).pos.push_back({pos.at(0).x + offset.x, pos.at(0).y + offset.y, pos.at(2).x + offset.x, pos.at(2).y + offset.y});
 }
 
 void CMap::EditFace(AVertexBuffer* chunk, tFaceInfo* details) {

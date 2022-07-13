@@ -3,6 +3,7 @@
 #include "AFileMgr.h"
 #include "Style.h"
 #include "Flipbook.h"
+#include "Collision.h"
 
 enum {
 	GMP_VERSION = 0x1F4
@@ -198,7 +199,7 @@ struct tCompressedMap {
 };
 
 struct tCollisionMap {
-	std::vector<glm::vec4> pos;
+	std::vector<tBoundingBox> blocks;
 };
 
 class CMap {

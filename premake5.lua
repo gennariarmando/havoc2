@@ -3,6 +3,16 @@ newoption {
 	description = "Build glad library"
 }
 
+newoption {
+	trigger     = "with-reactphysics3d",
+	description = "Build reactphysics3d library"
+}
+
+newoption {
+	trigger     = "with-pugixml",
+	description = "Build pugixml library"
+}
+
 workspace "havoc2"
 	configurations { "Release", "Debug" }
 	location "project_files"
@@ -18,14 +28,19 @@ workspace "havoc2"
 		system "windows"
 		
 if(_OPTIONS["with-glad"]) then
-project "glad"
-	location "project_files/glad"
+project "vendor-glad"
+	location "project_files/vendor/glad"
     kind "StaticLib"
     language "C"
     staticruntime "on"
-    
-	targetdir "vendor/glad/lib/"
-	objdir ("vendor/glad/obj")
+    targetname "glad"
+	
+	filter "platforms:x86"
+		targetdir "vendor/glad/lib/x86"
+		objdir ("vendor/glad/obj/x86")
+	filter "platforms:x64"
+		targetdir "vendor/glad/lib/x64"
+		objdir ("vendor/glad/obj/x64")
 
     files {
 		"vendor/glad/src/*.*",
@@ -46,13 +61,83 @@ project "glad"
         runtime "Release"
         optimize "on"
 end
+
+		
+if(_OPTIONS["with-reactphysics3d"]) then
+project "vendor-reactphysics3d"
+	location "project_files/vendor/reactphysics3d"
+    kind "StaticLib"
+    language "C"
+    staticruntime "on"
+    targetname "reactphysics3d"
+	
+	filter "platforms:x86"
+		targetdir "vendor/reactphysics3d/lib/x86"
+		objdir ("vendor/reactphysics3d/obj/x86")
+	filter "platforms:x64"
+		targetdir "vendor/reactphysics3d/lib/x64"
+		objdir ("vendor/reactphysics3d/obj/x64")
+
+    files {
+		"vendor/reactphysics3d/src/**.*",
+    }
+
+    includedirs {
+        "vendor/reactphysics3d/include"
+    }
+    
+    filter "system:windows"
+        systemversion "latest"
+
+    filter "configurations:Debug"
+        runtime "Debug"
+        symbols "on"
+
+    filter "configurations:Release"
+        runtime "Release"
+        optimize "on"
+end
+   
+if(_OPTIONS["with-pugixml"]) then
+project "vendor-pugixml"
+	location "project_files/vendor/pugixml"
+    kind "StaticLib"
+    language "C"
+    staticruntime "on"
+	targetname "pugixml"
+
+	filter "platforms:x86"
+		targetdir "vendor/pugixml/lib/x86"
+		objdir ("vendor/pugixml/obj/x86")
+	filter "platforms:x64"
+		targetdir "vendor/pugixml/lib/x64"
+		objdir ("vendor/pugixml/obj/x64")
+
+    files {
+		"vendor/pugixml/src/**.*",
+    }
+
+    includedirs {
+        "vendor/pugixml/include"
+    }
+    
+    filter "system:windows"
+        systemversion "latest"
+
+    filter "configurations:Debug"
+        runtime "Debug"
+        symbols "on"
+
+    filter "configurations:Release"
+        runtime "Release"
+        optimize "on"
+end
    
 project "havoc2"
 	location "project_files/havoc2"
 
 	files {
 		"source/**.*",
-		"vendor/pugixml/src/*.*",
 	}
 	
 	includedirs { 
@@ -62,11 +147,11 @@ project "havoc2"
 	
 	filter "platforms:x86"	
 		libdirs { "vendor/*/lib/x86/" }
-		links { "glfw3", "glad", "binkw32" }
+		links { "glfw3", "glad", "pugixml", "reactphysics3d", "binkw32" }
 
 	filter "platforms:x64"	
 		libdirs { "vendor/*/lib/x64/" }
-		links { "glfw3", "glad" }
+		links { "glfw3", "glad", "pugixml", "reactphysics3d" }
 
 	filter {}
 	

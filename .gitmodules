@@ -7,3 +7,6 @@
 [submodule "vendor/pugixml"]
 	path = vendor/pugixml
 	url = https://github.com/zeux/pugixml
+[submodule "vendor/reactphysics3d"]
+	path = vendor/reactphysics3d
+	url = https://github.com/DanielChappuis/reactphysics3d
