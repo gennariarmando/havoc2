@@ -5,11 +5,11 @@
 
 class ASprite {
 public:
-	std::shared_ptr<ATexture2D> m_pTexture;
+	ATexture2D* m_pTexture;
     AVertexBuffer m_VertexBuffer;
 
 public:
-    static std::shared_ptr<ATexture2D> ms_pTexture;
+    static ATexture2D* ms_pTexture;
     static AVertexBuffer ms_VertexBuffer;
 
 public:
@@ -17,7 +17,7 @@ public:
     ~ASprite();
 
 	void Delete();
-    bool SetTexture(std::shared_ptr<ATexture2D>& texture);
+    bool SetTexture(glm::uint32 id);
     bool SetTexture(std::string path, std::string name);
     void Draw(float x, float y, float w, float h, glm::vec4 const& col);
     void Draw(float x, float y, float w, float h, glm::vec2 const& center, float angle, glm::vec4 const& col);

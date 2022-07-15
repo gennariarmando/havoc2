@@ -6,15 +6,15 @@
 CFont Font;
 
 CFont::CFont() {
-	m_pSprite = std::make_unique<ASprite>();
+	m_pSprite = new ASprite();
 	Reset();
 }
 
 CFont::~CFont() {
-	m_pSprite.release();
+	delete m_pSprite;
 }
 
-std::shared_ptr<CStyle> CFont::GetStyleForThisFont(eFontStyle fontStyle) {
+CStyle* CFont::GetStyleForThisFont(eFontStyle fontStyle) {
 	if (fontStyle < FSTYLE_FONT_START)
 		return World.GetStyle();
 
@@ -143,7 +143,7 @@ void CFont::PrintString(glm::vec2 pos, std::string str) {
 
 		if (c != ' ') {
 			glm::uint32 index = style->GetFontBaseIndex(GetFontStyleFrontendShift()) + c - '!';
-			m_pSprite->SetTexture(style->GetSprite().at(index));
+			m_pSprite->SetTexture(style->GetSprite().at(index)->GetID());
 			m_pSprite->Draw(pos.x, pos.y, GetCharacterSize(c).x, GetCharacterSize(c).y, m_vColor);
 		}
 

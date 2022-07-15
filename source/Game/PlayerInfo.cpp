@@ -1,4 +1,4 @@
-#include "Player.h"
+#include "PlayerInfo.h"
 #include "AInput.h"
 
 CPlayerInfo::CPlayerInfo() {

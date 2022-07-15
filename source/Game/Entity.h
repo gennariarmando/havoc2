@@ -1,7 +1,7 @@
 #pragma once
 #include "common.h"
 #include "ASpriteObject.h"
-#include "Collision.h"
+#include "ARigidBody.h"
 
 enum eEntityType {
 	ENTITYTYPE_NONE,
@@ -11,21 +11,15 @@ enum eEntityType {
 };
 
 class CEntity {
-public:
-	std::shared_ptr<ASpriteObject> m_pSpriteObject;
-
+private:
+	ARigidBody* m_pRigidBody;
+	ASpriteObject* m_pSpriteObject;
 	eEntityType m_eType;
-	glm::vec3 m_vPosition;
-	glm::vec3 m_vFront;
-	glm::vec3 m_vUp;
-	glm::vec3 m_vRight;
-	glm::vec3 m_vScale;
-	glm::vec3 m_vRotation;
-	float m_fHeading;
-	glm::vec3 m_vVelocity;
-	float m_fHeadingVelocity;
-	float m_fRotSpeed;
-	float m_fMoveSpeed;
+
+public:
+	ARigidBody* const& GetRigidBody() { return m_pRigidBody; }
+	ASpriteObject* const& GetSpriteObject() { return m_pSpriteObject; }
+	eEntityType const& GetType() { return m_eType; }
 
 public:
 	bool m_bUsesCollision : 1;
@@ -34,11 +28,8 @@ public:
 
 public:
 	CEntity();
+	~CEntity();
 	virtual void Update();
 	virtual void Render();
-
-public:
-	void ApplyGravity();
-	void UpdateEntityVectors();
 
 };

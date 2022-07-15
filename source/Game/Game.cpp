@@ -16,7 +16,7 @@
 CGame Game;
 
 CGame::CGame() {
-	m_eGameState = GS_BEGIN;
+	m_eGameState = GS_LOAD;
 }
 
 void CGame::Run() {
@@ -38,9 +38,6 @@ void CGame::Run() {
 		break;
 	case GS_INGAME:
 		StateInGame();
-		break;
-	case GS_END:
-		StateEnd();
 		break;
 	}
 }
@@ -110,8 +107,4 @@ void CGame::StateInGame() {
 	Frontend.Update();
 
 	Renderer.Render();
-}
-
-void CGame::StateEnd() {
-
 }

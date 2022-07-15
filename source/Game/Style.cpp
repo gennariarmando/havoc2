@@ -4,24 +4,25 @@
 #include "AConsole.h"
 
 CStyle::CStyle() {
-	Clear();
-}
-
-CStyle::CStyle(std::string const& fileName) {	
-	Clear();
-	Load(fileName);
+	m_bFileParsed = false;
+	m_bBuildComplete = false;
+	m_pGraphics = new tStyGraphics();
+	m_pTextureAtlas = new ATexture2D();
+	m_vSprites = {};
 }
 
 CStyle::~CStyle() {
-
-}
-
-void CStyle::Clear() {
 	m_bFileParsed = false;
 	m_bBuildComplete = false;
-	m_pGraphics = NULL;
-	m_pTextureAtlas = NULL;
-	m_pSprites = {};
+
+	if (m_pGraphics)
+	delete m_pGraphics;
+
+	if (m_pTextureAtlas)
+		delete m_pTextureAtlas;
+
+	for (auto& it : m_vSprites)
+		delete it;
 }
 
 bool CStyle::Load(std::string const& fileName) {
@@ -41,8 +42,6 @@ bool CStyle::Load(std::string const& fileName) {
 	if (strncmp(header, "GBST", 4) || version != STY_VERSION) {
 		return false;
 	}
-
-	m_pGraphics = std::make_shared<tStyGraphics>();
 
 	while (file.GetPosition() < file.GetSize()) {
 		char chunk[4] = {};
@@ -335,7 +334,6 @@ void CStyle::BuildTextures() {
 }
 
 void CStyle::BuildTextureAtlas() {
-	m_pTextureAtlas = std::make_shared<ATexture2D>();
 	m_pTextureAtlas->Build(0, 2048, 2048);
 
 	glm::int32 x = 0;
@@ -365,9 +363,9 @@ void CStyle::BuildSprites() {
 		glm::uint8 w, h;
 		WriteSprites(i, w, h, pixels);
 
-		std::shared_ptr<ATexture2D> sprite = std::make_shared<ATexture2D>();
+		ATexture2D* sprite = new ATexture2D();
 		sprite->Build(pixels.data(), w, h);
-		m_pSprites.push_back(sprite);
+		m_vSprites.push_back(sprite);
 	}
 }
 

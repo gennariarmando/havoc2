@@ -43,23 +43,34 @@ std::vector<std::string> frontendTexFileNames = {
 };
 
 CFrontend::CFrontend() {
-	Clear();
+	m_bInitialized = false;
+	m_pStyle = new CStyle();
+	m_nCurrentPage = MENUPAGE_NONE;
+	m_nCurrentItem = 0;
+	m_nHoverItem = -1;
+	m_vMenuPages = {};
+	m_fItemColorPulse = 1.0f;
+	m_bItemColorPulseSwap = false;
+	m_fCreditsScrollY = 0.0f;
+	m_bMenuActive = false;
+	m_bWantsToLoad = true;
+	m_bDrawMouse = false;
 }
 CFrontend::~CFrontend() {
-	Clear();
+	delete m_pStyle;
 }
 
 bool CFrontend::Init() {
 	if (m_bInitialized)
 		return true;
 
-	m_pStyle = std::make_shared<CStyle>("data/fstyle.sty");
+	m_pStyle->Load("data/fstyle.sty");
 
 	for (auto& it : frontendTexFileNames) {
-		std::shared_ptr<ASprite> sprite = std::make_shared<ASprite>();
+		ASprite* sprite = new ASprite();
 		if (!sprite->SetTexture("data/frontend", it))
 			return false;
-		m_pFrontendSprites.push_back(sprite);
+		m_vFrontendSprites.push_back(sprite);
 	}
 
 	m_vMenuPages.resize(NUM_MENUPAGES);
@@ -339,26 +350,10 @@ void CFrontend::Shutdown() {
 	if (!m_bInitialized)
 		return;
 
-	for (auto& it : m_pFrontendSprites) {
+	for (auto& it : m_vFrontendSprites) {
 		it->Delete();
-		it.reset();
+		delete it;
 	}
-	Clear();
-}
-
-void CFrontend::Clear() {
-	m_bInitialized = false;
-	m_pStyle.reset();
-	m_nCurrentPage = MENUPAGE_NONE;
-	m_nCurrentItem = 0;
-	m_nHoverItem = -1;
-	m_vMenuPages = {};
-	m_fItemColorPulse = 1.0f;
-	m_bItemColorPulseSwap = false;
-	m_fCreditsScrollY = 0.0f;
-	m_bMenuActive = false;
-	m_bWantsToLoad = true;
-	m_bDrawMouse = false;
 }
 
 bool CFrontend::OpenMenu(glm::int32 page) {
@@ -373,7 +368,7 @@ bool CFrontend::OpenMenu(glm::int32 page) {
 }
 
 void CFrontend::CloseMenu() {
-	Shutdown();
+	//Shutdown();
 	m_bMenuActive = false;
 	GraphicDevice.SetCursorOnOff(false);
 	GraphicDevice.CenterMousePosition();
@@ -423,11 +418,11 @@ void CFrontend::DrawBackground() {
 	}
 
 	if (fullBackground) {
-		m_pFrontendSprites.at(background)->Draw(SCREEN_SCALE_X(0.0f), SCREEN_SCALE_Y(0.0f), SCREEN_SCALE_W(MENU_BACKGROUND_WIDTH), SCREEN_SCALE_H(MENU_BACKGROUND_HEIGHT), glm::vec4(1.0f));
+		m_vFrontendSprites.at(background)->Draw(SCREEN_SCALE_X(0.0f), SCREEN_SCALE_Y(0.0f), SCREEN_SCALE_W(MENU_BACKGROUND_WIDTH), SCREEN_SCALE_H(MENU_BACKGROUND_HEIGHT), glm::vec4(1.0f));
 	}
 	else {
-		m_pFrontendSprites.at(left)->Draw(SCREEN_SCALE_X(0.0f), SCREEN_SCALE_Y(0.0f), SCREEN_SCALE_W(MENU_BACKGROUND_LEFT_WIDTH), SCREEN_SCALE_H(MENU_BACKGROUND_HEIGHT), glm::vec4(1.0f));
-		m_pFrontendSprites.at(right)->Draw(SCREEN_SCALE_X(MENU_BACKGROUND_LEFT_WIDTH), SCREEN_SCALE_Y(0.0f), SCREEN_SCALE_W(MENU_BACKGROUND_RIGHT_WIDTH), SCREEN_SCALE_H(MENU_BACKGROUND_HEIGHT), glm::vec4(1.0f));
+		m_vFrontendSprites.at(left)->Draw(SCREEN_SCALE_X(0.0f), SCREEN_SCALE_Y(0.0f), SCREEN_SCALE_W(MENU_BACKGROUND_LEFT_WIDTH), SCREEN_SCALE_H(MENU_BACKGROUND_HEIGHT), glm::vec4(1.0f));
+		m_vFrontendSprites.at(right)->Draw(SCREEN_SCALE_X(MENU_BACKGROUND_LEFT_WIDTH), SCREEN_SCALE_Y(0.0f), SCREEN_SCALE_W(MENU_BACKGROUND_RIGHT_WIDTH), SCREEN_SCALE_H(MENU_BACKGROUND_HEIGHT), glm::vec4(1.0f));
 	}
 }
 
@@ -502,7 +497,7 @@ float CFrontend::DrawSlider(float x, float y, float w, float h, glm::int32& prog
 
 void CFrontend::DrawOneChar(float x, float y, char c) {
 	static ASprite sprite;
-	sprite.SetTexture(GetStyle()->GetSprite().at(4));
+	sprite.SetTexture(GetStyle()->GetSprite().at(4)->GetID());
 
 	sprite.Draw(x, y, SCREEN_SCALE_W(MENU_ONE_CHAR_SIZE), SCREEN_SCALE_H(MENU_ONE_CHAR_SIZE), glm::vec4(1.0f));
 

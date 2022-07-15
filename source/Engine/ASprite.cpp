@@ -5,15 +5,16 @@
 #include "AConsole.h"
 #include "ACamera.h"
 
-std::shared_ptr<ATexture2D> ASprite::ms_pTexture = nullptr;
+ATexture2D* ASprite::ms_pTexture = nullptr;
 AVertexBuffer ASprite::ms_VertexBuffer = {};
 
 ASprite::ASprite() {
-	m_pTexture = std::make_shared<ATexture2D>();
+    m_pTexture = new ATexture2D();
+    m_VertexBuffer = {};
 }
 
 ASprite::~ASprite() {
-	m_pTexture.reset();
+	delete m_pTexture;
 }
 
 glm::mat4 ASprite::GetProjection() {
@@ -31,8 +32,8 @@ void ASprite::Delete() {
         m_pTexture->Delete();
 }
 
-bool ASprite::SetTexture(std::shared_ptr<ATexture2D>& texture) {
-    m_pTexture = texture;
+bool ASprite::SetTexture(glm::uint32 id) {
+    m_pTexture->SetID(id);
     return true;
 }
 
@@ -161,14 +162,14 @@ bool ASprite::Init() {
         rectData[i] = 255;
     }
 
-    ms_pTexture = std::make_unique<ATexture2D>();
+    ms_pTexture = new ATexture2D();
     ms_pTexture->Build(rectData, 8, 8);
 
     return true;
 }
 
 void ASprite::Shutdown() {
-    ms_pTexture.reset();
+    delete ms_pTexture;
 }
 
 void ASprite::DrawRect(glm::vec4 const& rect, glm::vec4 const& col) {

@@ -1,7 +1,6 @@
 #include "World.h"
 #include "AGraphicDevice.h"
 #include "ACamera.h"
-#include "Player.h"
 
 CWorld World;
 
@@ -28,13 +27,18 @@ std::vector<tLevelList> levelList = {
 
 CWorld::CWorld() {
 	m_vEntities = {};
-	m_pPlayer = std::make_shared<CPlayerInfo>();
+	m_pPlayer = new CPlayerInfo();
 
-	m_pMap = nullptr;
-	m_pStyle = nullptr;
-	m_fGravity = DEFAULT_GRAVITY_VALUE;
+	m_pMap = new CMap();
+	m_pStyle = new CStyle();
+}
 
+CWorld::~CWorld() {
+	if (m_pMap)
+		delete m_pMap;
 
+	if (m_pStyle)
+		delete m_pStyle;
 }
 
 void CWorld::Add(CEntity* e) {
@@ -46,19 +50,12 @@ void CWorld::Remove(CEntity* e) {
 }
 
 bool CWorld::InitMap(glm::uint8 level) {
-	if (m_pMap)
-		m_pMap.reset();
-	m_pMap = std::make_shared<CMap>(levelList.at(level).gmp);
-
-
+	m_pMap->Load(levelList.at(level).gmp);
 	return true;
 }
 
 bool CWorld::InitStyle(glm::uint8 level) {
-	if (m_pStyle)
-		m_pStyle.reset();
-	m_pStyle = std::make_shared<CStyle>(levelList.at(level).sty);
-
+	m_pStyle->Load(levelList.at(level).sty);
 	return true;
 }
 
@@ -66,7 +63,13 @@ bool CWorld::InitPlayer() {
 	CPlayerPed::SetupPlayerPed();
 
 	Camera.GetMode() = MODE_FOLLOWENTITY;
-	Camera.SetTargetEntity(m_pPlayer->m_pPed.get());
+	Camera.SetTargetEntity(m_pPlayer->m_pPed);
 
 	return true;
+}
+
+void CWorld::DestroyAllEntities() {
+	for (auto& it : m_vEntities) {
+		delete it;
+	}
 }

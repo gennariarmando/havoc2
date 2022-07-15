@@ -1,5 +1,6 @@
 #pragma once
 // STD - Standard library
+#define __STDC_LIMIT_MACROS
 #include <list>
 #include <stdio.h>
 #include <memory>

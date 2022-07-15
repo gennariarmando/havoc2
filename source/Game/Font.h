@@ -25,7 +25,7 @@ enum eFontAlignment {
 
 class CFont {
 private:
-	std::unique_ptr<ASprite> m_pSprite;
+	ASprite* m_pSprite;
 	eFontStyle m_eFontStyle;
 	eFontAlignment m_eFontAlignment;
 	float m_fScale;
@@ -33,7 +33,7 @@ private:
 	glm::vec4 m_vColor;
 
 private:
-	std::shared_ptr<CStyle> GetStyleForThisFont(eFontStyle);
+	CStyle* GetStyleForThisFont(eFontStyle);
 	eFontStyle GetFontStyleFrontendShift();
 
 public:

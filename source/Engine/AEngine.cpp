@@ -8,6 +8,7 @@
 #include "AEngineSettings.h"
 #include "AInput.h"
 #include "ACamera.h"
+#include "APhysics.h"
 #include "Game.h"
 #include "Frontend.h"
 #include "LoadingScreen.h"
@@ -135,6 +136,10 @@ bool AEngine::Init(glm::int32 argc, char* argv[]) {
         return false;
     }
 
+    if (!Physics.Init()) {
+        Console.WriteLine("Error initializing physics engine");
+    }
+
     return true;
 }
 
@@ -145,6 +150,7 @@ void AEngine::Shutdown(glm::uint32 code) {
         EngineSettings.Save();
     }
 
+    Physics.Shutdown();
     ASprite::Shutdown();
     Console.Shutdown();
     GraphicDevice.Shutdown();
@@ -158,10 +164,20 @@ void AEngine::BeginFrame() {
     Time.BeginFrame();
     Input.BeginFrame();
     GraphicDevice.BeginFrame();
+
+    { // Add here
+        Physics.BeginFrame();
+
+    }
+
     GraphicDevice.Update();
 }
 
 void AEngine::EndFrame() {
+    { // Add here
+        Physics.EndFrame();
+        
+    }
     GraphicDevice.EndFrame();
     Input.EndFrame();
     Time.EndFrame();

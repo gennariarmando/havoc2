@@ -7,7 +7,6 @@ enum eGameState {
     GS_FRONTEND,
     GS_LOAD,
     GS_INGAME,
-    GS_END,
 };
 
 class CGame {
@@ -28,7 +27,6 @@ public:
     void StateFrontend();
     void StateLoad();
     void StateInGame();
-    void StateEnd();
 };
 
 extern CGame Game;

@@ -10,32 +10,35 @@
 #include "Font.h"
 #include "LoadingScreen.h"
 #include "World.h"
+#include "Collision.h"
 
 CMap::CMap() {
-	Clear();
-}
-
-CMap::CMap(std::string const& fileName) {
-	Clear();
-	Load(fileName);
+	m_bFileParsed = false;
+	m_bBuildComplete = false;
+	m_pCompressedMap = new tCompressedMap();
+	m_vAnimations = new std::vector<tTileAnimation>();
+	m_vZones = new std::vector<tMapZone>();
+	m_vObjects = new std::vector<tMapObject>();
+	m_vLights = new std::vector<tMapLight>();
+	m_vGeometryChunks.reserve(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y);
+	m_vAnimatedFaces.resize(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y, std::vector<tFaceInfo>(0));
+	m_vCachedAnims = {};
+	m_VertexBuffer = {};
+	m_vCollisionMap = new std::vector<tCollisionMap>();
+	m_vCollisionMap->resize(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y);
 }
 
 CMap::~CMap() {
-
-}
-
-void CMap::Clear() {
-	m_bFileParsed = false;
-	m_bBuildComplete = false;
-	m_pCompressedMap = nullptr;
-	m_vAnimations = nullptr;
-	m_vZones = nullptr;
-	m_vObjects = nullptr;
-	m_vLights = nullptr;
+	delete m_pCompressedMap;
+	delete m_vAnimations;
+	delete m_vZones;
+	delete m_vObjects;
+	delete m_vLights;
 	m_vGeometryChunks = {};
-	m_vAnimatedFaces = {{}};
+	m_vAnimatedFaces = {};
+	m_vCachedAnims = {};
 	m_VertexBuffer = {};
-	m_vCollisionMap = {};
+	delete m_vCollisionMap;
 }
 
 bool CMap::Load(std::string const& fileName) {
@@ -55,16 +58,6 @@ bool CMap::Load(std::string const& fileName) {
 	if (strncmp(header, "GBMP", 4) || version != GMP_VERSION) {
 		return false;
 	}
-
-	m_vGeometryChunks.reserve(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y);
-	m_vAnimatedFaces.resize(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y, std::vector<tFaceInfo>(0));
-
-	m_pCompressedMap = std::make_unique<tCompressedMap>();
-	m_vAnimations = std::make_unique<std::vector<tTileAnimation>>();
-	m_vZones = std::make_unique<std::vector<tMapZone>>();
-	m_vObjects = std::make_unique<std::vector<tMapObject>>();
-	m_vLights = std::make_unique<std::vector<tMapLight>>();
-	m_vCollisionMap.resize(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y);
 
 	while (file.GetPosition() < file.GetSize()) {
 		char chunk[4] = {};
@@ -297,6 +290,7 @@ void CMap::BuildChunks() {
 	glm::uint32 index = 0;
 	std::vector<tCachedAnims> cachedAnims;
 
+	glm::uint32 chunkIndex = 0;
 	for (glm::int32 i = 0; i < MAP_SCALE_Y / MAP_NUM_BLOCKS_Y; i++) {
 		for (glm::int32 j = 0; j < MAP_SCALE_X / MAP_NUM_BLOCKS_X; j++) {
 			for (glm::int32 y = 0; y < MAP_NUM_BLOCKS_Y; y++) {
@@ -356,24 +350,34 @@ void CMap::BuildChunks() {
 						glm::uint32 chunkIndex = i * MAP_NUM_BLOCKS_X + j;
 						glm::vec3 offset = glm::vec3(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
 						AddBlock(chunkIndex, block, offset, index);
-
-						tBoundingBox b;
-						b.min = glm::vec3(0.0f, 0.0f, 0.0f) + offset;
-						b.max = glm::vec3(1.0f, 1.0f, 1.0f) + offset;
-						m_vCollisionMap.at(chunkIndex).blocks.push_back(b);
 					}
 				}
 			}
 			m_vGeometryChunks.push_back(m_VertexBuffer);
+
 			m_VertexBuffer = { };
 
 			index = 0;
 		}
 	}
+
+	glm::uint32 fakeIndex = 0;
+	for (auto& it : m_vGeometryChunks) {
+		it.SetIndices(fakeIndex);
+		fakeIndex++;
+	}
 	m_vCachedAnims = cachedAnims;
+
+	// Create collision map
+	physics::BoxShape* boxShape = Physics.m_pPhysicsCommon->createBoxShape({ 256.0f, 256.0f, 2.0f });
+	physics::Transform transform = physics::Transform::identity();
+	ACollisionBody* b = new ACollisionBody();
+	b->m_pBody->addCollider(boxShape, transform);
+	b->SetPosition({ 128.0f, 128.0f, 0.0f });
+	m_vCollisionMap->at(chunkIndex).m_vCollisionBody.push_back(b);
 }
 
-void CMap::Render(std::shared_ptr<CStyle> style) {
+void CMap::Render(CStyle* style) {
 	const glm::int32 visibleChunks = 2;
 	glm::int32 startx = (static_cast<glm::int32>(Camera.GetPosition().x + (MAP_NUM_BLOCKS_X * 0.5f)) / MAP_NUM_BLOCKS_X) - (visibleChunks);
 	glm::int32 endx = (static_cast<glm::int32>(Camera.GetPosition().x + (MAP_NUM_BLOCKS_X * 0.5f)) / MAP_NUM_BLOCKS_X) + (visibleChunks);
@@ -765,12 +769,6 @@ bool CMap::GetVecFromSlopeType(glm::uint32 slopeType, glm::vec3& tl, glm::vec3& 
 	}
 
 	return reverse;
-}
-
-glm::vec3 CalculateNormal(glm::vec3 a, glm::vec3 b, glm::vec3 c) {
-	glm::vec3 x = { b.x - a.x, b.y - a.y, b.z - a.z };
-	glm::vec3 y = { c.x - a.x, c.y - a.y, c.z - a.z };
-	return glm::normalize(glm::cross(x, y));
 }
 
 void CMap::AddFace(glm::uint32 slopeType, glm::uint8 faceType, glm::uint32 tile, glm::uint32 rot, bool flip, bool flat, bool oppositeFlat, glm::vec3 offset, glm::uint32& index) {

@@ -148,7 +148,7 @@ void ACamera::ProcessFollowEntity() {
     if (m_vAngle.y > glm::radians(89.9f)) m_vAngle.y = glm::radians(89.9f);
     if (m_vAngle.y < -glm::radians(89.9f)) m_vAngle.y = -glm::radians(89.9f);
 
-    glm::vec3 pos = GetTargetEntity()->m_vPosition;
+    glm::vec3 pos = GetTargetEntity()->GetRigidBody()->GetPosition();
     pos.z += 8.0f;
     m_vPosition = pos;
 }

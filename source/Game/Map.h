@@ -3,7 +3,7 @@
 #include "AFileMgr.h"
 #include "Style.h"
 #include "Flipbook.h"
-#include "Collision.h"
+#include "ACollisionBody.h"
 
 enum {
 	GMP_VERSION = 0x1F4
@@ -199,32 +199,31 @@ struct tCompressedMap {
 };
 
 struct tCollisionMap {
-	std::vector<tBoundingBox> blocks;
+	std::vector<ACollisionBody*> m_vCollisionBody;
 };
 
 class CMap {
 public:
 	bool m_bFileParsed;
 	bool m_bBuildComplete;
-	std::unique_ptr<tCompressedMap> m_pCompressedMap;
-	std::unique_ptr<std::vector<tTileAnimation>> m_vAnimations;
-	std::unique_ptr<std::vector<tMapZone>> m_vZones;
-	std::unique_ptr<std::vector<tMapObject>> m_vObjects;
-	std::unique_ptr<std::vector<tMapLight>> m_vLights;
+	tCompressedMap* m_pCompressedMap;
+	std::vector<tTileAnimation>* m_vAnimations;
+	std::vector<tMapZone>* m_vZones;
+	std::vector<tMapObject>* m_vObjects;
+	std::vector<tMapLight>* m_vLights;
 	std::vector<AVertexBuffer> m_vGeometryChunks;
 	std::vector<std::vector<tFaceInfo>> m_vAnimatedFaces;
 	std::vector<tCachedAnims> m_vCachedAnims;
 	AVertexBuffer m_VertexBuffer;
-	std::vector<tCollisionMap> m_vCollisionMap;
+	std::vector<tCollisionMap>* m_vCollisionMap;
 
 public:
 	CMap();
-	CMap(std::string const& fileName);
 	~CMap();
 
-private:
-	void Clear();
 	bool Load(std::string const& fileName);
+
+private:
 	void LoadDMAP(glm::uint64 length, AFileMgr& file);
 	void LoadZONE(glm::uint64 length, AFileMgr& file);
 	void LoadMOBJ(glm::uint64 length, AFileMgr& file);
@@ -239,7 +238,7 @@ private:
 	void EditFace(AVertexBuffer* chunk, tFaceInfo* details);
 
 public:
-	void Render(std::shared_ptr<CStyle> style);
+	void Render(CStyle* style);
 	void BuildEverything();
 
 public:

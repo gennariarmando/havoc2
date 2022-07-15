@@ -1,7 +1,7 @@
 #pragma once
 #include "common.h"
 #include "Entity.h"
-#include "Player.h"
+#include "PlayerInfo.h"
 #include "Map.h"
 #include "Style.h"
 
@@ -43,25 +43,26 @@ struct tLevelList {
 class CWorld {
 private:
 	std::list<CEntity*> m_vEntities;
-	std::shared_ptr<CPlayerInfo> m_pPlayer;
-	std::shared_ptr<CMap> m_pMap;
-	std::shared_ptr<CStyle> m_pStyle;
-	float m_fGravity;
+	CPlayerInfo* m_pPlayer;
+    CMap* m_pMap;
+    CStyle* m_pStyle;
 
 public:
 	CWorld();
+    ~CWorld();
+
 	void Add(CEntity* e);
 	void Remove(CEntity* e);
 	bool InitMap(glm::uint8 level);
 	bool InitStyle(glm::uint8 level);
     bool InitPlayer();
+    void DestroyAllEntities();
 
 public:
-    std::list<CEntity*> const& GetEntityList() { return m_vEntities; }
-    std::shared_ptr<CPlayerInfo> const& GetPlayer() { return m_pPlayer; }
-    std::shared_ptr<CMap> const& GetMap() { return m_pMap; }
-    std::shared_ptr<CStyle> GetStyle() { return !m_pStyle || m_pStyle->IsLoading() ? nullptr : m_pStyle; }
-    float const& GetGravity() { return m_fGravity; }
+    std::list<CEntity*> GetEntityList() { return m_vEntities; }
+    CPlayerInfo* GetPlayer() { return m_pPlayer; }
+    CMap* GetMap() { return m_pMap; }
+    CStyle* GetStyle() { return !m_pStyle || m_pStyle->IsLoading() ? nullptr : m_pStyle; }
 };
 
 extern CWorld World;

@@ -130,20 +130,17 @@ class CStyle {
 public:
 	bool m_bFileParsed;
 	bool m_bBuildComplete;
-	std::shared_ptr<tStyGraphics> m_pGraphics;
-
-	std::shared_ptr<ATexture2D> m_pTextureAtlas;
-	std::vector<std::shared_ptr<ATexture2D>> m_pSprites;
+	tStyGraphics* m_pGraphics;
+	ATexture2D* m_pTextureAtlas;
+	std::vector<ATexture2D*> m_vSprites;
 
 public:
 	CStyle();
-	CStyle(std::string const& fileName);
 	~CStyle();
 
-	void Clear();
+	bool Load(std::string const& fileName);
 
 private:
-	bool Load(std::string const& fileName);
 	void LoadPALX(glm::uint64 length, AFileMgr& file);
 	void LoadPPAL(glm::uint64 length, AFileMgr& file);
 	void LoadPALB(glm::uint64 length, AFileMgr& file);
@@ -170,8 +167,8 @@ private:
 public:
 	std::vector<glm::uint8> GetSingleSpriteData(glm::int32 sprite);
 	tPhysicalPalette GetSpritePalette(glm::int32 sprite, glm::int32 type, glm::int32 remap);
-	std::vector<std::shared_ptr<ATexture2D>>& GetSprite() { return m_pSprites; }
-	std::shared_ptr<ATexture2D>& GetTextureAtlas() { return m_pTextureAtlas; }
+	std::vector<ATexture2D*> GetSprite() { return m_vSprites; }
+	ATexture2D* GetTextureAtlas() { return m_pTextureAtlas; }
 	glm::uint32 GetBaseIndex(eBaseIndices b);
 	glm::uint32 GetFontBaseIndex(glm::uint8 fontStyle);
 

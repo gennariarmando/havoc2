@@ -84,6 +84,10 @@ void AVertexBuffer::SetVertex(glm::vec3 const& pos) {
     SetVertex(pos.x, pos.y, pos.z);
 }
 
+void AVertexBuffer::SetIndices(glm::uint32 i) {
+    m_vIndices.push_back(i);
+}
+
 void AVertexBuffer::SetTexCoords(float x, float y) {
     if (m_bHasRenderData)
         return;

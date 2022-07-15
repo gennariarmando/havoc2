@@ -27,7 +27,7 @@ bool CVideoPlayer::Open(std::string const& path) {
 	m_nCurrentFrame = 0;
 	m_nLastFrame = m_pBink->LastFrameNum;
 
-	m_pPixels = std::make_shared<glm::uint8[]>(m_nPitch * m_nHeight);
+	m_pPixels = std::make_unique<glm::uint8[]>(m_nPitch * m_nHeight);
 	return true;
 }
 

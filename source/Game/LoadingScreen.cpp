@@ -17,7 +17,7 @@ void CLoadingScreen::Draw() {
 	if (!Frontend.m_bInitialized)
 		return;
 	
-	Frontend.m_pFrontendSprites.at(FE_LEVELCOMPLETE)->Draw(SCREEN_SCALE_X(0.0f), SCREEN_SCALE_Y(0.0f), SCREEN_SCALE_W(640.0f), SCREEN_SCALE_H(480.0f), glm::vec4(1.0f));
+	Frontend.m_vFrontendSprites.at(FE_LEVELCOMPLETE)->Draw(SCREEN_SCALE_X(0.0f), SCREEN_SCALE_Y(0.0f), SCREEN_SCALE_W(640.0f), SCREEN_SCALE_H(480.0f), glm::vec4(1.0f));
 	Font.Reset();
 	Font.SetFontAlignment(FONT_ALIGN_CENTER);
 	Font.SetFontStyle(FONT_STYLE_MENU);

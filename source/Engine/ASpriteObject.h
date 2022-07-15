@@ -4,7 +4,7 @@
 
 class ASpriteObject {
 public:
-	std::shared_ptr<ASprite> m_pSprite;
+	ASprite* m_pSprite;
 	glm::vec3 m_vPosition;
 	glm::vec2 m_vScale;
 	glm::vec3 m_vRotation;
@@ -13,6 +13,8 @@ public:
 
 public:
 	ASpriteObject();
+	~ASpriteObject();
+
 	void Render();
 
 	void SetAllValues(glm::vec3 const& pos, glm::vec2 scale, glm::vec3 rot, float angle, glm::vec4 col);

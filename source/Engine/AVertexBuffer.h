@@ -13,6 +13,7 @@ public:
     glm::uint32 m_nVao;
     glm::uint32 m_nVbo[NUM_OBJECTS];
     std::vector<glm::vec3> m_vPos;
+    std::vector<glm::uint32> m_vIndices;
     std::vector<glm::vec2> m_vTexCoords;
 
     glm::mat4 m_mProjection;
@@ -43,6 +44,7 @@ public:
 
     void SetVertex(float x, float y, float z = 0.0f);
     void SetVertex(glm::vec3 const& pos);
+    void SetIndices(glm::uint32 i);
     void SetTexCoords(float x, float y);
     void SetTexCoords(glm::vec2 const& pos);
     void EditTexCoords(glm::int32 index, float x, float y);

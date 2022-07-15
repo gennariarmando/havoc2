@@ -12,7 +12,7 @@ enum {
 class CVideoPlayer {
 public:
 	BINK* m_pBink;
-	std::shared_ptr<glm::uint8[]> m_pPixels;
+	std::unique_ptr<glm::uint8[]> m_pPixels;
 
 	glm::int32 m_nWidth;
 	glm::int32 m_nHeight;
@@ -22,7 +22,6 @@ public:
 
 public:
 	CVideoPlayer();
-	CVideoPlayer(std::string const& path);
 
 	bool Open(std::string const& path);
 	void Close();

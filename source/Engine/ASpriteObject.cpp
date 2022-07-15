@@ -1,12 +1,16 @@
 #include "ASpriteObject.h"
 
 ASpriteObject::ASpriteObject() {
-	m_pSprite = std::make_shared<ASprite>();
+	m_pSprite = new ASprite();
 	m_vPosition = glm::vec4(0.0f);
 	m_vScale = glm::vec2(1.0f);
 	m_vRotation = glm::vec4(0.0f);
 	m_fAngle = 0.0f;
 	m_vColor = glm::vec4(1.0f);
+}
+
+ASpriteObject::~ASpriteObject() {
+	delete m_pSprite;
 }
 
 void ASpriteObject::Render() {

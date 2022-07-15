@@ -113,8 +113,8 @@ struct tPreviousPage {
 class CFrontend {
 public:
 	bool m_bInitialized;
-	std::shared_ptr<CStyle> m_pStyle;
-	std::vector<std::shared_ptr<ASprite>> m_pFrontendSprites;
+	CStyle* m_pStyle;
+	std::vector<ASprite*> m_vFrontendSprites;
 	glm::int32 m_nCurrentPage;
 	glm::int32 m_nCurrentItem;
 	glm::int32 m_nHoverItem;
@@ -136,7 +136,6 @@ public:
 	std::string GetActionRightString(glm::uint8 action);
 	void Draw();
 	void Shutdown();
-	void Clear();
 
 public:
 	bool OpenMenu(glm::int32 page);
@@ -157,7 +156,7 @@ private:
 	tMenuItem* GetCurrentItem() { return &m_vMenuPages.at(m_nCurrentPage).menuItems.at(m_nCurrentItem); }
 
 public:
-	std::shared_ptr<CStyle> GetStyle() { return !m_pStyle || m_pStyle->IsLoading() ? nullptr : m_pStyle; }
+	CStyle* GetStyle() { return !m_pStyle || m_pStyle->IsLoading() ? nullptr : m_pStyle; }
 };
 
 extern CFrontend Frontend;
