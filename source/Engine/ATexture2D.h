@@ -13,6 +13,8 @@ public:
     ATexture2D();
     ~ATexture2D();
 
+    void SetWidth(glm::int32 w);
+    void SetHeight(glm::int32 h);
     void SetID(glm::uint32 id);
     void Build(const void* p, glm::int32 w, glm::int32 h, glm::int32 internalFormat = -1, glm::int32 format = -1);
 

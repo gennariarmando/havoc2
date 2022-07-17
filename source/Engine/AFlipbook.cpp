@@ -1,7 +1,7 @@
-#include "Flipbook.h"
+#include "AFlipbook.h"
 #include "ATime.h"
 
-CFlipbook::CFlipbook() {
+AFlipbook::AFlipbook() {
 	m_nCurrentFrame = 0;
 
 	m_vFrames = {};
@@ -11,17 +11,17 @@ CFlipbook::CFlipbook() {
 	m_fTimeRate = 1.0f;
 }
 
-CFlipbook::CFlipbook(std::vector<glm::uint16> frames, glm::uint8 repeat, float rate) {
+AFlipbook::AFlipbook(std::vector<glm::uint16> frames, glm::uint8 repeat, float rate) {
 	Set(frames, repeat, rate);
 }
 
-void CFlipbook::Set(std::vector<glm::uint16> frames, glm::uint8 repeat, float rate) {
+void AFlipbook::Set(std::vector<glm::uint16> frames, glm::uint8 repeat, float rate) {
 	m_vFrames = frames;
 	m_nRepeat = repeat;
 	m_fTimeRate = rate;
 }
 
-void CFlipbook::Update() {
+void AFlipbook::Update() {
 	if (m_nCycles > m_nRepeat) {
 		m_nCurrentFrame = static_cast<glm::uint16>(m_vFrames.size()) - 1;
 		return;
@@ -40,6 +40,6 @@ void CFlipbook::Update() {
 	}
 }
 
-glm::uint16 CFlipbook::GetFrame() {
+glm::uint16 AFlipbook::GetFrame() {
 	return m_vFrames[m_nCurrentFrame];
 }

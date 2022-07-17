@@ -2,8 +2,8 @@
 #include "AVertexBuffer.h"
 #include "AFileMgr.h"
 #include "Style.h"
-#include "Flipbook.h"
-#include "ACollisionBody.h"
+#include "AFlipbook.h"
+#include "ARigidBody.h"
 
 enum {
 	GMP_VERSION = 0x1F4
@@ -169,7 +169,7 @@ struct tFaceInfo {
 	bool flip;
 	glm::uint32 rotation;
 	glm::uint32 lighting;
-	CFlipbook* flipBook;
+	AFlipbook* flipBook;
 	glm::uint32 index;
 };
 
@@ -187,7 +187,7 @@ struct tBlockInfoDetailed {
 
 struct tCachedAnims {
 	glm::int16 tile;
-	CFlipbook* flipBook;
+	AFlipbook* flipBook;
 };
 
 struct tCompressedMap {
@@ -196,10 +196,6 @@ struct tCompressedMap {
 	std::vector<glm::uint32> column;
 	glm::uint32 numBlocks;
 	std::vector<tBlockInfoDetailed> blocks;
-};
-
-struct tCollisionMap {
-	std::vector<ACollisionBody*> m_vCollisionBody;
 };
 
 class CMap {
@@ -215,7 +211,6 @@ public:
 	std::vector<std::vector<tFaceInfo>> m_vAnimatedFaces;
 	std::vector<tCachedAnims> m_vCachedAnims;
 	AVertexBuffer m_VertexBuffer;
-	std::vector<tCollisionMap>* m_vCollisionMap;
 
 public:
 	CMap();
@@ -232,7 +227,7 @@ private:
 
 	void ParseBlockInfo(tBlockInfo& block, tBlockInfoDetailed& info, glm::uint32 faceType);
 	void BuildChunks();
-	void AddBlock(glm::uint32 chunkIndex, tBlockInfoDetailed& block, glm::vec3 offset, glm::uint32& index);
+	void AddBlock(glm::uint32 chunkIndex, tBlockInfoDetailed& block, glm::vec3 const& chunkOffset, glm::vec3 const& offset, glm::uint32& index, ARigidBody* colBody);
 	bool GetVecFromSlopeType(glm::uint32 slopeType, glm::vec3& tl, glm::vec3& tr, glm::vec3& bl, glm::vec3& br);
 	void AddFace(glm::uint32 slopeType, glm::uint8 faceType, glm::uint32 tile, glm::uint32 rot, bool flip, bool flat, bool oppositeFlat, glm::vec3 offset, glm::uint32& index);
 	void EditFace(AVertexBuffer* chunk, tFaceInfo* details);

@@ -4,6 +4,7 @@
 #include "Font.h"
 #include "AScreen.h"
 #include "ACamera.h"
+#include "World.h"
 
 CHud Hud;
 
@@ -23,13 +24,13 @@ void CHud::DrawDebugStuff() {
     Font.SetFontStyle(FONT_STYLE_HEADING);
 
     Font.SetColor(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
-    Font.PrintString({ SCREEN_SCALE_X(0.0f), 0.0f }, "x:" + std::to_string((Camera.GetPosition().x)));
+    Font.PrintString({ (0.0f), 0.0f }, "x:" + std::to_string((Camera.GetPosition().x)));
 
     Font.SetColor(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-    Font.PrintString({ SCREEN_SCALE_X(128.0f), 0.0f }, "y: " + std::to_string((Camera.GetPosition().y)));
+    Font.PrintString({ (128.0f), 0.0f }, "y: " + std::to_string((Camera.GetPosition().y)));
 
     Font.SetColor(glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
-    Font.PrintString({ SCREEN_SCALE_X(256.0f), 0.0f }, "z: " + std::to_string((Camera.GetPosition().z)));
+    Font.PrintString({ (256.0f), 0.0f }, "z: " + std::to_string((Camera.GetPosition().z)));
 }
 
 void CHud::DrawProgressBar(glm::vec4 rect, float progress, glm::vec4 const& frontColor, glm::vec4 const& backColor) {

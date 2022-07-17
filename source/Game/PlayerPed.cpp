@@ -18,7 +18,8 @@ void CPlayerPed::SetupPlayerPed() {
 	World.Add(playerPed);
 
 	// Set initial pos
-	playerPed->GetRigidBody()->SetPosition({ 10.0f, 10.0f, 10.0f });
+	playerPed->GetRigidBody()->SetPosition({ 159.50f, 139.50f, 50.0f });
+	playerPed->GetRigidBody()->SetHeading(0.0f);
 }
 
 void CPlayerPed::Update() {
@@ -27,28 +28,25 @@ void CPlayerPed::Update() {
 	bool keyLeft = Input.GetKeyDown(KEY_A);
 	bool keyRight = Input.GetKeyDown(KEY_D);
 	bool keyJump = Input.GetKeyJustDown(KEY_SPACE);
+	float moveSpeed = 1.0f;
 
-	//m_fHeadingVelocity = 0.0f;
-	//
-	//m_fMoveSpeed = 2.0f;
-	//m_fRotSpeed = 3.0f;
-	//
-	//float forward = 0.0f;
-	//if (keyForward)
-	//	forward = m_fMoveSpeed;
-	//else if (keyBackward)
-	//	forward = -m_fMoveSpeed;
-	//
-	//m_vVelocity.x = m_vFront.x * forward;
-	//m_vVelocity.y = m_vFront.y * forward;
-	//
-	//if (keyLeft)
-	//	m_fHeadingVelocity = -1.0f;
-	//else if (keyRight)
-	//	m_fHeadingVelocity = 1.0f;
-	//
-	//if (keyJump)
-	//	m_vVelocity.z = 5.0f;
+	float forward = 0.0f;
+	if (keyForward)
+		forward = moveSpeed;
+	else if (keyBackward)
+		forward = -moveSpeed;
+	
+	glm::vec3 direction = m_vFront * forward;
+	GetRigidBody()->SetLinearVelocity(direction);
+
+	float heading = 0.0f;
+
+	if (keyLeft)
+		heading = -moveSpeed;
+	else if (keyRight)
+		heading = moveSpeed;
+
+	GetRigidBody()->SetAngularVelocity({ 0.0f, 0.0f, heading });
 
 	CPed::Update();
 }

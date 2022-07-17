@@ -12,6 +12,14 @@ ATexture2D::~ATexture2D() {
     Delete();
 }
 
+void ATexture2D::SetWidth(glm::int32 w) {
+    m_nWidth = w;
+}
+
+void ATexture2D::SetHeight(glm::int32 h) {
+    m_nHeight = h;
+}
+
 void ATexture2D::SetID(glm::uint32 id) {
     m_nId = id;
 }

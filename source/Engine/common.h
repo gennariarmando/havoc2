@@ -1,8 +1,6 @@
 #pragma once
 // STD - Standard library
-#define __STDC_LIMIT_MACROS
 #include <list>
-#include <stdio.h>
 #include <memory>
 #include <format>
 #include <functional>
@@ -19,19 +17,19 @@
 
 // GLM - OpenGL Mathematics: https://github.com/g-truc/glm
 #define GLM_FORCE_LEFT_HANDED
-#include "glm\glm.hpp"
-#include "glm\fwd.hpp"
-#include "glm\gtc\matrix_transform.hpp"
-#include "glm\gtc\type_ptr.hpp"
-#include "glm\gtx\matrix_decompose.hpp"
-#include "glm\gtx\rotate_vector.hpp"
+#include "glm.hpp"
+#include "fwd.hpp"
+#include "gtc\matrix_transform.hpp"
+#include "gtc\type_ptr.hpp"
+#include "gtx\matrix_decompose.hpp"
+#include "gtx\rotate_vector.hpp"
 
 // GLAD - GL Loader: https://github.com/Dav1dde/glad
-#include "include\glad\glad.h"
+#include "glad/glad.h"
 
 // GLFW - Multiplatform library for OpenGL: https://github.com/glfw/glfw
 #define GLFW_INCLUDE_NONE
-#include "include\GLFW\glfw3.h"
+#include "GLFW\glfw3.h"
 
 // Pugixml - XML parser: https://github.com/zeux/pugixml
 #include "pugixml.hpp"

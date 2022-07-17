@@ -10,7 +10,7 @@ newoption {
 
 newoption {
 	trigger     = "with-reactphysics3d",
-	description = "Build Bullet Physics SDK"
+	description = "Build react physics 3d library"
 }
 
 workspace "havoc2"
@@ -18,7 +18,8 @@ workspace "havoc2"
 	location "project_files"
    	startproject "havoc2"
     platforms { "x86", --[["x64"--]] }
-	
+	cppdialect "C++20"
+
 	filter "platforms:x86"
 		architecture "x86"
 		system "windows"	
@@ -67,7 +68,7 @@ if(_OPTIONS["with-pugixml"]) then
 project "vendor-pugixml"
 	location "project_files/vendor/pugixml"
     kind "StaticLib"
-    language "C"
+    language "C++"
     staticruntime "on"
 	targetname "pugixml"
 
@@ -84,7 +85,7 @@ project "vendor-pugixml"
     }
 
     includedirs {
-        "vendor/pugixml/include"
+        "vendor/pugixml/src"
     }
     
     filter "system:windows"
@@ -102,10 +103,10 @@ if(_OPTIONS["with-reactphysics3d"]) then
 project "vendor-reactphysics3d"
 	location "project_files/vendor/reactphysics3d"
     kind "StaticLib"
-    language "C"
+    language "C++"
     staticruntime "on"
     targetname "reactphysics3d"
-	
+
 	filter "platforms:x86"
 		targetdir "vendor/reactphysics3d/lib/x86"
 		objdir ("vendor/reactphysics3d/obj/x86")
@@ -115,11 +116,12 @@ project "vendor-reactphysics3d"
 	filter {}
 
     files {
-		"vendor/reactphysics3d/src/**.*",
+		"vendor/reactphysics3d/src/**.cpp",
+		"vendor/reactphysics3d/include/**.h",
     }
 
     includedirs {
-        "vendor/reactphysics3d/***"
+        "vendor/reactphysics3d/include/"
     }
     
     filter "system:windows"
@@ -141,8 +143,14 @@ project "havoc2"
 	
 	includedirs { 
 		"source/**",
-		"vendor/**",
+		"vendor/bink/include",
+		"vendor/glad/include",
+		"vendor/glfw/include",
+		"vendor/glm/glm",
+		"vendor/pugixml/src/",
+		"vendor/reactphysics3d/include"
 	}
+	
 	
 	filter "platforms:x86"	
 		libdirs { "vendor/*/lib/x86/" }
@@ -152,15 +160,12 @@ project "havoc2"
 		links { "glfw3", "glad", "pugixml", "reactphysics3d" }
 	filter {}
 	
-	kind "WindowedApp"
+	kind "ConsoleApp"
 	language "C++"
 	targetdir "output/exe/GTA2/"
 	objdir ("output/obj")
 	targetextension ".exe"
 	characterset ("MBCS")
-	linkoptions  { "/SAFESEH:NO", "/ENTRY:mainCRTStartup" }
-	buildoptions { "-std:c++latest", "/Zc:threadSafeInit-", "/Zc:strictStrings" }
-	defines { "_CRT_SECURE_NO_WARNINGS", "_CRT_NONSTDC_NO_DEPRECATE", "_WIN32" }
 	disablewarnings { "4244", "4800", "4305", "4073", "4838", "4996", "4221", "4430", "26812", "26495", "6031" }
 	symbols "on"
 

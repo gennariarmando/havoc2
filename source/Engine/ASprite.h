@@ -17,7 +17,7 @@ public:
     ~ASprite();
 
 	void Delete();
-    bool SetTexture(glm::uint32 id);
+    bool SetTexture(ATexture2D* texture);
     bool SetTexture(std::string path, std::string name);
     void Draw(float x, float y, float w, float h, glm::vec4 const& col);
     void Draw(float x, float y, float w, float h, glm::vec2 const& center, float angle, glm::vec4 const& col);

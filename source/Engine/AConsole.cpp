@@ -16,7 +16,7 @@ AConsole::AConsole() {
 bool AConsole::Init() {
 #ifdef DEBUG
 #ifdef _WIN32
-    AllocConsole();
+    //AllocConsole();
 #endif
     FILE* f = nullptr;
     f = freopen("CONIN$", "r", stdin);
@@ -38,7 +38,7 @@ void AConsole::WriteLine(std::string str) {
 void AConsole::Shutdown() {
 #ifdef DEBUG
 #ifdef _WIN32
-    FreeConsole();
+    //FreeConsole();
 #endif
 #endif
 }

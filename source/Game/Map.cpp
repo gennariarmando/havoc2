@@ -24,8 +24,6 @@ CMap::CMap() {
 	m_vAnimatedFaces.resize(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y, std::vector<tFaceInfo>(0));
 	m_vCachedAnims = {};
 	m_VertexBuffer = {};
-	m_vCollisionMap = new std::vector<tCollisionMap>();
-	m_vCollisionMap->resize(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y);
 }
 
 CMap::~CMap() {
@@ -38,7 +36,6 @@ CMap::~CMap() {
 	m_vAnimatedFaces = {};
 	m_vCachedAnims = {};
 	m_VertexBuffer = {};
-	delete m_vCollisionMap;
 }
 
 bool CMap::Load(std::string const& fileName) {
@@ -293,6 +290,7 @@ void CMap::BuildChunks() {
 	glm::uint32 chunkIndex = 0;
 	for (glm::int32 i = 0; i < MAP_SCALE_Y / MAP_NUM_BLOCKS_Y; i++) {
 		for (glm::int32 j = 0; j < MAP_SCALE_X / MAP_NUM_BLOCKS_X; j++) {
+			glm::vec3 chunkPos = { static_cast<float>(j * MAP_NUM_BLOCKS_X), static_cast<float>(i * MAP_NUM_BLOCKS_Y), 0.0f };	
 			for (glm::int32 y = 0; y < MAP_NUM_BLOCKS_Y; y++) {
 				for (glm::int32 x = 0; x < MAP_NUM_BLOCKS_X; x++) {
 					glm::int32 columnIndex = m_pCompressedMap->base.at((y + i * MAP_NUM_BLOCKS_Y) * 256 + x + j * MAP_NUM_BLOCKS_X);
@@ -334,7 +332,7 @@ void CMap::BuildChunks() {
 										break;
 
 									if (!block.details[faceType].flipBook) {
-										block.details[faceType].flipBook = new CFlipbook();
+										block.details[faceType].flipBook = new AFlipbook();
 										block.details[faceType].flipBook->Set(anim.tiles, anim.repeat, anim.frameRate / ANIMATIONS_FRAME_RATE);
 
 										tCachedAnims t;
@@ -349,32 +347,18 @@ void CMap::BuildChunks() {
 
 						glm::uint32 chunkIndex = i * MAP_NUM_BLOCKS_X + j;
 						glm::vec3 offset = glm::vec3(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
-						AddBlock(chunkIndex, block, offset, index);
+						AddBlock(chunkIndex, block, chunkPos, offset, index, nullptr);
 					}
 				}
 			}
 			m_vGeometryChunks.push_back(m_VertexBuffer);
-
 			m_VertexBuffer = { };
-
+			
 			index = 0;
 		}
 	}
 
-	glm::uint32 fakeIndex = 0;
-	for (auto& it : m_vGeometryChunks) {
-		it.SetIndices(fakeIndex);
-		fakeIndex++;
-	}
 	m_vCachedAnims = cachedAnims;
-
-	// Create collision map
-	physics::BoxShape* boxShape = Physics.m_pPhysicsCommon->createBoxShape({ 256.0f, 256.0f, 2.0f });
-	physics::Transform transform = physics::Transform::identity();
-	ACollisionBody* b = new ACollisionBody();
-	b->m_pBody->addCollider(boxShape, transform);
-	b->SetPosition({ 128.0f, 128.0f, 0.0f });
-	m_vCollisionMap->at(chunkIndex).m_vCollisionBody.push_back(b);
 }
 
 void CMap::Render(CStyle* style) {
@@ -421,23 +405,48 @@ void CMap::Render(CStyle* style) {
 	}
 }
 
-void CMap::AddBlock(glm::uint32 chunkIndex, tBlockInfoDetailed& block, glm::vec3 offset, glm::uint32& index) {
+void CMap::AddBlock(glm::uint32 chunkIndex, tBlockInfoDetailed& block, glm::vec3 const& chunkOffset, glm::vec3 const& offset, glm::uint32& index, ARigidBody* colBody) {
 	for (glm::int32 faceType = 0; faceType < NUM_FACETYPES; faceType++) {
+		if (!block.details[faceType].tile || block.details[faceType].tile >= 992)
+			continue;
+
 		tFaceInfo* oppositeFace = NULL;
 		tFaceInfo& detail = block.details[faceType];
+
+		// Col data
+		glm::vec3 colFaceLeftRight = { 0.1f, 0.5f, 0.5f };
+		glm::vec3 colFaceTopBottom = { 0.5f, 0.5f, 0.1f };
+		glm::vec3 colFaceForwardBackward = { 0.5f, 0.1f, 0.5f };
+		glm::vec3 colHalfSizeOffset = { 0.5f, 0.5f, 0.5f };
 
 		switch (faceType) {
 		case FACETYPE_LEFT:
 			oppositeFace = &block.details[FACETYPE_RIGHT];
+
+			// Col data
+			if (colBody)
+				colBody->AddCollisionTypeBox(chunkOffset + offset + colHalfSizeOffset + glm::vec3(-0.5f, 0.0f, 0.0f), colFaceLeftRight);
 			break;
 		case FACETYPE_TOP:
 			oppositeFace = &block.details[FACETYPE_BOTTOM];
+
+			// Col data
+			if (colBody)
+				colBody->AddCollisionTypeBox(chunkOffset + offset + colHalfSizeOffset + glm::vec3(0.0f, 0.0f, 0.5f), colFaceTopBottom);
 			break;
 		case FACETYPE_RIGHT:
 			oppositeFace = &block.details[FACETYPE_LEFT];
+
+			// Col data
+			if (colBody)
+				colBody->AddCollisionTypeBox(chunkOffset + offset + colHalfSizeOffset + glm::vec3(0.5f, 0.0f, 0.0f), colFaceLeftRight);
 			break;
 		case FACETYPE_BOTTOM:
 			oppositeFace = &block.details[FACETYPE_TOP];
+
+			// Col data
+			if (colBody)
+				colBody->AddCollisionTypeBox(chunkOffset + offset + colHalfSizeOffset + glm::vec3(0.0f, 0.0f, -0.5f), colFaceTopBottom);
 			break;
 		}
 
@@ -464,8 +473,7 @@ void CMap::AddBlock(glm::uint32 chunkIndex, tBlockInfoDetailed& block, glm::vec3
 			}
 		}
 
-		if (block.details[faceType].tile && block.details[faceType].tile < 992) {
-			switch (block.slopeType) {
+		switch (block.slopeType) {
 			//case SLOPETYPE_PARTIALBLOCKLEFT:
 			//case SLOPETYPE_PARTIALBLOCKRIGHT:
 			//case SLOPETYPE_PARTIALBLOCKTOPLEFT:
@@ -475,18 +483,17 @@ void CMap::AddBlock(glm::uint32 chunkIndex, tBlockInfoDetailed& block, glm::vec3
 			//case SLOPETYPE_PARTIALBLOCKTOP:
 			//case SLOPETYPE_PARTIALBLOCKBOTTOM:
 			//	break;
-			case SLOPETYPE_DIAGONALSLOPEFACINGUPLEFTNOZERO:
-			case SLOPETYPE_DIAGONALSLOPEFACINGDOWNLEFTNOZERO:
-			case SLOPETYPE_DIAGONALSLOPEFACINGUPRIGHTNOZERO:
-			case SLOPETYPE_DIAGONALSLOPEFACINGDOWNRIGHTNOZERO:
-				AddFace(block.slopeType, FACETYPE_LID, tile, block.details[FACETYPE_LID].rotation, block.details[FACETYPE_LID].flip, false, false, offset, index);
-				break;
-			default:
-				AddFace(block.slopeType, faceType, tile, block.details[faceType].rotation, block.details[faceType].flip, block.details[faceType].flat, block.details[faceType].oppositeFlat, offset, index);
-				break;
-			}
-			block.details[faceType].index = index - 6;
+		case SLOPETYPE_DIAGONALSLOPEFACINGUPLEFTNOZERO:
+		case SLOPETYPE_DIAGONALSLOPEFACINGDOWNLEFTNOZERO:
+		case SLOPETYPE_DIAGONALSLOPEFACINGUPRIGHTNOZERO:
+		case SLOPETYPE_DIAGONALSLOPEFACINGDOWNRIGHTNOZERO:
+			AddFace(block.slopeType, FACETYPE_LID, tile, block.details[FACETYPE_LID].rotation, block.details[FACETYPE_LID].flip, false, false, offset, index);
+			break;
+		default:
+			AddFace(block.slopeType, faceType, tile, block.details[faceType].rotation, block.details[faceType].flip, block.details[faceType].flat, block.details[faceType].oppositeFlat, offset, index);
+			break;
 		}
+		block.details[faceType].index = index - 6;
 
 		if (block.details[faceType].flipBook)
 			m_vAnimatedFaces[chunkIndex].push_back(block.details[faceType]);

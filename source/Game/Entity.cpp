@@ -11,8 +11,9 @@
 
 CEntity::CEntity() {
 	m_pRigidBody = new ARigidBody();
+
 	m_pSpriteObject = new ASpriteObject();
-	m_pSpriteObject->m_pSprite->SetTexture(World.GetStyle()->GetSprite().at(130)->GetID());
+	m_pSpriteObject->m_pSprite->SetTexture(World.GetStyle()->GetSprite().at(130));
 
 	m_eType = ENTITYTYPE_NONE;
 
@@ -28,14 +29,26 @@ CEntity::~CEntity() {
 }
 
 void CEntity::Render() {
-	m_pSpriteObject->SetAllValues(m_pRigidBody->GetPosition(), { 1.0f, 1.0f }, m_pRigidBody->GetRotation(), 0.0f - glm::half_pi<float>(), glm::vec4(1.0f));
+	m_pSpriteObject->SetAllValues(GetRigidBody()->GetPosition(), { 1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, GetRigidBody()->GetHeading() - glm::half_pi<float>(), glm::vec4(1.0f));
 	m_pSpriteObject->Render();
 }
 
 void CEntity::Update() {
-	glm::vec3 pos = GetRigidBody()->GetPosition();
-	if (GetRigidBody()->GetPosition().z < -50.0f) {
-		GetRigidBody()->SetPosition({ pos.x, pos.y, 50.0f });
-		GetRigidBody()->m_pBody->setLinearVelocity({ 0.0f, 0.0f, 0.0f });
-	}
+	if (!GetRigidBody())
+		return;
+
+	UpdateEntityVectors();
+}
+
+void CEntity::UpdateEntityVectors() {
+	glm::vec3 f;
+	f.x = cos(GetRigidBody()->GetHeading()) * cos(0.0f);
+	f.y = sin(GetRigidBody()->GetHeading()) * cos(0.0f);
+	f.z = sin(0.0f);
+
+	glm::vec3 u(0.0f, 0.0f, 1.0f);
+
+	m_vFront = glm::normalize(f);
+	m_vRight = glm::normalize(glm::cross(u, m_vFront));
+	m_vUp = glm::normalize(glm::cross(m_vFront, m_vRight));
 }

@@ -32,8 +32,13 @@ void ASprite::Delete() {
         m_pTexture->Delete();
 }
 
-bool ASprite::SetTexture(glm::uint32 id) {
-    m_pTexture->SetID(id);
+bool ASprite::SetTexture(ATexture2D* texture) {
+    if (!texture)
+        return false;
+
+    m_pTexture->SetID(texture->GetID());
+    m_pTexture->SetWidth(texture->GetWidth());
+    m_pTexture->SetHeight(texture->GetHeight());
     return true;
 }
 

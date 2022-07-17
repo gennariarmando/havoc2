@@ -1,7 +1,7 @@
 #pragma once
 #include "common.h"
 
-class CFlipbook {
+class AFlipbook {
 private:
 	glm::uint16 m_nCurrentFrame;
 	std::vector<glm::uint16> m_vFrames;
@@ -11,8 +11,8 @@ private:
 	float m_fTimeRate;
 	
 public:
-	CFlipbook();
-	CFlipbook(std::vector<glm::uint16> frames, glm::uint8 repeat, float rate);
+	AFlipbook();
+	AFlipbook(std::vector<glm::uint16> frames, glm::uint8 repeat, float rate);
 
 	void Update();
 

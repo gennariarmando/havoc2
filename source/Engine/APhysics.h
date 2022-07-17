@@ -1,13 +1,13 @@
 #pragma once
 #include "common.h"
-#include "reactphysics3d.h"
+#include <reactphysics3d/reactphysics3d.h>
 
-namespace physics = reactphysics3d;
+namespace phy = reactphysics3d;
 
 class APhysics {
 public:
-	physics::PhysicsCommon* m_pPhysicsCommon;
-	physics::PhysicsWorld* m_pPhysicsWorld;
+	phy::PhysicsCommon* m_pPhysicsCommon;
+	phy::PhysicsWorld* m_pPhysicsWorld;
 
 public:
 	bool Init();

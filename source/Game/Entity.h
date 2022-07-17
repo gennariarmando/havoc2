@@ -11,10 +11,13 @@ enum eEntityType {
 };
 
 class CEntity {
-private:
+public:
 	ARigidBody* m_pRigidBody;
 	ASpriteObject* m_pSpriteObject;
 	eEntityType m_eType;
+	glm::vec3 m_vFront;
+	glm::vec3 m_vRight;
+	glm::vec3 m_vUp;
 
 public:
 	ARigidBody* const& GetRigidBody() { return m_pRigidBody; }
@@ -32,4 +35,6 @@ public:
 	virtual void Update();
 	virtual void Render();
 
+public:
+	void UpdateEntityVectors();
 };

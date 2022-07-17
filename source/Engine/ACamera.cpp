@@ -140,6 +140,9 @@ void ACamera::ProcessDebug() {
 }
 
 void ACamera::ProcessFollowEntity() {
+    if (!GetTargetEntity())
+        return;
+
     m_fFOV = 45.0f;  
 
     m_vAngle.x = glm::radians(0.0f);

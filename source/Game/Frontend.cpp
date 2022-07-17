@@ -497,7 +497,7 @@ float CFrontend::DrawSlider(float x, float y, float w, float h, glm::int32& prog
 
 void CFrontend::DrawOneChar(float x, float y, char c) {
 	static ASprite sprite;
-	sprite.SetTexture(GetStyle()->GetSprite().at(4)->GetID());
+	sprite.SetTexture(GetStyle()->GetSprite().at(4));
 
 	sprite.Draw(x, y, SCREEN_SCALE_W(MENU_ONE_CHAR_SIZE), SCREEN_SCALE_H(MENU_ONE_CHAR_SIZE), glm::vec4(1.0f));
 
