@@ -113,6 +113,13 @@ enum eSlopeType {
 	SLOPETYPE_DIAGONALSLOPEFACINGDOWNRIGHTNOZERO = 67,
 };
 
+enum eGroundTypes {
+	GROUNDTYPE_AIR,
+	GROUNDTYPE_ROAD,
+	GROUNDTYPE_PAVEMENT,
+	GROUNDTYPE_FIELD,
+};
+
 enum eBlockSizes {
 	MAP_BLOCK_SIZE = 1,
 	MAP_NUM_BLOCKS_X = 16,
@@ -207,9 +214,11 @@ public:
 	std::vector<tMapZone>* m_vZones;
 	std::vector<tMapObject>* m_vObjects;
 	std::vector<tMapLight>* m_vLights;
-	std::vector<AVertexBuffer> m_vGeometryChunks;
 	std::vector<std::vector<tFaceInfo>> m_vAnimatedFaces;
 	std::vector<tCachedAnims> m_vCachedAnims;
+
+	std::vector<AVertexBuffer> m_vChunkGeometry;
+	ARigidBody* m_pCollisionBody;
 	AVertexBuffer m_VertexBuffer;
 
 public:

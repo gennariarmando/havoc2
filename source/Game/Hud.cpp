@@ -21,16 +21,10 @@ void CHud::DrawDebugStuff() {
     Font.SetFontAlignment(FONT_ALIGN_LEFT);
     Font.SetWrapX(SCREEN_WIDTH);
     Font.SetScale(SCREEN_SCALE_H(7.0f));
-    Font.SetFontStyle(FONT_STYLE_HEADING);
+    Font.SetFontStyle(FONT_STYLE_SUBTITLES);
 
     Font.SetColor(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
-    Font.PrintString({ (0.0f), 0.0f }, "x:" + std::to_string((Camera.GetPosition().x)));
-
-    Font.SetColor(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-    Font.PrintString({ (128.0f), 0.0f }, "y: " + std::to_string((Camera.GetPosition().y)));
-
-    Font.SetColor(glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
-    Font.PrintString({ (256.0f), 0.0f }, "z: " + std::to_string((Camera.GetPosition().z)));
+    Font.PrintString({ (0.0f), 0.0f }, "player_heading:" + std::to_string(glm::degrees<float>(World.GetPlayer()->m_pPed->GetRigidBody()->GetAngle())));
 }
 
 void CHud::DrawProgressBar(glm::vec4 rect, float progress, glm::vec4 const& frontColor, glm::vec4 const& backColor) {

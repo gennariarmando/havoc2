@@ -15,7 +15,7 @@ struct tCollider {
 
 class ARigidBody {
 private:
-	phy::RigidBody* m_pBody;
+	rp3d::RigidBody* m_pBody;
 
 public:
 	ARigidBody();
@@ -24,7 +24,10 @@ public:
 public:
 	glm::vec3 const& GetPosition();
 	glm::vec3 const& GetRotation();
-	float const& GetHeading();
+	float const& GetAngle();
+
+	glm::vec3 const& GetLinearVelocity();
+	glm::vec3 const& GetAngularVelocity();
 
 public:
 	void SetPosition(glm::vec3 const& pos);
@@ -38,6 +41,8 @@ public:
 	void RemoveCollision(glm::uint32 index);
 	void SetLinearVelocity(glm::vec3 const& vel);
 	void SetAngularVelocity(glm::vec3 const& vel);
+	void ApplyLinearVelocity(glm::vec3 const& vel);
+	void ApplyAngularVelocity(glm::vec3 const& vel);
 	void ClearVelocity();
 	void SetEnabled(bool on);
 	bool const& IsEnabled();

@@ -12,6 +12,6 @@ void CPed::Update() {
 	glm::vec3 pos = GetRigidBody()->GetPosition();
 	if (GetRigidBody()->GetPosition().z < -50.0f) {
 		GetRigidBody()->SetPosition({ pos.x, pos.y, 50.0f });
-		GetRigidBody()->SetLinearVelocity({ 0.0f, 0.0f, 0.0f });
+		GetRigidBody()->ClearVelocity();
 	}
 }

@@ -5,14 +5,14 @@
 APhysics Physics;
 
 bool APhysics::Init() {
-	m_pPhysicsCommon = new phy::PhysicsCommon();
+	m_pPhysicsCommon = new rp3d::PhysicsCommon();
 	m_pPhysicsWorld = m_pPhysicsCommon->createPhysicsWorld();
 
 	if (!m_pPhysicsWorld)
 		return false;
 
-	m_pPhysicsWorld->setGravity({ 0.0f, 0.0f, -DEFAULT_GRAVITY_VALUE });
-	
+	m_pPhysicsWorld->setGravity({ 0.0f, 0.0f, 0.0f });
+
 	return true;
 }
 
@@ -25,7 +25,7 @@ void APhysics::BeginFrame() {
 	if (!m_pPhysicsWorld)
 		return;
 
-	m_pPhysicsWorld->update(1.0f / 60.0f);
+	m_pPhysicsWorld->update(Time.GetDeltaTime());
 }
 
 void APhysics::EndFrame() {

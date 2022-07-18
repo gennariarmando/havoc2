@@ -2,6 +2,7 @@
 #include "World.h"
 #include "AInput.h"
 #include "AConsole.h"
+#include "ATime.h"
 
 CPlayerPed::CPlayerPed() {
 
@@ -19,7 +20,7 @@ void CPlayerPed::SetupPlayerPed() {
 
 	// Set initial pos
 	playerPed->GetRigidBody()->SetPosition({ 159.50f, 139.50f, 50.0f });
-	playerPed->GetRigidBody()->SetHeading(0.0f);
+	playerPed->GetRigidBody()->SetHeading(glm::radians<float>(0.0f));
 }
 
 void CPlayerPed::Update() {
@@ -37,15 +38,15 @@ void CPlayerPed::Update() {
 		forward = -moveSpeed;
 	
 	glm::vec3 direction = m_vFront * forward;
+	direction.z = GetRigidBody()->GetLinearVelocity().z;
 	GetRigidBody()->SetLinearVelocity(direction);
 
 	float heading = 0.0f;
-
 	if (keyLeft)
-		heading = -moveSpeed;
+		heading -= moveSpeed;
 	else if (keyRight)
-		heading = moveSpeed;
-
+		heading += moveSpeed;
+	
 	GetRigidBody()->SetAngularVelocity({ 0.0f, 0.0f, heading });
 
 	CPed::Update();

@@ -20,9 +20,12 @@ CMap::CMap() {
 	m_vZones = new std::vector<tMapZone>();
 	m_vObjects = new std::vector<tMapObject>();
 	m_vLights = new std::vector<tMapLight>();
-	m_vGeometryChunks.reserve(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y);
 	m_vAnimatedFaces.resize(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y, std::vector<tFaceInfo>(0));
 	m_vCachedAnims = {};
+
+	m_vChunkGeometry.reserve(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y);
+	m_pCollisionBody = nullptr;
+
 	m_VertexBuffer = {};
 }
 
@@ -32,9 +35,14 @@ CMap::~CMap() {
 	delete m_vZones;
 	delete m_vObjects;
 	delete m_vLights;
-	m_vGeometryChunks = {};
 	m_vAnimatedFaces = {};
 	m_vCachedAnims = {};
+
+	m_vChunkGeometry = {};
+
+	if (m_pCollisionBody)
+		delete m_pCollisionBody;
+
 	m_VertexBuffer = {};
 }
 
@@ -287,10 +295,15 @@ void CMap::BuildChunks() {
 	glm::uint32 index = 0;
 	std::vector<tCachedAnims> cachedAnims;
 
+	if (!m_pCollisionBody) {
+		m_pCollisionBody = new ARigidBody();
+		m_pCollisionBody->SetType(BODYTYPE_STATIC);
+		m_pCollisionBody->SetPosition({ 0.0f, 0.0f, 0.0f });
+	}
+
 	glm::uint32 chunkIndex = 0;
 	for (glm::int32 i = 0; i < MAP_SCALE_Y / MAP_NUM_BLOCKS_Y; i++) {
 		for (glm::int32 j = 0; j < MAP_SCALE_X / MAP_NUM_BLOCKS_X; j++) {
-			glm::vec3 chunkPos = { static_cast<float>(j * MAP_NUM_BLOCKS_X), static_cast<float>(i * MAP_NUM_BLOCKS_Y), 0.0f };	
 			for (glm::int32 y = 0; y < MAP_NUM_BLOCKS_Y; y++) {
 				for (glm::int32 x = 0; x < MAP_NUM_BLOCKS_X; x++) {
 					glm::int32 columnIndex = m_pCompressedMap->base.at((y + i * MAP_NUM_BLOCKS_Y) * 256 + x + j * MAP_NUM_BLOCKS_X);
@@ -347,13 +360,25 @@ void CMap::BuildChunks() {
 
 						glm::uint32 chunkIndex = i * MAP_NUM_BLOCKS_X + j;
 						glm::vec3 offset = glm::vec3(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
-						AddBlock(chunkIndex, block, chunkPos, offset, index, nullptr);
+						AddBlock(chunkIndex, block, offset, offset, index, nullptr);
+
+						auto hasValidTile = [](tBlockInfoDetailed b) {
+							return (b.details[FACETYPE_LEFT].tile && b.details[FACETYPE_LEFT].tile < 992) ||
+								(b.details[FACETYPE_TOP].tile && b.details[FACETYPE_TOP].tile < 992) ||
+								(b.details[FACETYPE_RIGHT].tile && b.details[FACETYPE_RIGHT].tile < 992) ||
+								(b.details[FACETYPE_BOTTOM].tile && b.details[FACETYPE_BOTTOM].tile < 992);
+						};
+
+						if (block.groundType != GROUNDTYPE_AIR && hasValidTile(block)) {
+							glm::vec3 halfExtend = { 0.5f, 0.5f, 0.5f };
+							m_pCollisionBody->AddCollisionTypeBox(offset + halfExtend, halfExtend);
+						}
 					}
 				}
 			}
-			m_vGeometryChunks.push_back(m_VertexBuffer);
+			m_vChunkGeometry.push_back(m_VertexBuffer);
 			m_VertexBuffer = { };
-			
+
 			index = 0;
 		}
 	}
@@ -380,7 +405,9 @@ void CMap::Render(CStyle* style) {
 
 	for (glm::int32 i = starty; i < endy; i++) {
 		for (glm::int32 j = startx; j < endx; j++) {
-			AVertexBuffer* chunk = &m_vGeometryChunks.at(i * MAP_NUM_BLOCKS_X + j);
+			glm::uint32 chunkIndex = i * MAP_NUM_BLOCKS_X + j;
+			AVertexBuffer* chunk = &m_vChunkGeometry.at(chunkIndex);
+
 			std::vector<tFaceInfo>& animatedFaces = m_vAnimatedFaces.at(i * MAP_NUM_BLOCKS_X + j);
 			
 			for (auto& it : animatedFaces) {
@@ -413,40 +440,18 @@ void CMap::AddBlock(glm::uint32 chunkIndex, tBlockInfoDetailed& block, glm::vec3
 		tFaceInfo* oppositeFace = NULL;
 		tFaceInfo& detail = block.details[faceType];
 
-		// Col data
-		glm::vec3 colFaceLeftRight = { 0.1f, 0.5f, 0.5f };
-		glm::vec3 colFaceTopBottom = { 0.5f, 0.5f, 0.1f };
-		glm::vec3 colFaceForwardBackward = { 0.5f, 0.1f, 0.5f };
-		glm::vec3 colHalfSizeOffset = { 0.5f, 0.5f, 0.5f };
-
 		switch (faceType) {
 		case FACETYPE_LEFT:
 			oppositeFace = &block.details[FACETYPE_RIGHT];
-
-			// Col data
-			if (colBody)
-				colBody->AddCollisionTypeBox(chunkOffset + offset + colHalfSizeOffset + glm::vec3(-0.5f, 0.0f, 0.0f), colFaceLeftRight);
 			break;
 		case FACETYPE_TOP:
 			oppositeFace = &block.details[FACETYPE_BOTTOM];
-
-			// Col data
-			if (colBody)
-				colBody->AddCollisionTypeBox(chunkOffset + offset + colHalfSizeOffset + glm::vec3(0.0f, 0.0f, 0.5f), colFaceTopBottom);
 			break;
 		case FACETYPE_RIGHT:
 			oppositeFace = &block.details[FACETYPE_LEFT];
-
-			// Col data
-			if (colBody)
-				colBody->AddCollisionTypeBox(chunkOffset + offset + colHalfSizeOffset + glm::vec3(0.5f, 0.0f, 0.0f), colFaceLeftRight);
 			break;
 		case FACETYPE_BOTTOM:
 			oppositeFace = &block.details[FACETYPE_TOP];
-
-			// Col data
-			if (colBody)
-				colBody->AddCollisionTypeBox(chunkOffset + offset + colHalfSizeOffset + glm::vec3(0.0f, 0.0f, -0.5f), colFaceTopBottom);
 			break;
 		}
 

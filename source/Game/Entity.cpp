@@ -16,6 +16,9 @@ CEntity::CEntity() {
 	m_pSpriteObject->m_pSprite->SetTexture(World.GetStyle()->GetSprite().at(130));
 
 	m_eType = ENTITYTYPE_NONE;
+	m_vFront = {};
+	m_vRight = {};
+	m_vUp = {};
 
 	// Flags
 	m_bUsesCollision = false;
@@ -29,7 +32,7 @@ CEntity::~CEntity() {
 }
 
 void CEntity::Render() {
-	m_pSpriteObject->SetAllValues(GetRigidBody()->GetPosition(), { 1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, GetRigidBody()->GetHeading() - glm::half_pi<float>(), glm::vec4(1.0f));
+	m_pSpriteObject->SetAllValues(GetRigidBody()->GetPosition(), { 1.0f, 1.0f }, GetRigidBody()->GetRotation(), GetRigidBody()->GetAngle() - glm::half_pi<float>(), glm::vec4(1.0f));
 	m_pSpriteObject->Render();
 }
 
@@ -42,8 +45,8 @@ void CEntity::Update() {
 
 void CEntity::UpdateEntityVectors() {
 	glm::vec3 f;
-	f.x = cos(GetRigidBody()->GetHeading()) * cos(0.0f);
-	f.y = sin(GetRigidBody()->GetHeading()) * cos(0.0f);
+	f.x = cos(GetRigidBody()->GetAngle()) * cos(0.0f);
+	f.y = sin(GetRigidBody()->GetAngle()) * cos(0.0f);
 	f.z = sin(0.0f);
 
 	glm::vec3 u(0.0f, 0.0f, 1.0f);
