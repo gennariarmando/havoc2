@@ -175,6 +175,7 @@ project "havoc2"
 		staticruntime "on"
 		debugdir "output/exe/GTA2/"
 		debugcommand "output/exe/GTA2/havoc2.exe"
+		postbuildcommands "copy /y \"$(TargetPath)\" \"$(GTA_II_DIR)\\havoc2.exe\""
 
 	filter "configurations:Release"
 		targetname "havoc2"
@@ -183,5 +184,6 @@ project "havoc2"
 		staticruntime "on"
 		debugdir "output/exe/GTA2/"
 		debugcommand "output/exe/GTA2/havoc2.exe"
+		postbuildcommands "copy /y \"$(TargetPath)\" \"$(GTA_II_DIR)\\havoc2.exe\""
 	filter {}
 	
