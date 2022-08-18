@@ -29,24 +29,32 @@ void CPlayerPed::Update() {
 	bool keyLeft = Input.GetKeyDown(KEY_A);
 	bool keyRight = Input.GetKeyDown(KEY_D);
 	bool keyJump = Input.GetKeyJustDown(KEY_SPACE);
-	float moveSpeed = 1.0f;
+	float moveSpeed = 2.0f;
 
 	float forward = 0.0f;
 	if (keyForward)
 		forward = moveSpeed;
 	else if (keyBackward)
 		forward = -moveSpeed;
-	
+
 	glm::vec3 direction = m_vFront * forward;
 	direction.z = GetRigidBody()->GetLinearVelocity().z;
 	GetRigidBody()->SetLinearVelocity(direction);
 
 	float heading = 0.0f;
-	if (keyLeft)
+	if (keyRight) {
+		if (GetRigidBody()->GetAngle() > glm::radians<float>(359.0f))
+			GetRigidBody()->SetHeading(glm::radians<float>(0.0f));
+
 		heading -= moveSpeed;
-	else if (keyRight)
+	}
+	else if (keyLeft) {
+		if (GetRigidBody()->GetAngle() < glm::radians<float>(1.0f))
+			GetRigidBody()->SetHeading(glm::radians<float>(360.0f));
+
 		heading += moveSpeed;
-	
+	}
+
 	GetRigidBody()->SetAngularVelocity({ 0.0f, 0.0f, heading });
 
 	CPed::Update();

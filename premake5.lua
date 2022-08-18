@@ -173,17 +173,17 @@ project "havoc2"
 		targetname "havoc2"
 		defines { "DEBUG" }
 		staticruntime "on"
-		debugdir "output/exe/GTA2/"
-		debugcommand "output/exe/GTA2/havoc2.exe"
-		postbuildcommands "copy /y \"$(TargetPath)\" \"$(GTA_II_DIR)\\havoc2.exe\""
+		debugdir "$(GTA_II_DIR)/"
+		debugcommand "$(GTA_II_DIR)/havoc2.exe"
+		postbuildcommands "copy /y \"$(TargetPath)\" \"$(GTA_II_DIR)/havoc2.exe\""
 
 	filter "configurations:Release"
 		targetname "havoc2"
 		defines { "NDEBUG" }
 		optimize "On"
 		staticruntime "on"
-		debugdir "output/exe/GTA2/"
-		debugcommand "output/exe/GTA2/havoc2.exe"
-		postbuildcommands "copy /y \"$(TargetPath)\" \"$(GTA_II_DIR)\\havoc2.exe\""
+		debugdir "$(GTA_II_DIR)/"
+		debugcommand "$(GTA_II_DIR)/havoc2.exe"
+		postbuildcommands "copy /y \"$(TargetPath)\" \"$(GTA_II_DIR)/havoc2.exe\""
 	filter {}
 	

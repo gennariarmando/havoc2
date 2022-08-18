@@ -2,29 +2,42 @@
 
 ARigidBody::ARigidBody() {
 	m_pBody = Physics.m_pPhysicsWorld->createRigidBody({});
-
+	SetPosition({ 0.0f, 0.0f, 0.0f });
+	SetRotation({ 0.0f, 0.0f, 0.0f });
 	m_pBody->setAngularLockAxisFactor({ 0.0f, 0.0f, 1.0f });
-
 }
 
 ARigidBody::~ARigidBody() {
 	Physics.m_pPhysicsWorld->destroyRigidBody(m_pBody);
 }
 
-glm::vec3 const& ARigidBody::GetPosition() {
+const glm::vec3 ARigidBody::GetPosition() {
 	rp3d::Vector3 pos = m_pBody->getTransform().getPosition();
 	return { pos.x, pos.y, pos.z };
 }
 
-glm::vec3 const& ARigidBody::GetRotation() {
-	float angle = 0.0f;
-	rp3d::Vector3 axis = { 0.0f, 0.0f, 0.0f };
-	m_pBody->getTransform().getOrientation().getRotationAngleAxis(angle, axis);
+const glm::vec3 ARigidBody::GetRotation() {
+	rp3d::Quaternion q = m_pBody->getTransform().getOrientation();
+	glm::vec3 axis = {};
 
-	return { axis.x, axis.y, axis.z };
+	float sinr_cosp = 2.0f * (q.w * q.x + q.y * q.z);
+	float cosr_cosp = 1.0f - 2.0f * (q.x * q.x + q.y * q.y);
+	axis.x = std::atan2(sinr_cosp, cosr_cosp);
+
+	float sinp = 2.0f * (q.w * q.y - q.z * q.x);
+	if (std::abs(sinp) >= 1)
+		axis.y = std::copysign(glm::pi<float>() / 2, sinp);
+	else
+		axis.y = std::asin(sinp);
+
+	float siny_cosp = 2.0f * (q.w * q.z + q.x * q.y);
+	float cosy_cosp = 1.0f - 2.0f * (q.y * q.y + q.z * q.z);
+	axis.z = std::atan2(siny_cosp, cosy_cosp);
+
+	return { axis.x * 2.0f, axis.y * 2.0f, axis.z * 2.0f };
 }
 
-float const& ARigidBody::GetAngle() {
+const float ARigidBody::GetAngle() {
 	float angle = 0.0f;
 	rp3d::Vector3 axis = { 0.0f, 0.0f, 0.0f };
 	m_pBody->getTransform().getOrientation().getRotationAngleAxis(angle, axis);
@@ -32,12 +45,12 @@ float const& ARigidBody::GetAngle() {
 	return angle;
 }
 
-glm::vec3 const& ARigidBody::GetLinearVelocity() {
+const glm::vec3 ARigidBody::GetLinearVelocity() {
 	rp3d::Vector3 vel = m_pBody->getLinearVelocity();
 	return { vel.x, vel.y, vel.z };
 }
 
-glm::vec3 const& ARigidBody::GetAngularVelocity() {
+const glm::vec3 ARigidBody::GetAngularVelocity() {
 	rp3d::Vector3 vel = m_pBody->getAngularVelocity();
 	return { vel.x, vel.y, vel.z };
 }
@@ -58,13 +71,20 @@ void ARigidBody::SetRotation(glm::vec3 const& rot) {
 	m_pBody->setTransform(t);
 }
 
+void ARigidBody::SetRotation(glm::quat const& rot) {
+	rp3d::Transform t = m_pBody->getTransform();
+	rp3d::Quaternion q = { rot.x, rot.y, rot.z, rot.w };
+
+	t.setOrientation(q);
+	m_pBody->setTransform(t);
+}
+
 void ARigidBody::SetHeading(float angle) {
-	glm::vec3 rot = GetRotation();
-	SetRotation({ rot.x, rot.y, angle });
+	SetRotation({ 0.0f, 0.0f, angle });
 }
 
 void ARigidBody::SetType(glm::uint8 type) {
-	m_pBody->setType(rp3d::BodyType::STATIC);
+	m_pBody->setType(static_cast<rp3d::BodyType>(type));
 }
 
 glm::uint8 ARigidBody::GetType() {
@@ -85,6 +105,27 @@ void ARigidBody::AddCollisionTypeSphere(glm::vec3 const& pos, float const& radiu
 	t.setPosition({ pos.x, pos.y, pos.z });
 
 	m_pBody->addCollider(sphereShape, t);
+}
+
+void ARigidBody::AddCollisionTypeConvex(glm::vec3 const& pos, std::vector<glm::vec3> const& v, std::vector<glm::int32> const& i) {
+	rp3d::TriangleVertexArray* triangleArray =
+		new rp3d::TriangleVertexArray(v.size(), v.data(), 3 * sizeof(float), 6,
+			i.data(), 3 * sizeof(int),
+			rp3d::TriangleVertexArray::VertexDataType::VERTEX_FLOAT_TYPE,
+			rp3d::TriangleVertexArray::IndexDataType::INDEX_INTEGER_TYPE);
+
+	rp3d::TriangleMesh* triangleMesh = Physics.m_pPhysicsCommon->createTriangleMesh();
+
+	// Add the triangle vertex array to the triangle mesh 
+	triangleMesh->addSubpart(triangleArray);
+
+	// Create the concave mesh shape 
+	rp3d::ConcaveMeshShape* concaveMesh = Physics.m_pPhysicsCommon->createConcaveMeshShape(triangleMesh);
+
+	rp3d::Transform t = rp3d::Transform::identity();
+	t.setPosition({ pos.x, pos.y, pos.z });
+
+	m_pBody->addCollider(concaveMesh, t);
 }
 
 void ARigidBody::SetCollisionPosition(glm::uint32 index, glm::vec3 const& pos) {

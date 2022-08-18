@@ -22,21 +22,23 @@ public:
 	~ARigidBody();
 
 public:
-	glm::vec3 const& GetPosition();
-	glm::vec3 const& GetRotation();
-	float const& GetAngle();
+	const glm::vec3 GetPosition();
+	const glm::vec3 GetRotation();
+	const float GetAngle();
 
-	glm::vec3 const& GetLinearVelocity();
-	glm::vec3 const& GetAngularVelocity();
+	const glm::vec3 GetLinearVelocity();
+	const glm::vec3 GetAngularVelocity();
 
 public:
 	void SetPosition(glm::vec3 const& pos);
 	void SetRotation(glm::vec3 const& rot);
+	void SetRotation(glm::quat const& rot);
 	void SetHeading(float angle);
 	void SetType(glm::uint8 type);
 	glm::uint8 GetType();
 	void AddCollisionTypeBox(glm::vec3 const& pos, glm::vec3 const& scale);
 	void AddCollisionTypeSphere(glm::vec3 const& pos, float const& radius);
+	void AddCollisionTypeConvex(glm::vec3 const& pos, std::vector<glm::vec3> const& v, std::vector<glm::int32> const& i);
 	void SetCollisionPosition(glm::uint32 index, glm::vec3 const& pos);
 	void RemoveCollision(glm::uint32 index);
 	void SetLinearVelocity(glm::vec3 const& vel);

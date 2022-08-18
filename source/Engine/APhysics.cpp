@@ -11,7 +11,7 @@ bool APhysics::Init() {
 	if (!m_pPhysicsWorld)
 		return false;
 
-	m_pPhysicsWorld->setGravity({ 0.0f, 0.0f, 0.0f });
+	m_pPhysicsWorld->setGravity({ 0.0f, 0.0f, -DEFAULT_GRAVITY_VALUE });
 
 	return true;
 }

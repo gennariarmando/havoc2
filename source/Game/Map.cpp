@@ -24,7 +24,9 @@ CMap::CMap() {
 	m_vCachedAnims = {};
 
 	m_vChunkGeometry.reserve(MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y);
-	m_pCollisionBody = nullptr;
+	m_pCollisionBody = new ARigidBody();
+	m_pCollisionBody->SetType(BODYTYPE_STATIC);
+	m_pCollisionBody->SetPosition({ 0.0f, 0.0f, 0.0f });
 
 	m_VertexBuffer = {};
 }
@@ -295,12 +297,6 @@ void CMap::BuildChunks() {
 	glm::uint32 index = 0;
 	std::vector<tCachedAnims> cachedAnims;
 
-	if (!m_pCollisionBody) {
-		m_pCollisionBody = new ARigidBody();
-		m_pCollisionBody->SetType(BODYTYPE_STATIC);
-		m_pCollisionBody->SetPosition({ 0.0f, 0.0f, 0.0f });
-	}
-
 	glm::uint32 chunkIndex = 0;
 	for (glm::int32 i = 0; i < MAP_SCALE_Y / MAP_NUM_BLOCKS_Y; i++) {
 		for (glm::int32 j = 0; j < MAP_SCALE_X / MAP_NUM_BLOCKS_X; j++) {
@@ -369,10 +365,10 @@ void CMap::BuildChunks() {
 								(b.details[FACETYPE_BOTTOM].tile && b.details[FACETYPE_BOTTOM].tile < 992);
 						};
 
-						if (block.groundType != GROUNDTYPE_AIR && hasValidTile(block)) {
-							glm::vec3 halfExtend = { 0.5f, 0.5f, 0.5f };
-							m_pCollisionBody->AddCollisionTypeBox(offset + halfExtend, halfExtend);
-						}
+						//if (block.groundType != GROUNDTYPE_AIR && hasValidTile(block)) {
+						//	glm::vec3 halfExtend = { 0.5f, 0.5f, 0.5f };
+						//	m_pCollisionBody->AddCollisionTypeBox(offset + halfExtend, halfExtend);
+						//}
 					}
 				}
 			}

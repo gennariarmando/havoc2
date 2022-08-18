@@ -94,21 +94,15 @@ static glm::vec4 ToVec4(glm::uint8 r, glm::uint8 g, glm::uint8 b, glm::uint8 a) 
     return { r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f };
 }
 
-static float LimitAngle(float angle) {
-    float result = angle;
-
-    while (result >= 180.0f) {
-        result -= 2 * 180.0f;
-    }
-
-    while (result < -180.0f) {
-        result += 2 * 180.0f;
-    }
-
-    return result;
+static float ConstrainAngle(float x) {
+    x = fmod(x, glm::pi<float>() * 2.0f);
+    if (x < 0.0f)
+        x += glm::pi<float>() * 2.0f;
+    return x;
 }
 
 static bool DecomposeMatrix(glm::mat4 const& transformation, glm::vec3& scale, glm::quat& rotation, glm::vec3& translation, glm::vec3& skew, glm::vec4& perspective) {
     glm::decompose(transformation, scale, rotation, translation, skew, perspective);
     return true;
 }
+
