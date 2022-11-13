@@ -32,7 +32,7 @@ Open havoc2 solution.
 
 ## Run the game
 In order to launch the game, you'll need a legal copy of [GTA2](https://store.steampowered.com/app/12180/Grand_Theft_Auto_2/), no game resources will be shared in here. \
-Once obtained, copy the executable (formerly named havoc2.exe) where the game directory is and launch it.
+Once obtained, copy the executable "havoc2.exe" and the "shaders" folder in the root of your GTA2 directory.
 
 ## Links:
 - [bink](http://www.radgametools.com/bnkmain.htm)
