@@ -24,7 +24,7 @@ void CHud::DrawDebugStuff() {
     Font.SetFontStyle(FONT_STYLE_SUBTITLES);
 
     Font.SetColor(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
-    Font.PrintString({ (0.0f), 0.0f }, "player_heading:" + std::to_string(World.GetPlayer()->m_pPed->GetRigidBody()->GetRotation().z));
+    Font.PrintString({ (0.0f), 0.0f }, "player_heading:" + std::to_string(World.GetPlayer()->m_pPed->GetRigidBody()->GetHeading()));
 }
 
 void CHud::DrawProgressBar(glm::vec4 rect, float progress, glm::vec4 const& frontColor, glm::vec4 const& backColor) {

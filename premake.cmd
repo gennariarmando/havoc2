@@ -1,1 +1,1 @@
-premake5 vs2022 --with-glad --with-pugixml --with-reactphysics3d
+premake5 vs2022 --with-glad --with-pugixml

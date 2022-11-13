@@ -51,6 +51,9 @@ public:
 	CWorld();
     ~CWorld();
 
+    bool Init();
+    void Shutdown();
+
 	void Add(CEntity* e);
 	void Remove(CEntity* e);
 	bool InitMap(glm::uint8 level);

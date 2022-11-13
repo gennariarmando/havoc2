@@ -4,32 +4,34 @@
 
 APhysics Physics;
 
+APhysics::APhysics() {
+
+}
+
+APhysics::~APhysics() {
+
+}
+
 bool APhysics::Init() {
-	m_pPhysicsCommon = new rp3d::PhysicsCommon();
-	m_pPhysicsWorld = m_pPhysicsCommon->createPhysicsWorld();
-
-	if (!m_pPhysicsWorld)
-		return false;
-
-	m_pPhysicsWorld->setGravity({ 0.0f, 0.0f, -DEFAULT_GRAVITY_VALUE });
-
 	return true;
 }
 
 void APhysics::Shutdown() {
-	World.DestroyAllEntities();
-	m_pPhysicsCommon->destroyPhysicsWorld(m_pPhysicsWorld);
+
 }
 
 void APhysics::BeginFrame() {
-	if (!m_pPhysicsWorld)
-		return;
-
-	m_pPhysicsWorld->update(Time.GetDeltaTime());
+	for (auto& it : World.GetEntityList()) {
+		if (it->GetRigidBody()->GetType() == BODYTYPE_DYNAMIC) {
+			// Apply gravity
+			it->m_pRigidBody->m_vPos.z -= DEFAULT_GRAVITY_VALUE * Time.GetDeltaTime();
+		
+			it->m_pRigidBody->m_vPos += it->m_pRigidBody->m_vVelocity * Time.GetDeltaTime();
+			it->m_pRigidBody->m_vVelocity = { 0.0f, 0.0f, 0.0f };
+		}
+	}
 }
 
 void APhysics::EndFrame() {
-	if (!m_pPhysicsWorld)
-		return;
 
 }

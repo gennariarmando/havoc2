@@ -1,13 +1,12 @@
 #pragma once
 #include "common.h"
-#include <reactphysics3d/reactphysics3d.h>
 
 class APhysics {
 public:
-	rp3d::PhysicsCommon* m_pPhysicsCommon;
-	rp3d::PhysicsWorld* m_pPhysicsWorld;
 
 public:
+	APhysics();
+	~APhysics();
 	bool Init();
 	void Shutdown();
 

@@ -16,7 +16,7 @@
 CGame Game;
 
 CGame::CGame() {
-	m_eGameState = GS_LOAD;
+	m_eGameState = GS_BEGIN;
 }
 
 void CGame::Run() {
@@ -48,12 +48,10 @@ void CGame::SetGameState(eGameState state) {
 
 bool CGame::InitialiseGame(glm::uint8 level) {
 	LoadingScreen.Draw();
+
 	bool map = World.InitMap(level);
-	LoadingScreen.Draw();
 	bool style = World.InitStyle(level);
-	LoadingScreen.Draw();
 	bool playa = World.InitPlayer();
-	LoadingScreen.Draw();
 
 	if (map && style && playa)
 		return true;

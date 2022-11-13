@@ -8,10 +8,6 @@ newoption {
 	description = "Build pugixml library"
 }
 
-newoption {
-	trigger     = "with-reactphysics3d",
-	description = "Build react physics 3d library"
-}
 
 workspace "havoc2"
 	configurations { "Release", "Debug" }
@@ -98,41 +94,6 @@ project "vendor-pugixml"
         optimize "on"
 	filter {}
 end
-		
-if(_OPTIONS["with-reactphysics3d"]) then
-project "vendor-reactphysics3d"
-	location "project_files/vendor/reactphysics3d"
-    kind "StaticLib"
-    language "C++"
-    staticruntime "on"
-    targetname "reactphysics3d"
-
-	filter "platforms:x86"
-		targetdir "vendor/reactphysics3d/lib/x86"
-		objdir ("vendor/reactphysics3d/obj/x86")
-	filter "platforms:x64"
-		targetdir "vendor/reactphysics3d/lib/x64"
-		objdir ("vendor/reactphysics3d/obj/x64")
-	filter {}
-
-    files {
-		"vendor/reactphysics3d/src/**.cpp",
-		"vendor/reactphysics3d/include/**.h",
-    }
-
-    includedirs {
-        "vendor/reactphysics3d/include/"
-    }
-    
-    filter "system:windows"
-        systemversion "latest"
-    filter "configurations:Debug"
-        runtime "Debug"
-        symbols "on"
-    filter "configurations:Release"
-        runtime "Release"
-        optimize "on"
-end
    
 project "havoc2"
 	location "project_files/havoc2"
@@ -147,17 +108,16 @@ project "havoc2"
 		"vendor/glad/include",
 		"vendor/glfw/include",
 		"vendor/glm/glm",
-		"vendor/pugixml/src/",
-		"vendor/reactphysics3d/include"
+		"vendor/pugixml/src/"
 	}
 	
 	
 	filter "platforms:x86"	
 		libdirs { "vendor/*/lib/x86/" }
-		links { "glfw3", "glad", "pugixml", "reactphysics3d", "binkw32" }
+		links { "glfw3", "glad", "pugixml", "binkw32" }
 	filter "platforms:x64"	
 		libdirs { "vendor/*/lib/x64/" }
-		links { "glfw3", "glad", "pugixml", "reactphysics3d" }
+		links { "glfw3", "glad", "pugixml", }
 	filter {}
 	
 	kind "ConsoleApp"

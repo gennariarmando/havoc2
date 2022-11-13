@@ -57,6 +57,9 @@ void ACamera::Update() {
 
     }
 
+    if (Input.GetKeyJustDown(KEY_ENTER) && GetMode() == MODE_DEBUG3D)
+        GetTargetEntity()->GetRigidBody()->SetPosition(GetPosition());
+
 }
 
 void ACamera::Shutdown() {

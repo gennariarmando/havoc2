@@ -32,7 +32,7 @@ CEntity::~CEntity() {
 }
 
 void CEntity::Render() {
-	float a = GetRigidBody()->GetAngle() - glm::half_pi<float>();
+	float a = GetRigidBody()->GetHeading() - glm::half_pi<float>();
 	m_pSpriteObject->SetAllValues(GetRigidBody()->GetPosition(), { 1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f }, a, glm::vec4(1.0f));
 	m_pSpriteObject->Render();
 }
@@ -43,10 +43,11 @@ void CEntity::Update() {
 
 	UpdateEntityVectors();
 } 
+
 void CEntity::UpdateEntityVectors() {
 	glm::vec3 f;
-	f.x = cos(GetRigidBody()->GetAngle()) * cos(0.0f);
-	f.y = sin(GetRigidBody()->GetAngle()) * cos(0.0f);
+	f.x = cos(GetRigidBody()->GetHeading()) * cos(0.0f);
+	f.y = sin(GetRigidBody()->GetHeading()) * cos(0.0f);
 	f.z = sin(0.0f);
 
 	glm::vec3 u(0.0f, 0.0f, 1.0f);

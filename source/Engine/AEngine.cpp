@@ -13,6 +13,7 @@
 #include "Frontend.h"
 #include "LoadingScreen.h"
 #include "Text.h"
+#include "World.h"
 #include "version.h"
 
 AEngine Engine;
@@ -140,6 +141,10 @@ bool AEngine::Init(glm::int32 argc, char* argv[]) {
         Console.WriteLine("Error initializing physics engine");
     }
 
+    if (!World.Init()) {
+        Console.WriteLine("Error initializing world");
+    }
+
     return true;
 }
 
@@ -151,6 +156,7 @@ void AEngine::Shutdown(glm::uint32 code) {
     }
 
     Physics.Shutdown();
+    World.Shutdown();
     ASprite::Shutdown();
     Console.Shutdown();
     GraphicDevice.Shutdown();

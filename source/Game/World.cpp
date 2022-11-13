@@ -26,14 +26,26 @@ std::vector<tLevelList> levelList = {
 };
 
 CWorld::CWorld() {
+
+}
+
+CWorld::~CWorld() {
+
+}
+
+bool CWorld::Init() {
 	m_vEntities = {};
 	m_pPlayer = new CPlayerInfo();
 
 	m_pMap = new CMap();
 	m_pStyle = new CStyle();
+
+	return true;
 }
 
-CWorld::~CWorld() {
+void CWorld::Shutdown() {
+	DestroyAllEntities();
+
 	if (m_pMap)
 		delete m_pMap;
 

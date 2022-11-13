@@ -356,7 +356,7 @@ void CMap::BuildChunks() {
 
 						glm::uint32 chunkIndex = i * MAP_NUM_BLOCKS_X + j;
 						glm::vec3 offset = glm::vec3(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
-						AddBlock(chunkIndex, block, offset, offset, index, nullptr);
+						AddBlock(chunkIndex, block, offset, index, nullptr);
 
 						auto hasValidTile = [](tBlockInfoDetailed b) {
 							return (b.details[FACETYPE_LEFT].tile && b.details[FACETYPE_LEFT].tile < 992) ||
@@ -365,10 +365,6 @@ void CMap::BuildChunks() {
 								(b.details[FACETYPE_BOTTOM].tile && b.details[FACETYPE_BOTTOM].tile < 992);
 						};
 
-						//if (block.groundType != GROUNDTYPE_AIR && hasValidTile(block)) {
-						//	glm::vec3 halfExtend = { 0.5f, 0.5f, 0.5f };
-						//	m_pCollisionBody->AddCollisionTypeBox(offset + halfExtend, halfExtend);
-						//}
 					}
 				}
 			}
@@ -428,7 +424,7 @@ void CMap::Render(CStyle* style) {
 	}
 }
 
-void CMap::AddBlock(glm::uint32 chunkIndex, tBlockInfoDetailed& block, glm::vec3 const& chunkOffset, glm::vec3 const& offset, glm::uint32& index, ARigidBody* colBody) {
+void CMap::AddBlock(glm::uint32 chunkIndex, tBlockInfoDetailed& block, glm::vec3 const& chunkOffset, glm::uint32& index, ARigidBody* colBody) {
 	for (glm::int32 faceType = 0; faceType < NUM_FACETYPES; faceType++) {
 		if (!block.details[faceType].tile || block.details[faceType].tile >= 992)
 			continue;
@@ -488,10 +484,10 @@ void CMap::AddBlock(glm::uint32 chunkIndex, tBlockInfoDetailed& block, glm::vec3
 		case SLOPETYPE_DIAGONALSLOPEFACINGDOWNLEFTNOZERO:
 		case SLOPETYPE_DIAGONALSLOPEFACINGUPRIGHTNOZERO:
 		case SLOPETYPE_DIAGONALSLOPEFACINGDOWNRIGHTNOZERO:
-			AddFace(block.slopeType, FACETYPE_LID, tile, block.details[FACETYPE_LID].rotation, block.details[FACETYPE_LID].flip, false, false, offset, index);
+			AddFace(block.slopeType, FACETYPE_LID, tile, block.details[FACETYPE_LID].rotation, block.details[FACETYPE_LID].flip, false, false, chunkOffset, index);
 			break;
 		default:
-			AddFace(block.slopeType, faceType, tile, block.details[faceType].rotation, block.details[faceType].flip, block.details[faceType].flat, block.details[faceType].oppositeFlat, offset, index);
+			AddFace(block.slopeType, faceType, tile, block.details[faceType].rotation, block.details[faceType].flip, block.details[faceType].flat, block.details[faceType].oppositeFlat, chunkOffset, index);
 			break;
 		}
 		block.details[faceType].index = index - 6;

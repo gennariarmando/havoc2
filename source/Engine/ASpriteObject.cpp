@@ -19,7 +19,7 @@ void ASpriteObject::Render() {
 
 void ASpriteObject::SetAllValues(glm::vec3 const& pos, glm::vec2 scale, glm::vec3 rot, float angle, glm::vec4 col) {
 	m_vPosition = pos;
-	m_vPosition.z += 0.1f;
+	m_vPosition.z += 1.1f;
 	m_vScale = scale;
 	m_vRotation = rot;
 	m_fAngle = angle;
